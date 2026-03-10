@@ -1,8 +1,8 @@
 module.exports = {
-  displayName: 'employee-payroll',
-  preset: '../../jest.preset.js',
+  displayName: 'employee-portal',
+  preset: '../../../jest.preset.js',
   setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
-  coverageDirectory: '../../coverage/apps/employee-payroll',
+  coverageDirectory: '../../../coverage/apps/portal/employee-portal',
   transform: {
     '^.+\\.(ts|mjs|js|html)$': [
       'jest-preset-angular',
