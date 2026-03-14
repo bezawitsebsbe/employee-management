@@ -1,0 +1,13 @@
+<div class="add-payroll-container">
+  <div class="header">
+    <h1>Add Payroll Record</h1>
+    <button class="cancel-btn" (click)="onCancel()">Cancel</button>
+  </div>
+  
+  <div class="form-container">
+    <app-add-payroll-record-modal 
+      (save)="onSavePayroll($event)"
+      (cancel)="onCancel()">
+    </app-add-payroll-record-modal>
+  </div>
+</div>
