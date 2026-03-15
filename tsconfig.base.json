@@ -15,7 +15,10 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      
+      "@employee-payroll/features": ["libs/features/index.ts"],
+      "@employee-payroll/models": ["libs/models/index.ts"],
+      "@employee-payroll/core": ["libs/core/index.ts"],
+      "@employee-payroll/sidebar": ["libs/ui/sidebar/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
