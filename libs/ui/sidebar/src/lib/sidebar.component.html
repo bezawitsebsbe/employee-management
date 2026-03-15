@@ -1,0 +1,17 @@
+<div class="w-64 bg-white border-r border-gray-200 flex flex-col h-full">
+  <div class="p-6 border-b">
+    <h1 class="text-xl font-bold text-gray-800">HR Hub</h1>
+    <p class="text-sm text-gray-500">Administrator</p>
+  </div>
+
+  <nav class="flex-1 p-4 space-y-2">
+    <button
+      *ngFor="let item of items"
+      (click)="navigate(item)"
+      [class]="isActive(item) ? 'w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-orange-500 text-white' : 'w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 text-gray-700'"
+    >
+      <span [class]="isActive(item) ? 'text-white' : 'text-gray-500'">{{ item.icon }}</span>
+      <span class="font-medium">{{ item.label }}</span>
+    </button>
+  </nav>
+</div>

@@ -4,9 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { Signal } from '@angular/core';
-import { AddPayrollRecordModalComponent } from '../../../../../../../../employee-mgt/src/app/features/payroll/components/add-payroll-record-modal/add-payroll-record-modal.component';
+import { AddPayrollRecordModalComponent } from '../../components/add-payroll-record-modal/add-payroll-record-modal.component';
 import { PayrollData, PayrollFormData, PayrollRecord } from '../../models/payroll.models';
-import { PayrollFacadeService } from '../../../../../../../../employee-mgt/src/app/features/payroll/facades/payroll.facade.service';
+import { PayrollFacadeService } from '../../facades/payroll.facade.service';
 
 @Component({
   selector: 'app-payroll',
