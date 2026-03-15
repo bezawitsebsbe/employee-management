@@ -1,0 +1,122 @@
+<div class="modal-overlay" (click)="onBackdropClick($event)">
+  <div class="modal-container">
+    <h2>Add Payroll Record</h2>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Employee Name *</label>
+        <input 
+          type="text" 
+          placeholder="Enter employee name"
+          [(ngModel)]="formData.employeeName"
+          name="employeeName"
+          (input)="onInputChange()"
+        >
+      </div>
+
+      <div class="form-group">
+        <label>Employee ID *</label>
+        <input 
+          type="text" 
+          placeholder="Enter employee ID"
+          [(ngModel)]="formData.employeeId"
+          name="employeeId"
+          (input)="onEmployeeIdChange()"
+          [class.error]="employeeIdError"
+        >
+        <div class="error-message" *ngIf="employeeIdError">
+          {{ employeeIdError }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Department</label>
+        <select 
+          [(ngModel)]="formData.department"
+          name="department"
+          (change)="onInputChange()"
+        >
+          <option value="">Select department</option>
+          <option *ngFor="let dept of departments" [value]="dept">{{ dept }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Base Salary *</label>
+        <input 
+          type="number" 
+          placeholder="Enter base salary"
+          [(ngModel)]="formData.baseSalary"
+          name="baseSalary"
+          (input)="onInputChange()"
+        >
+      </div>
+
+      <div class="form-group">
+        <label>Weekly Bonus</label>
+        <input 
+          type="number" 
+          value="0"
+          [(ngModel)]="formData.weeklyBonus"
+          name="weeklyBonus"
+          (input)="onInputChange()"
+        >
+      </div>
+
+      <div class="form-group">
+        <label>Monthly Bonus</label>
+        <input 
+          type="number" 
+          value="0"
+          [(ngModel)]="formData.monthlyBonus"
+          name="monthlyBonus"
+          (input)="onInputChange()"
+        >
+      </div>
+
+      <div class="form-group">
+        <label>Job Done Bonus</label>
+        <input 
+          type="number" 
+          value="0"
+          [(ngModel)]="formData.jobDoneBonus"
+          name="jobDoneBonus"
+          (input)="onInputChange()"
+        >
+      </div>
+
+      <div class="form-group full">
+        <label>Tax</label>
+        <input 
+          type="number" 
+          value="0"
+          [(ngModel)]="formData.deductions"
+          name="deductions"
+          (input)="onInputChange()"
+        >
+      </div>
+
+      <div class="form-group">
+        <label>Status</label>
+        <select 
+          [(ngModel)]="formData.status"
+          name="status"
+          (change)="onInputChange()"
+        >
+          <option value="Processed">Processed</option>
+          <option value="Paid">Paid</option>
+          <option value="Pending">Pending</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="net-salary">
+      Net Salary: <span>${{ calculateNetSalary() }}</span>
+    </div>
+
+    <div class="actions">
+      <button class="cancel" (click)="onClose()">Cancel</button>
+      <button class="create" (click)="onSave()">Create Payroll</button>
+    </div>
+  </div>
+</div>

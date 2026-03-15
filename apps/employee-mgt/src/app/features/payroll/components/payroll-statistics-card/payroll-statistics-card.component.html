@@ -1,0 +1,20 @@
+<div class="payroll-statistics-card" [ngClass]="getCardClass()">
+  <div class="card-header">
+    <div class="card-icon">
+      <span [innerHTML]="getIcon()"></span>
+    </div>
+    <div class="card-trend">
+      <span class="trend-indicator" [ngClass]="getTrendClass()">
+        {{ getTrend() }}
+      </span>
+    </div>
+  </div>
+  
+  <div class="card-content">
+    <h3 class="card-title">{{ title }}</h3>
+    <p class="card-value">{{ value }}</p>
+    <div class="card-subtitle">
+      <span class="change-indicator">{{ getChangeText() }}</span>
+    </div>
+  </div>
+</div>

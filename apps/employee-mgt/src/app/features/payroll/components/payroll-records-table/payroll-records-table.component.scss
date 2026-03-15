@@ -1,0 +1,244 @@
+.payroll-records-table-container {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
+
+  .table-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 24px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    &::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 24px;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      border-radius: 2px;
+    }
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    background: #fafbfc;
+  }
+
+  .payroll-records-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    background: white;
+
+    thead {
+      th {
+        text-align: left;
+        padding: 16px 20px;
+        font-weight: 600;
+        color: #374151;
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        border-bottom: 2px solid #e5e7eb;
+        white-space: nowrap;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+
+        &:first-child {
+          border-top-left-radius: 12px;
+        }
+
+        &:last-child {
+          border-top-right-radius: 12px;
+        }
+      }
+    }
+
+    tbody {
+      tr {
+        transition: all 0.2s ease;
+        border-bottom: 1px solid #f3f4f6;
+
+        &:hover {
+          background: linear-gradient(90deg, #f0f9ff, #e0f2fe);
+          transform: scale(1.01);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        td {
+          padding: 20px;
+          color: #374151;
+          font-weight: 500;
+          vertical-align: middle;
+          position: relative;
+
+          &:first-child {
+            font-weight: 600;
+            color: #111827;
+            min-width: 150px;
+          }
+
+          &:not(:first-child) {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+          }
+
+          &.deductions {
+            color: #dc2626;
+            font-weight: 600;
+            background: rgba(220, 38, 38, 0.05);
+            border-radius: 6px;
+            padding: 12px 16px;
+            min-width: 100px;
+          }
+
+          &.net-salary {
+            color: #059669;
+            font-weight: 700;
+            font-size: 16px;
+            background: rgba(5, 150, 105, 0.05);
+            border-radius: 6px;
+            padding: 12px 16px;
+            min-width: 120px;
+            border: 1px solid rgba(5, 150, 105, 0.2);
+          }
+        }
+      }
+    }
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: currentColor;
+      opacity: 0.2;
+    }
+
+    &.status-paid {
+      background: linear-gradient(135deg, #d1fae5, #065f46);
+      color: white;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+
+      &::after {
+        content: '✓';
+        margin-left: 4px;
+      }
+    }
+
+    &.status-processed {
+      background: linear-gradient(135deg, #dbeafe, #1e40af);
+      color: white;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+
+      &::after {
+        content: '⚡';
+        margin-left: 4px;
+      }
+    }
+
+    &.status-pending {
+      background: linear-gradient(135deg, #fed7aa, #92400e);
+      color: white;
+      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+
+      &::after {
+        content: '⏳';
+        margin-left: 4px;
+      }
+    }
+  }
+
+  // Responsive design
+  @media (max-width: 1024px) {
+    padding: 20px;
+
+    .table-title {
+      font-size: 20px;
+    }
+
+    .payroll-records-table {
+      thead th {
+        padding: 12px 16px;
+        font-size: 12px;
+      }
+
+      tbody td {
+        padding: 16px 12px;
+        font-size: 13px;
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    padding: 16px;
+    border-radius: 12px;
+
+    .table-title {
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+
+    .table-wrapper {
+      border-radius: 8px;
+    }
+
+    .payroll-records-table {
+      thead th {
+        padding: 10px 12px;
+        font-size: 11px;
+      }
+
+      tbody td {
+        padding: 12px 8px;
+        font-size: 12px;
+
+        &:first-child {
+          min-width: 120px;
+        }
+
+        &.deductions,
+        &.net-salary {
+          padding: 8px 12px;
+          min-width: 80px;
+        }
+      }
+    }
+
+    .status-badge {
+      padding: 4px 10px;
+      font-size: 10px;
+      letter-spacing: 0.5px;
+    }
+  }
+}
