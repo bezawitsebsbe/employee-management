@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Output, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PayrollFormData } from '../../models/payroll.models';
+import { PayrollFormData, PayrollRecord } from '../../models/payroll.models';
 import { PayrollFacadeService } from '../../facades/payroll.facade.service';
 
 @Component({
@@ -38,12 +38,12 @@ export class AddPayrollRecordModalComponent implements OnInit {
   }
 
   loadExistingEmployeeIds(): void {
-    const records = this.payrollFacade.records$();
-    this.existingEmployeeIds = records.map(record => {
+    const records = this.payrollFacade.records$(); // Use () to get signal value
+    this.existingEmployeeIds = records.map((record: PayrollRecord) => { // Add type annotation
       // Extract employee ID from department field (e.g., "001 Sales" -> "001")
       const match = record.department.match(/^(\d+)/);
       return match ? match[1] : '';
-    }).filter(id => id !== '');
+    }).filter((id: string) => id !== ''); // Add type annotation
   }
 
   validateEmployeeId(): void {

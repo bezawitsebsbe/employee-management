@@ -3,6 +3,8 @@ import { Observable, catchError, finalize, tap } from 'rxjs';
 import { PayrollApiService } from '../api/payroll.api.service';
 import { PayrollStore } from '../store/payroll.state';
 import { PayrollData, PayrollRecord, PayrollFormData } from '../models/payroll.models';
+import { Signal, computed } from '@angular/core';
+import { EmployeeService } from '../../employee/api/employee.service';
 
 @Injectable({
   providedIn: 'root'
@@ -11,31 +13,107 @@ export class PayrollFacadeService {
   private readonly apiService: PayrollApiService;
   private readonly store: PayrollStore;
 
-  constructor(apiService: PayrollApiService, store: PayrollStore) {
+  constructor(apiService: PayrollApiService, store: PayrollStore, private employeeService: EmployeeService) {
     this.apiService = apiService;
     this.store = store;
+    
+    // Load payroll data from localStorage on initialization
+    this.loadFromLocalStorage();
+    
+    // If no data was loaded from storage, initialize from employee data
+    if (!this.store.payrollData() || !this.store.payrollData()?.records || this.store.payrollData()!.records!.length === 0) {
+      console.log('No payroll data loaded, initializing from employee data...');
+      this.initializeFromEmployeeData();
+    }
   }
 
-  // Public signals for components
-  public get payrollData$() {
-    return this.store.payrollData;
+  private initializeFromEmployeeData(): void {
+    console.log('Generating payroll from employee service data...');
+    
+    // Get current employees from EmployeeService (not localStorage directly)
+    this.employeeService.getEmployees().subscribe({
+      next: (employees) => {
+        console.log('Found employees from service, creating payroll records:', employees.length);
+        
+        if (employees.length > 0) {
+          const payrollRecords: PayrollRecord[] = employees.map(emp => ({
+            department: `${emp.empId} ${emp.department}`,
+            baseSalary: `$${(emp.baseSalary || 0).toFixed(2)}`,
+            leaveBonus: '$0.00',
+            weeklyBonus: '$0.00',
+            monthlyBonus: '$0.00',
+            otherBonuses: '$0.00',
+            deductions: '$0.00',
+            netSalary: `$${(emp.baseSalary || 0).toFixed(2)}`,
+            status: 'Processed' as const
+          }));
+          
+          // Calculate statistics
+          const totalPayroll = employees.reduce((sum, emp) => sum + (emp.baseSalary || 0), 0);
+          const statistics = {
+            totalPayroll: `$${totalPayroll.toFixed(2)}`,
+            totalBonuses: '$0.00',
+            deductions: '$0.00',
+            employees: employees.length
+          };
+          
+          const payrollData: PayrollData = {
+            statistics,
+            records: payrollRecords
+          };
+          
+          this.store.setPayrollData(payrollData);
+          this.saveToLocalStorage();
+          console.log('Payroll generated from employee service data:', payrollRecords.length);
+        }
+      },
+      error: (error) => {
+        console.error('Error getting employees from service:', error);
+      }
+    });
   }
 
-  public get records$() {
-    return this.store.records;
+  private loadFromLocalStorage(): void {
+    try {
+      console.log('PayrollFacade: Loading payroll data from localStorage...');
+      const storedPayroll = localStorage.getItem('payroll');
+      
+      if (storedPayroll) {
+        try {
+          const parsedPayroll = JSON.parse(storedPayroll);
+          if (parsedPayroll && parsedPayroll.records) {
+            console.log('PayrollFacade: Loaded payroll from localStorage:', parsedPayroll.records.length);
+            this.store.setPayrollData(parsedPayroll);
+          }
+        } catch (parseError) {
+          console.error('PayrollFacade: Error parsing payroll from localStorage:', parseError);
+        }
+      } else {
+        console.log('PayrollFacade: No payroll data in localStorage');
+      }
+    } catch (error) {
+      console.error('PayrollFacade: Error loading from localStorage:', error);
+    }
   }
 
-  public get statistics$() {
-    return this.store.statistics;
+  private saveToLocalStorage(): void {
+    try {
+      const currentPayrollData = this.store.payrollData();
+      if (currentPayrollData) {
+        localStorage.setItem('payroll', JSON.stringify(currentPayrollData));
+        console.log('PayrollFacade: Saved payroll to localStorage:', currentPayrollData.records?.length);
+      }
+    } catch (error) {
+      console.error('PayrollFacade: Error saving to localStorage:', error);
+    }
   }
 
-  public get loading$() {
-    return this.store.loading;
-  }
-
-  public get error$() {
-    return this.store.error;
-  }
+  // Public signals for components - use computed to ensure proper initialization
+  public readonly payrollData$ = computed(() => this.store.payrollData());
+  public readonly records$ = computed(() => this.store.records());
+  public readonly statistics$ = computed(() => this.store.statistics());
+  public readonly loading$ = computed(() => this.store.loading());
+  public readonly error$ = computed(() => this.store.error());
 
   // Actions
   public loadPayrollData(): void {
@@ -78,7 +156,11 @@ export class PayrollFacadeService {
     };
 
     return this.apiService.savePayrollRecord(newRecord).pipe(
-      tap(record => this.store.addRecord(record)),
+      tap(record => {
+        this.store.addRecord(record);
+        this.saveToLocalStorage(); // Save after adding
+        console.log('PayrollFacade: Added record and saved to localStorage');
+      }),
       catchError(error => {
         const errorMessage = this.handleError(error);
         this.store.setError(errorMessage);
@@ -93,7 +175,11 @@ export class PayrollFacadeService {
     this.store.setError(null);
 
     return this.apiService.updatePayrollRecord(index, record).pipe(
-      tap(updatedRecord => this.store.updateRecord(index, updatedRecord)),
+      tap(updatedRecord => {
+        this.store.updateRecord(index, updatedRecord);
+        this.saveToLocalStorage(); // Save after updating
+        console.log('PayrollFacade: Updated record and saved to localStorage');
+      }),
       catchError(error => {
         const errorMessage = this.handleError(error);
         this.store.setError(errorMessage);
@@ -108,7 +194,11 @@ export class PayrollFacadeService {
     this.store.setError(null);
 
     return this.apiService.deletePayrollRecord(index).pipe(
-      tap(() => this.store.deleteRecord(index)),
+      tap(() => {
+        this.store.deleteRecord(index);
+        this.saveToLocalStorage(); // Save after deleting
+        console.log('PayrollFacade: Deleted record and saved to localStorage');
+      }),
       catchError(error => {
         const errorMessage = this.handleError(error);
         this.store.setError(errorMessage);

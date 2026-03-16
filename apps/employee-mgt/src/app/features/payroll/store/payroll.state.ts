@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, computed } from '@angular/core';
 import { PayrollData, PayrollRecord, PayrollStatistics } from '../models/payroll.models';
 
 export interface PayrollState {
@@ -50,12 +50,12 @@ export class PayrollStore {
 
   private readonly state = signal<PayrollState>(this.initialState);
 
-  // Public signals
-  public readonly payrollData = this.state().payrollData;
-  public readonly records = this.state().payrollData.records;
-  public readonly statistics = this.state().payrollData.statistics;
-  public readonly loading = this.state().loading;
-  public readonly error = this.state().error;
+  // Public computed signals
+  public readonly payrollData = computed(() => this.state().payrollData);
+  public readonly records = computed(() => this.state().payrollData.records);
+  public readonly statistics = computed(() => this.state().payrollData.statistics);
+  public readonly loading = computed(() => this.state().loading);
+  public readonly error = computed(() => this.state().error);
 
   // State mutations
   public setPayrollData(data: PayrollData): void {

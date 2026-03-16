@@ -1,0 +1,125 @@
+/* Sidebar Component Styles */
+:host {
+  display: block;
+  height: 100%;
+}
+
+.w-64 {
+  width: 16rem;
+}
+
+.bg-white {
+  background-color: white;
+}
+
+.border-r {
+  border-right-width: 1px;
+  border-right-style: solid;
+  border-right-color: #e5e7eb;
+}
+
+.border-gray-200 {
+  border-color: #e5e7eb;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.h-full {
+  height: 100%;
+}
+
+.p-6 {
+  padding: 1.5rem;
+}
+
+.border-b {
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-bottom-color: #e5e7eb;
+}
+
+.text-xl {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+.text-gray-800 {
+  color: #1f2937;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.text-gray-500 {
+  color: #6b7280;
+}
+
+.flex-1 {
+  flex: 1 1 0%;
+}
+
+.p-4 {
+  padding: 1rem;
+}
+
+.space-y-2 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 0.5rem;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.gap-3 {
+  gap: 0.75rem;
+}
+
+.px-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.py-3 {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+.rounded-xl {
+  border-radius: 0.75rem;
+}
+
+.bg-orange-500 {
+  background-color: #f97316;
+}
+
+.text-white {
+  color: white;
+}
+
+.hover\:bg-gray-100:hover {
+  background-color: #f3f4f6;
+}
+
+.text-gray-700 {
+  color: #374151;
+}
+
+.font-medium {
+  font-weight: 500;
+}

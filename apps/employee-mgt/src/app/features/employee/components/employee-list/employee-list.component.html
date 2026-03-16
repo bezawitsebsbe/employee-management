@@ -4,7 +4,7 @@
   class="h-full overflow-hidden shadow-sm bg-white rounded-xl"
 >
   <div
-    class="space-y-3 max-h-[calc(100vh-180px)] overflow-y-auto pr-3 custom-scrollbar"
+    class="space-y-3 max-h-[calc(100vh-140px)] overflow-y-auto pr-3 custom-scrollbar"
   >
     @for (emp of facade.filteredEmployees(); track emp.id) {
       <nz-card
@@ -42,16 +42,6 @@
               >
                 {{ emp.status }}
               </nz-tag>
-              <span class="text-sm text-gray-600">{{ emp.department }}</span>
-            </div>
-
-            <div class="mt-2 flex items-center gap-1.5 text-sm text-gray-700">
-              <span
-                nz-icon
-                nzType="trophy"
-                class="text-amber-500 text-base"
-              ></span>
-              <span class="font-medium">{{ emp.performance }}%</span>
             </div>
           </div>
         </div>

@@ -1,24 +1,26 @@
-<div class="flex">
+<div class="flex h-screen bg-gray-100">
   <!-- Sidebar -->
   <app-sidebar [items]="sidebarItems"></app-sidebar>
+
   <!-- Main Content -->
-  <div class="flex-1 bg-gray-50 p-6">
+  <main class="flex-1 p-6 md:p-8 overflow-y-auto">
     <!-- Page Title -->
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-2xl font-semibold">Attendance</h1>
-
-      <button
-        nz-button
-        nzType="primary"
-        class="bg-orange-500 border-orange-500 hover:bg-orange-600"
-        (click)="checkIn()"
-      >
-        Check In
-      </button>
+      <div class="flex gap-2">
+        <button
+          nz-button
+          nzType="default"
+          (click)="resetAllAttendance()"
+          class="border-gray-300"
+        >
+          Reset All
+        </button>
+      </div>
     </div>
 
     <!-- Summary Cards -->
-    <div class="grid grid-cols-4 gap-6 mb-6">
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-6">
       <div class="bg-white rounded-xl p-5 shadow-sm">
         <p class="text-gray-500 text-sm">Present Today</p>
         <h2 class="text-3xl font-semibold mt-1">
@@ -97,7 +99,7 @@
 
     <!-- Attendance Table -->
     <div class="bg-white rounded-xl shadow-sm p-4">
-      <nz-table #attendanceTable [nzData]="attendanceData()" nzBordered>
+      <nz-table #attendanceTable [nzData]="facade.employees()" nzBordered>
         <thead>
           <tr>
             <th nzWidth="200px">Employee</th>
@@ -110,53 +112,83 @@
         </thead>
 
         <tbody>
-          @for (data of attendanceData(); track data.employeeId) {
+          @for (emp of facade.employees(); track emp.id) {
+            @let attendance = getEmployeeAttendance(emp.id);
             <tr>
               <td class="font-medium">
-                {{ data.name }}
+                <div class="flex items-center gap-2">
+                  <div
+                    class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm"
+                    [style.backgroundColor]="emp.avatarColor || '#1890ff'"
+                  >
+                    {{ emp.initials }}
+                  </div>
+                  <div>
+                    <div>{{ emp.fullName }}</div>
+                    <div class="text-xs text-gray-500">{{ emp.empId }}</div>
+                  </div>
+                </div>
               </td>
 
-              <td>{{ data.department }}</td>
+              <td>{{ emp.department }}</td>
 
               <td>
-                @if (data.checkin === '-') {
-                  <button
-                    nz-button
-                    nzType="primary"
-                    size="small"
-                    (click)="checkIn(data.employeeId)"
-                    class="bg-green-500 border-green-500"
-                  >
-                    Check In
-                  </button>
+                @if (emp.status === 'Active') {
+                  @if (attendance.checkIn === '-') {
+                    <button
+                      nz-button
+                      nzType="primary"
+                      size="small"
+                      (click)="checkIn(emp.id)"
+                      class="bg-green-500 border-green-500"
+                    >
+                      Check In
+                    </button>
+                  } @else {
+                    <span class="text-green-600 font-medium">{{ attendance.checkIn }}</span>
+                  }
                 } @else {
-                  <button
-                    nz-button
-                    nzType="default"
-                    size="small"
-                    (click)="checkOut(data.employeeId)"
-                    class="bg-red-500 border-red-500 text-white"
-                  >
-                    Check Out
-                  </button>
+                  <span class="text-gray-400">Not Available</span>
                 }
               </td>
 
-              <td>{{ data.checkout }}</td>
+              <td>
+                @if (emp.status === 'Active') {
+                  @if (attendance.checkIn !== '-' && attendance.checkOut === '-') {
+                    <button
+                      nz-button
+                      nzType="default"
+                      size="small"
+                      (click)="checkOut(emp.id)"
+                      class="bg-red-500 border-red-500 text-white"
+                    >
+                      Check Out
+                    </button>
+                  } @else if (attendance.checkOut !== '-') {
+                    <span class="text-red-600 font-medium">{{ attendance.checkOut }}</span>
+                  } @else {
+                    <span class="text-gray-400">-</span>
+                  }
+                } @else {
+                  <span class="text-gray-400">Not Available</span>
+                }
+              </td>
 
-              <td>{{ data.hours }}</td>
+              <td>
+                <span class="font-medium">{{ attendance.workingHours }}</span>
+              </td>
 
               <td>
                 <nz-tag
                   [nzColor]="
-                    data.status === 'Present'
+                    attendance.status === 'Present'
                       ? 'green'
-                      : data.status === 'Late'
+                      : attendance.status === 'On Leave'
                         ? 'orange'
                         : 'red'
                   "
                 >
-                  {{ data.status }}
+                  {{ attendance.status }}
                 </nz-tag>
               </td>
             </tr>
@@ -164,5 +196,5 @@
         </tbody>
       </nz-table>
     </div>
-  </div>
+  </main>
 </div>

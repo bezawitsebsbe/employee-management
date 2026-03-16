@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -13,6 +13,7 @@ import { Employee } from '../../api/employee.model';
 import { EmployeeSimpleFacade } from '../../facades/employee-simple.facade';
 import { EmployeeListComponent } from '../../components/employee-list/employee-list.component';
 import { EmployeeDetailComponent } from '../../components/employee-detail/employee-detail.component';
+import { AddEmployeeModalComponent } from '../../components/add-employee-modal/add-employee-modal.component';
 import { SidebarComponent } from '@employee-payroll/sidebar';
 
 @Component({
@@ -32,6 +33,7 @@ import { SidebarComponent } from '@employee-payroll/sidebar';
     SidebarComponent,
     EmployeeListComponent,
     EmployeeDetailComponent,
+    AddEmployeeModalComponent,
   ],
   templateUrl: './employee-page.component.html',
   styleUrls: ['./employee-page.component.scss'],
@@ -42,9 +44,10 @@ export class EmployeePageComponent {
     { label: 'Employee', icon: '👥', path: '/employees' },
     { label: 'Payroll', icon: '💰', path: '/payroll' },
     { label: 'Attendance', icon: '🕒', path: '/attendance' },
-    { label: 'Leave Request', icon: '📅', path: '/leave' },
   ];
   private facade = inject(EmployeeSimpleFacade);
+  
+  @ViewChild('addEmployeeModal') addEmployeeModal!: AddEmployeeModalComponent;
 
   // Expose facade signals to template
   employees = this.facade.employees;
@@ -77,11 +80,42 @@ export class EmployeePageComponent {
     this.facade.setStatusFilter(status);
   }
 
-  // Placeholder methods
+  // Add employee functionality
   addNewEmployee() {
-    alert('Add employee modal coming soon');
+    this.addEmployeeModal.show();
   }
+
+  // Export functionality
   exportEmployees() {
-    alert('Export functionality coming soon');
+    try {
+      const employees = this.facade.employees();
+      if (!employees || employees.length === 0) {
+        alert('No employees to export');
+        return;
+      }
+
+      let csv = 'Employee ID,Full Name,Email,Phone,Department,Position,Join Date,Status,Base Salary,Performance\n';
+      
+      employees.forEach(emp => {
+        csv += `"${emp.empId}","${emp.fullName}","${emp.email}","${emp.phone || ''}","${emp.department}","${emp.position}","${emp.joinDate}","${emp.status}","${emp.baseSalary || 0}","${emp.performance || 0}"\n`;
+      });
+      
+      this.downloadCSV(csv);
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert('Export failed. Please try again.');
+    }
+  }
+
+  private downloadCSV(csvData: string): void {
+    const blob = new Blob([csvData], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `employee-data-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
   }
 }

@@ -3,7 +3,7 @@ import { AUTH_ROUTES } from '@employee-payroll/features';
 import { DashboardComponent } from '@employee-payroll/features';
 import { EmployeePageComponent } from './features/employee/pages/employee-page/employee-page.component';
 import { AttendanceComponent } from './features/employee/pages/attendance/attendance.component';
-import { PayrollComponent } from './features/payroll/pages/payroll/payroll.component';
+import { PAYROLL_ROUTES } from './features/payroll/payroll.routing';
 
 export const appRoutes: Routes = [
   {
@@ -21,19 +21,16 @@ export const appRoutes: Routes = [
   },
   {
     path: 'payroll',
-    component: PayrollComponent,
+    children: PAYROLL_ROUTES,
   },
-  // {
-  //   path: 'leave',
-  //   loadComponent: () => import('./features/employee/pages/leave/leave.component').then(m => m.LeaveComponent)
-  // },
+  
   {
     path: '',
-    redirectTo: '/dashboard',
+    redirectTo: '/auth/signin',
     pathMatch: 'full',
   },
   {
     path: '**',
-    redirectTo: '/dashboard',
+    redirectTo: '/auth/signin',
   },
 ];

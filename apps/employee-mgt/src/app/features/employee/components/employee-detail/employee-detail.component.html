@@ -1,4 +1,4 @@
-<nz-card [nzBordered]="false" class="h-full shadow-sm rounded-xl bg-white p-2">
+<nz-card [nzBordered]="false" class="h-full shadow-sm rounded-xl bg-white p-2 ">
   @if (selected(); as emp) {
     <!-- HEADER -->
     <div class="flex justify-between items-start mb-6">
@@ -52,7 +52,7 @@
             class="bg-orange-500 border-orange-500 flex items-center gap-1 rounded-l"
             (click)="isEditing = true"
           >
-            <span nz-icon nzType="edit"></span> Edit
+            <span nz-icon nzType="form"></span> Edit
           </button>
           <button nz-button nzDanger (click)="deleteEmployee()">
             <span nz-icon nzType="delete"></span>
@@ -112,17 +112,7 @@
           </nz-form-control>
         </nz-form-item>
 
-        <nz-form-item>
-          <nz-form-label>Department</nz-form-label>
-          <nz-form-control>
-            <nz-select formControlName="department" [nzDisabled]="!isEditing">
-              <nz-option nzValue="Sales" nzLabel="Sales"></nz-option>
-              <nz-option nzValue="Marketing" nzLabel="Marketing"></nz-option>
-              <nz-option nzValue="HR" nzLabel="HR"></nz-option>
-              <nz-option nzValue="IT" nzLabel="IT"></nz-option>
-            </nz-select>
-          </nz-form-control>
-        </nz-form-item>
+        
 
         <nz-form-item>
           <nz-form-label>Position</nz-form-label>
