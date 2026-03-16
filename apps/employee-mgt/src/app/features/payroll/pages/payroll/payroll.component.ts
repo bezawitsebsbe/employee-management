@@ -182,10 +182,21 @@ export class PayrollComponent implements OnInit, OnDestroy {
 
   onDeleteRecord(index: number): void {
     if (confirm('Are you sure you want to delete this payroll record?')) {
+      const recordToDelete = this.filteredRecords[index];
       const actualRecords = this.records$();
-      const actualIndex = actualRecords.findIndex(
-        (record) => this.filteredRecords[index] === record,
+      
+      // Find the record in the actual array using multiple properties for reliable matching
+      const actualIndex = actualRecords.findIndex((record) => 
+        record.department === recordToDelete.department && 
+        record.baseSalary === recordToDelete.baseSalary &&
+        record.netSalary === recordToDelete.netSalary &&
+        record.status === recordToDelete.status
       );
+
+      console.log('Delete attempt - Filtered index:', index);
+      console.log('Record to delete:', recordToDelete);
+      console.log('Found actual index:', actualIndex);
+      console.log('Total records:', actualRecords.length);
 
       if (actualIndex !== -1) {
         this.payrollFacade
@@ -210,6 +221,9 @@ export class PayrollComponent implements OnInit, OnDestroy {
               alert('Failed to delete record. Please try again.');
             },
           });
+      } else {
+        console.error('Could not find record to delete');
+        alert('Error: Could not find record to delete');
       }
     }
   }

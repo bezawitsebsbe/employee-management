@@ -10,8 +10,12 @@
           placeholder="Enter employee name"
           [(ngModel)]="formData.employeeName"
           name="employeeName"
-          (input)="onInputChange()"
+          (input)="onEmployeeNameChange()"
+          [class.error]="employeeNameError"
         >
+        <div class="error-message" *ngIf="employeeNameError">
+          {{ employeeNameError }}
+        </div>
       </div>
 
       <div class="form-group">
@@ -30,15 +34,19 @@
       </div>
 
       <div class="form-group">
-        <label>Department</label>
+        <label>Position</label>
         <select 
           [(ngModel)]="formData.department"
           name="department"
           (change)="onInputChange()"
+          [disabled]="isEmployeeFound()"
         >
-          <option value="">Select department</option>
-          <option *ngFor="let dept of departments" [value]="dept">{{ dept }}</option>
+          <option value="">Select position</option>
+          <option *ngFor="let position of positions" [value]="position">{{ position }}</option>
         </select>
+        <div class="info-text" *ngIf="isEmployeeFound()">
+          Auto-filled from employee record
+        </div>
       </div>
 
       <div class="form-group">
@@ -49,18 +57,12 @@
           [(ngModel)]="formData.baseSalary"
           name="baseSalary"
           (input)="onInputChange()"
+          [readonly]="isEmployeeFound()"
+          [class.readonly-field]="isEmployeeFound()"
         >
-      </div>
-
-      <div class="form-group">
-        <label>Weekly Bonus</label>
-        <input 
-          type="number" 
-          value="0"
-          [(ngModel)]="formData.weeklyBonus"
-          name="weeklyBonus"
-          (input)="onInputChange()"
-        >
+        <div class="info-text" *ngIf="isEmployeeFound()">
+          Auto-filled from employee record
+        </div>
       </div>
 
       <div class="form-group">
@@ -75,25 +77,27 @@
       </div>
 
       <div class="form-group">
-        <label>Job Done Bonus</label>
+        <label>Tax (Based on ETB Income Brackets)</label>
         <input 
-          type="number" 
-          value="0"
-          [(ngModel)]="formData.jobDoneBonus"
-          name="jobDoneBonus"
-          (input)="onInputChange()"
+          type="text" 
+          readonly
+          [value]="'$' + calculatedTax"
+          name="tax"
+          class="readonly-field"
         >
+        <div class="info-text">Tax calculated based on monthly income (ETB): 0% (≤600), 10% (601-1,650), 15% (1,651-3,200), 20% (3,201-5,250), 25% (5,251-7,800), 30% (7,801-10,900), 35% (>10,900)</div>
       </div>
 
-      <div class="form-group full">
-        <label>Tax</label>
+      <div class="form-group">
+        <label>Pension (7% of Basic Salary)</label>
         <input 
-          type="number" 
-          value="0"
-          [(ngModel)]="formData.deductions"
-          name="deductions"
-          (input)="onInputChange()"
+          type="text" 
+          readonly
+          [value]="'$' + calculatedPension"
+          name="pension"
+          class="readonly-field"
         >
+        <div class="info-text">Automatically calculated as 7% of basic salary</div>
       </div>
 
       <div class="form-group">
@@ -103,9 +107,8 @@
           name="status"
           (change)="onInputChange()"
         >
-          <option value="Processed">Processed</option>
-          <option value="Paid">Paid</option>
           <option value="Pending">Pending</option>
+          <option value="Paid">Paid</option>
         </select>
       </div>
     </div>

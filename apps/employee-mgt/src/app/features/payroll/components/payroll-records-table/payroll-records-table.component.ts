@@ -16,9 +16,9 @@ export class PayrollRecordsTableComponent {
     'department',
     'baseSalary',
     'leaveBonus',
-    'weeklyBonus',
+    
     'monthlyBonus',
-    'otherBonuses',
+    
     'deductions',
     'netSalary',
     'status'
@@ -28,9 +28,9 @@ export class PayrollRecordsTableComponent {
     department: 'Department',
     baseSalary: 'Base Salary',
     leaveBonus: 'Leave Bonus',
-    weeklyBonus: 'Weekly Bonus',
+    
     monthlyBonus: 'Monthly Bonus',
-    otherBonuses: 'Other Bonuses',
+   
     deductions: 'Deductions',
     netSalary: 'Net Salary',
     status: 'Status'
@@ -40,8 +40,7 @@ export class PayrollRecordsTableComponent {
     switch (status) {
       case 'Paid':
         return 'status-paid';
-      case 'Processed':
-        return 'status-processed';
+     
       case 'Pending':
         return 'status-pending';
       default:
