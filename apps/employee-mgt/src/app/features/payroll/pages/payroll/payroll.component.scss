@@ -3,6 +3,7 @@
   background-color: #f8fafc;
   min-height: 100vh;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  
 
   .page-header {
     display: flex;
@@ -153,6 +154,7 @@
     border-radius: 12px;
     border: 1px solid #e2e8f0;
     overflow: hidden;
+    padding-bottom: 20px;
 
     .records-header {
       display: flex;
@@ -178,8 +180,7 @@
           border: 1px solid #e2e8f0;
           border-radius: 6px;
           font-size: 14px;
-          width: 200px;
-          outline: none;
+          min-width: 200px;
 
           &:focus {
             border-color: #f97316;
@@ -490,7 +491,7 @@
   }
 }
 
-// Responsive design
+// Responsive design for modals
 @media (max-width: 768px) {
   .modal-container {
     padding: 1.5rem;

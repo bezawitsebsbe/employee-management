@@ -9,6 +9,11 @@ import {
   LineChartOutline,
   ClockCircleOutline,
   HistoryOutline,
+  DownloadOutline,
+  PlusOutline,
+  FormOutline,
+  ApartmentOutline,
+  BankOutline,
 } from '@ant-design/icons-angular/icons';
 
 import {
@@ -27,6 +32,7 @@ import { employeeReducer } from './features/employee/store/employee.reducer';
 import { EmployeeEffects } from './features/employee/store/employee.effects';
 
 import { AuthService } from '@employee-payroll/core'; // assuming this is injectable
+import { DashboardBridgeService } from './services/dashboard-bridge.service';
 
 import { provideBrowserGlobalErrorListeners } from '@angular/core'; // if you really need it
 
@@ -46,6 +52,11 @@ export const appConfig: ApplicationConfig = {
       DeleteOutline,
       MailOutline,
       PhoneOutline,
+      DownloadOutline,
+      PlusOutline,
+      FormOutline,
+      ApartmentOutline,
+      BankOutline,
     ]),
 
     // ── NgRx ────────────────────────────────────────────────────────────────
@@ -64,6 +75,7 @@ export const appConfig: ApplicationConfig = {
     }),
 
     AuthService, // if it's @Injectable({ providedIn: 'root' }) → no need to provide manually
+    DashboardBridgeService, // Bridge service for dashboard integration
 
     provideBrowserGlobalErrorListeners(), // keep if you need it
   ],

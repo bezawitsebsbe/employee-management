@@ -71,13 +71,12 @@
         class="rounded-xl shadow-sm border border-gray-100 text-center"
       >
         <nz-statistic
-          nzTitle="Avg Performance"
+          nzTitle="Total Departments"
           [nzValue]="summary().avgPerformance"
-          nzSuffix="%"
           [nzValueStyle]="{ 'font-weight': 700, color: '#111827' }"
         >
           <ng-template #prefix>
-            <span nz-icon nzType="trophy" class="text-orange-500"></span>
+            <span nz-icon nzType="apartment" class="text-purple-600"></span>
           </ng-template>
         </nz-statistic>
       </nz-card>
@@ -136,9 +135,16 @@
     </div>
 
     <!-- List + Detail -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <app-employee-list></app-employee-list>
-      <app-employee-detail></app-employee-detail>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-1">
+        <app-employee-list></app-employee-list>
+      </div>
+      <div class="lg:col-span-2">
+        <app-employee-detail></app-employee-detail>
+      </div>
     </div>
+
+    <!-- Add Employee Modal -->
+    <app-add-employee-modal #addEmployeeModal></app-add-employee-modal>
   </main>
 </div>

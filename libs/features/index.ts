@@ -1,2 +1,3 @@
 export * from './auth';
-export * from './dashboard';
+export * from './dashboard/src/index';
+export * from './dashboard/src/lib/dashboard.service';

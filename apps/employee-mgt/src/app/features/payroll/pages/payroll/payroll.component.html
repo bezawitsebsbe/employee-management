@@ -1,237 +1,242 @@
-<div class="payroll-container">
-  <!-- Header Section -->
-  <div class="page-header">
-    <div class="header-left">
-      <h1 class="page-title">Payroll Management</h1>
-      <p class="page-subtitle">Manage employee salaries and bonuses</p>
-    </div>
-    <div class="header-right">
-      <button class="btn btn-export" (click)="onExport()">
-        <span class="btn-icon">📥</span>
-        Export
-      </button>
-      <button class="btn btn-primary" (click)="onAddPayroll()">
-        <span class="btn-icon">➕</span>
-        Add Payroll
-      </button>
-    </div>
-  </div>
+<div class="flex h-screen bg-gray-100">
+  <!-- Sidebar -->
+  <app-sidebar [items]="sidebarItems"></app-sidebar>
 
-  <!-- Statistics Cards -->
-  <div class="stats-container">
-    <div class="stat-card">
-      <div class="stat-icon">
-        <span>$</span>
+  <div class="payroll-container flex-1 overflow-x-hidden ">
+    <!-- Header Section -->
+    <div class="page-header">
+      <div class="header-left">
+        <h1 class="page-title">Payroll Management</h1>
+        <p class="page-subtitle">Manage employee salaries and bonuses</p>
       </div>
-      <div class="stat-content">
-        <h3>Total Payroll</h3>
-        <p class="stat-value">$12,820</p>
-        <span class="stat-change positive">+12.5%</span>
-      </div>
-    </div>
-    
-    <div class="stat-card">
-      <div class="stat-icon">
-        <span>🎁</span>
-      </div>
-      <div class="stat-content">
-        <h3>Total Bonuses</h3>
-        <p class="stat-value">$4,150</p>
-        <span class="stat-change positive">+8.2%</span>
+      <div class="header-right">
+        <button class="btn btn-export" (click)="onExport()">
+          <span class="btn-icon">📥</span>
+          Export
+        </button>
+        <button class="btn btn-primary" (click)="onAddPayroll()">
+          <span class="btn-icon">➕</span>
+          Add Payroll
+        </button>
       </div>
     </div>
-    
-    <div class="stat-card">
-      <div class="stat-icon">
-        <span>📉</span>
-      </div>
-      <div class="stat-content">
-        <h3>Deductions</h3>
-        <p class="stat-value">$830</p>
-        <span class="stat-change negative">-3.1%</span>
-      </div>
-    </div>
-    
-    <div class="stat-card">
-      <div class="stat-icon">
-        <span>👥</span>
-      </div>
-      <div class="stat-content">
-        <h3>Employees</h3>
-        <p class="stat-value">2</p>
-        <span class="stat-change positive">+2 new</span>
-      </div>
-    </div>
-  </div>
 
-  <!-- Records Section -->
-  <div class="records-container">
-    <div class="records-header">
-      <h2>Payroll Records</h2>
-      <div class="search-filter">
-        <input 
-          type="text" 
-          placeholder="Search by employee ID or department..." 
-          class="search-input"
-          (input)="onSearch($event)"
-          [value]="searchTerm"
-        >
-        <select 
-          class="filter-select"
-          (change)="onDepartmentChange($event)"
-          [value]="selectedDepartment"
-        >
-          <option value="">All Departments</option>
-          <option value="sales">Sales</option>
-          <option value="marketing">Marketing</option>
-          <option value="engineering">Engineering</option>
-          <option value="hr">HR</option>
-          <option value="finance">Finance</option>
-          <option value="operations">Operations</option>
-        </select>
+    <!-- Statistics Cards -->
+    <div class="stats-container">
+      <div class="stat-card">
+        <div class="stat-icon">
+          <span>$</span>
+        </div>
+        <div class="stat-content">
+          <h3>Total Payroll</h3>
+          <p class="stat-value">{{ calculateTotalPayroll() }}</p>
+          <span class="stat-change positive">+12.5%</span>
+        </div>
       </div>
-    </div>
-    
-    <div class="table-container">
-      <table class="records-table">
-        <thead>
-          <tr>
-            <th>Department</th>
-            <th>Base Salary</th>
-            <th>Weekly Bonus</th>
-            <th>Monthly Bonus</th>
-            <th>Other Bonuses</th>
-            <th>Tax</th>
-            <th>Net Salary</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let record of filteredRecords; let i = index">
-            <td>{{ record.department }}</td>
-            <td>{{ record.baseSalary }}</td>
-            <td>{{ record.weeklyBonus }}</td>
-            <td>{{ record.monthlyBonus }}</td>
-            <td>{{ record.otherBonuses }}</td>
-            <td class="deduction">{{ record.deductions }}</td>
-            <td class="net-salary">{{ record.netSalary }}</td>
-            <td><span class="status-badge" [class]="record.status.toLowerCase()">{{ record.status }}</span></td>
-            <td>
-              <div class="action-buttons">
-                <button class="btn-edit" (click)="onEditRecord(i)" title="Edit Record">
-                  <span>✏️</span>
-                </button>
-                <button class="btn-delete" (click)="onDeleteRecord(i)" title="Delete Record">
-                  <span>🗑️</span>
-                </button>
-              </div>
-            </td>
-          </tr>
-          <tr *ngIf="filteredRecords.length === 0">
-            <td colspan="9" class="no-records">
-              {{ searchTerm ? 'No records found matching your search.' : 'No payroll records found. Click "Add Payroll" to create your first record.' }}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Add Payroll Modal -->
-  <app-add-payroll-record-modal
-    *ngIf="showAddModal"
-    (close)="onCloseModal()"
-    (save)="onSavePayroll($event)"
-  ></app-add-payroll-record-modal>
-
-  <!-- Edit Payroll Modal -->
-  <div class="modal-overlay" *ngIf="showEditModal && editingRecord" (click)="onCloseEditModal()">
-    <div class="modal-container" (click)="$event.stopPropagation()">
-      <h2>Edit Payroll Record</h2>
-      <p>Debug: Modal is open for {{ editingRecord.department }}</p>
       
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Department/Employee</label>
+      <div class="stat-card">
+        <div class="stat-icon">
+          <span>🎁</span>
+        </div>
+        <div class="stat-content">
+          <h3>Total Bonuses</h3>
+          <p class="stat-value">{{ calculateTotalBonuses() }}</p>
+          <span class="stat-change positive">+8.2%</span>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">
+          <span>📉</span>
+        </div>
+        <div class="stat-content">
+          <h3>Deductions</h3>
+          <p class="stat-value">{{ calculateTotalDeductions() }}</p>
+          <span class="stat-change negative">-3.1%</span>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">
+          <span>👥</span>
+        </div>
+        <div class="stat-content">
+          <h3>Employees</h3>
+          <p class="stat-value">{{ getEmployeeCount() }}</p>
+          <span class="stat-change positive">+2 new</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Records Section -->
+    <div class="records-container">
+      <div class="records-header">
+        <h2>Payroll Records</h2>
+        <div class="search-filter">
           <input 
             type="text" 
-            [(ngModel)]="editingRecord.department"
-            name="department"
-            readonly
+            placeholder="Search by employee ID or department..." 
+            class="search-input"
+            (input)="onSearch($event)"
+            [value]="searchTerm"
           >
-        </div>
-        
-        <div class="form-group">
-          <label>Base Salary</label>
-          <input 
-            type="text" 
-            [(ngModel)]="editingRecord.baseSalary"
-            name="baseSalary"
-          >
-        </div>
-        
-        <div class="form-group">
-          <label>Weekly Bonus</label>
-          <input 
-            type="text" 
-            [(ngModel)]="editingRecord.weeklyBonus"
-            name="weeklyBonus"
-          >
-        </div>
-        
-        <div class="form-group">
-          <label>Monthly Bonus</label>
-          <input 
-            type="text" 
-            [(ngModel)]="editingRecord.monthlyBonus"
-            name="monthlyBonus"
-          >
-        </div>
-        
-        <div class="form-group">
-          <label>Other Bonuses</label>
-          <input 
-            type="text" 
-            [(ngModel)]="editingRecord.otherBonuses"
-            name="otherBonuses"
-          >
-        </div>
-        
-        <div class="form-group">
-          <label>Tax</label>
-          <input 
-            type="text" 
-            [(ngModel)]="editingRecord.deductions"
-            name="deductions"
-          >
-        </div>
-        
-        <div class="form-group">
-          <label>Net Salary</label>
-          <input 
-            type="text" 
-            [(ngModel)]="editingRecord.netSalary"
-            name="netSalary"
-          >
-        </div>
-        
-        <div class="form-group">
-          <label>Status</label>
           <select 
-            [(ngModel)]="editingRecord.status"
-            name="status"
+            class="filter-select"
+            (change)="onDepartmentChange($event)"
+            [value]="selectedDepartment"
           >
-            <option value="Paid">Paid</option>
-            <option value="Processed">Processed</option>
-            <option value="Pending">Pending</option>
+            <option value="">All Departments</option>
+            <option value="sales">Sales</option>
+            <option value="marketing">Marketing</option>
+            <option value="engineering">Engineering</option>
+            <option value="hr">HR</option>
+            <option value="finance">Finance</option>
+            <option value="operations">Operations</option>
           </select>
         </div>
       </div>
       
-      <div class="actions">
-        <button class="cancel" (click)="onCloseEditModal()">Cancel</button>
-        <button class="create" (click)="onUpdatePayroll(editingRecord!)">Update</button>
+      <div class="table-container">
+        <table class="records-table">
+          <thead>
+            <tr>
+              <th>Department</th>
+              <th>Base Salary</th>
+              <th>Weekly Bonus</th>
+              <th>Monthly Bonus</th>
+              <th>Other Bonuses</th>
+              <th>Tax</th>
+              <th>Net Salary</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let record of filteredRecords; let i = index">
+              <td>{{ record.department }}</td>
+              <td>{{ record.baseSalary }}</td>
+              <td>{{ record.weeklyBonus }}</td>
+              <td>{{ record.monthlyBonus }}</td>
+              <td>{{ record.otherBonuses }}</td>
+              <td class="deduction">{{ record.deductions }}</td>
+              <td class="net-salary">{{ record.netSalary }}</td>
+              <td><span class="status-badge" [class]="record.status.toLowerCase()">{{ record.status }}</span></td>
+              <td>
+                <div class="action-buttons">
+                  <button class="btn-edit" (click)="onEditRecord(i)" title="Edit Record">
+                    <span>✏️</span>
+                  </button>
+                  <button class="btn-delete" (click)="onDeleteRecord(i)" title="Delete Record">
+                    <span>🗑️</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="filteredRecords.length === 0">
+              <td colspan="9" class="no-records">
+                {{ searchTerm ? 'No records found matching your search.' : 'No payroll records found. Click "Add Payroll" to create your first record.' }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Add Payroll Modal -->
+    <app-add-payroll-record-modal
+      *ngIf="showAddModal"
+      (close)="onCloseModal()"
+      (save)="onSavePayroll($event)"
+    ></app-add-payroll-record-modal>
+
+    <!-- Edit Payroll Modal -->
+    <div class="modal-overlay" *ngIf="showEditModal && editingRecord" (click)="onCloseEditModal()">
+      <div class="modal-container" (click)="$event.stopPropagation()">
+        <h2>Edit Payroll Record</h2>
+        <p>Debug: Modal is open for {{ editingRecord.department }}</p>
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Department/Employee</label>
+            <input 
+              type="text" 
+              [(ngModel)]="editingRecord.department"
+              name="department"
+              readonly
+            >
+          </div>
+          
+          <div class="form-group">
+            <label>Base Salary</label>
+            <input 
+              type="text" 
+              [(ngModel)]="editingRecord.baseSalary"
+              name="baseSalary"
+            >
+          </div>
+          
+          <div class="form-group">
+            <label>Weekly Bonus</label>
+            <input 
+              type="text" 
+              [(ngModel)]="editingRecord.weeklyBonus"
+              name="weeklyBonus"
+            >
+          </div>
+          
+          <div class="form-group">
+            <label>Monthly Bonus</label>
+            <input 
+              type="text" 
+              [(ngModel)]="editingRecord.monthlyBonus"
+              name="monthlyBonus"
+            >
+          </div>
+          
+          <div class="form-group">
+            <label>Other Bonuses</label>
+            <input 
+              type="text" 
+              [(ngModel)]="editingRecord.otherBonuses"
+              name="otherBonuses"
+            >
+          </div>
+          
+          <div class="form-group">
+            <label>Tax</label>
+            <input 
+              type="text" 
+              [(ngModel)]="editingRecord.deductions"
+              name="deductions"
+            >
+          </div>
+          
+          <div class="form-group">
+            <label>Net Salary</label>
+            <input 
+              type="text" 
+              [(ngModel)]="editingRecord.netSalary"
+              name="netSalary"
+            >
+          </div>
+          
+          <div class="form-group">
+            <label>Status</label>
+            <select 
+              [(ngModel)]="editingRecord.status"
+              name="status"
+            >
+              <option value="Paid">Paid</option>
+              <option value="Processed">Processed</option>
+              <option value="Pending">Pending</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="actions">
+          <button class="cancel" (click)="onCloseEditModal()">Cancel</button>
+          <button class="create" (click)="onUpdatePayroll(editingRecord!)">Update</button>
+        </div>
       </div>
     </div>
   </div>

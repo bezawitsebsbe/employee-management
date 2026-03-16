@@ -6,11 +6,13 @@ import {
   EmployeeAttendance,
 } from '../api/employee.model';
 import { EmployeeService } from '../api/employee.service';
+import { DashboardService } from '@employee-payroll/features';
 
 @Injectable({ providedIn: 'root' })
 export class EmployeeSimpleFacade {
   private service = inject(EmployeeService);
-
+  private dashboardService = inject(DashboardService);
+ 
   // Signals
   employees = signal<Employee[]>([]);
   selectedEmployee = signal<Employee | null>(null);
@@ -70,15 +72,32 @@ export class EmployeeSimpleFacade {
   summary = computed<EmployeeSummary>(() => {
     const emps = this.employees();
     const active = emps.filter((e) => e.status === 'Active').length;
-    const avgPerf =
-      emps.reduce((sum, e) => sum + (e.performance || 0), 0) /
-      (emps.length || 1);
-    const totalPay = emps.reduce((sum, e) => sum + (e.baseSalary || 0), 0);
+    
+    // Fixed total departments to 5
+    const totalDepartments = 5;
+    
+    // Get total payroll from localStorage (same as payroll page)
+    let totalPay = 0;
+    try {
+      const storedPayroll = localStorage.getItem('payroll');
+      if (storedPayroll) {
+        const payrollData = JSON.parse(storedPayroll);
+        if (payrollData && payrollData.statistics && payrollData.statistics.totalPayroll) {
+          // Parse the total payroll from localStorage (remove $ and convert to number)
+          const payrollString = payrollData.statistics.totalPayroll.replace(/[^0-9.-]+/g, '');
+          totalPay = parseFloat(payrollString) || 0;
+        }
+      }
+    } catch (error) {
+      console.error('Error getting payroll from localStorage:', error);
+      // Fallback to employee calculation
+      totalPay = emps.reduce((sum, e) => sum + (e.baseSalary || 0), 0);
+    }
 
     return {
       totalEmployees: emps.length,
       active,
-      avgPerformance: Math.round(avgPerf),
+      avgPerformance: totalDepartments, // Using avgPerformance field for total departments
       totalPayroll: totalPay,
     };
   });
@@ -176,6 +195,17 @@ export class EmployeeSimpleFacade {
       updatedList[index] = updated;
       this.employees.set(updatedList);
 
+      // Call service to save to localStorage
+      this.service.updateEmployee(updated);
+
+      // Backup: Direct localStorage save
+      try {
+        localStorage.setItem('employees', JSON.stringify(updatedList));
+        console.log('Employee updated and saved to localStorage:', updatedList.length);
+      } catch (error) {
+        console.error('Failed to save to localStorage:', error);
+      }
+
       // Update selected if it's the same employee
       if (this.selectedEmployee()?.id === updated.id) {
         this.selectedEmployee.set(updated);
@@ -188,6 +218,17 @@ export class EmployeeSimpleFacade {
     const filtered = current.filter((emp) => emp.id !== id);
     this.employees.set(filtered);
 
+    // Call service to save to localStorage
+    this.service.deleteEmployee(id);
+
+    // Backup: Direct localStorage save
+    try {
+      localStorage.setItem('employees', JSON.stringify(filtered));
+      console.log('Employee deleted and saved to localStorage:', filtered.length);
+    } catch (error) {
+      console.error('Failed to save to localStorage:', error);
+    }
+
     // Clear selected if it was the deleted employee
     if (this.selectedEmployee()?.id === id) {
       this.selectedEmployee.set(null);
@@ -196,7 +237,26 @@ export class EmployeeSimpleFacade {
 
   addEmployee(newEmployee: Employee) {
     const current = this.employees();
-    this.employees.set([...current, newEmployee]);
+    const updatedList = [...current, newEmployee];
+    this.employees.set(updatedList);
+    
+    // Call service to save to localStorage
+    this.service.addEmployee(newEmployee);
+
+    // Track activity in dashboard
+    try {
+      this.dashboardService.trackEmployeeAdded(newEmployee.fullName, newEmployee.empId);
+    } catch (error) {
+      console.warn('Failed to track employee activity:', error);
+    }
+
+    // Backup: Direct localStorage save
+    try {
+      localStorage.setItem('employees', JSON.stringify(updatedList));
+      console.log('Employee added and saved to localStorage:', updatedList.length);
+    } catch (error) {
+      console.error('Failed to save to localStorage:', error);
+    }
   }
 
   // Attendance methods

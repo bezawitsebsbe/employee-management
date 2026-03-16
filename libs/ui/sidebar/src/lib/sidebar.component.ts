@@ -1,7 +1,8 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 
 interface NavItem {
   label: string;
@@ -14,24 +15,33 @@ interface NavItem {
   standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './sidebar.component.html',
+  styleUrls: ['./sidebar.component.scss']
 })
-export class SidebarComponent {
+export class SidebarComponent implements OnInit, OnDestroy {
   @Input() items: NavItem[] = [];
   currentPath = '';
+  private destroy$ = new Subject<void>();
 
-  constructor(private router: Router, private route: ActivatedRoute) {
+  constructor(private router: Router, private route: ActivatedRoute) {}
+
+  ngOnInit(): void {
     this.getCurrentPath();
   }
 
-  getCurrentPath() {
-    this.router.events.subscribe(() => {
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  getCurrentPath(): void {
+    this.router.events.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.currentPath = this.router.url;
     });
     // Set initial path
     this.currentPath = this.router.url;
   }
 
-  navigate(item: NavItem) {
+  navigate(item: NavItem): void {
     this.router.navigate([item.path]);
   }
 

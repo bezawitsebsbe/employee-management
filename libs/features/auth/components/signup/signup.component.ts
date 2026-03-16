@@ -1,100 +1,185 @@
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { AuthService } from '../../../../core/services/auth.service';
-import { RegisterRequest } from '../../../../models/auth.model';
+import { FormsModule } from '@angular/forms';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { AuthService, User } from '../../src/lib/auth.service';
 
 @Component({
   selector: 'app-signup',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './signup.component.html',
-  styleUrls: ['./signup.component.scss']
+  imports: [
+    CommonModule,
+    FormsModule,
+    NzIconModule,
+    NzInputModule,
+    NzButtonModule,
+    NzCardModule,
+    NzSpinModule
+  ],
+  template: `
+    <div class="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-md w-full space-y-8">
+        <!-- Header -->
+        <div class="text-center">
+          <h2 class="mt-6 text-3xl font-extrabold text-gray-900">
+            Employee Payroll System
+          </h2>
+          <p class="mt-2 text-sm text-gray-600">
+            Create your account
+          </p>
+        </div>
+
+        <!-- Sign Up Form -->
+        <nz-card class="shadow-lg">
+          <nz-spin [nzSpinning]="loading">
+            <form (ngSubmit)="onSubmit()" class="space-y-6">
+              <!-- Name -->
+              <div>
+                <label for="name" class="block text-sm font-medium text-gray-700">
+                  Full Name
+                </label>
+                <div class="mt-1">
+                  <input
+                    nz-input
+                    id="name"
+                    name="name"
+                    type="text"
+                    autocomplete="name"
+                    required
+                    [(ngModel)]="credentials.name"
+                    placeholder="Enter your full name"
+                  />
+                </div>
+              </div>
+
+              <!-- Email -->
+              <div>
+                <label for="email" class="block text-sm font-medium text-gray-700">
+                  Email address
+                </label>
+                <div class="mt-1">
+                  <input
+                    nz-input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autocomplete="email"
+                    required
+                    [(ngModel)]="credentials.email"
+                    placeholder="Enter your email"
+                  />
+                </div>
+              </div>
+
+              <!-- Password -->
+              <div>
+                <label for="password" class="block text-sm font-medium text-gray-700">
+                  Password
+                </label>
+                <div class="mt-1">
+                  <input
+                    nz-input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autocomplete="new-password"
+                    required
+                    [(ngModel)]="credentials.password"
+                    placeholder="Enter your password"
+                  />
+                </div>
+              </div>
+
+              <!-- Error Message -->
+              <div *ngIf="errorMessage" class="text-red-600 text-sm">
+                {{ errorMessage }}
+              </div>
+
+              <!-- Submit Button -->
+              <div>
+                <button
+                  nz-button
+                  nzType="primary"
+                  type="submit"
+                  [nzLoading]="loading"
+                  class="w-full bg-orange-500 border-orange-500 hover:bg-orange-600"
+                >
+                  Sign Up
+                </button>
+              </div>
+            </form>
+          </nz-spin>
+        </nz-card>
+
+        <!-- Sign In Link -->
+        <div class="text-center">
+          <p class="text-sm text-gray-600">
+            Already have an account?
+            <a routerLink="/auth/signin" class="font-medium text-orange-600 hover:text-orange-500">
+              Sign in
+            </a>
+          </p>
+        </div>
+      </div>
+    </div>
+  `,
+  styles: [`
+    :host {
+      display: block;
+    }
+  `]
 })
-export class SignupComponent implements OnInit {
-  signupForm: FormGroup;
-  isLoading = false;
-  errorMessage: string | null = null;
-  showPassword = false;
-  showConfirmPassword = false;
+export class SignupComponent {
+  credentials = {
+    name: '',
+    email: '',
+    password: ''
+  };
+  loading = false;
+  errorMessage = '';
 
   constructor(
-    private fb: FormBuilder,
     private authService: AuthService,
     private router: Router
-  ) {
-    this.signupForm = this.fb.group({
-      firstName: ['', [Validators.required, Validators.minLength(2)]],
-      lastName: ['', [Validators.required, Validators.minLength(2)]],
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
-      confirmPassword: ['', [Validators.required]]
-    }, { validators: this.passwordMatchValidator });
-  }
+  ) {}
 
   ngOnInit(): void {
-    // Redirect if already authenticated
-    if (this.authService.isAuthenticated()) {
-      this.router.navigate(['/dashboard']);
-    }
-  }
-
-  passwordMatchValidator(form: FormGroup): { [key: string]: boolean } | null {
-    const password = form.get('password')?.value;
-    const confirmPassword = form.get('confirmPassword')?.value;
-    
-    return password && confirmPassword && password !== confirmPassword
-      ? { passwordMismatch: true }
-      : null;
+    console.log('Signup component initialized');
+    // Clear any existing session to ensure fresh signup
+    this.authService.logout();
   }
 
   onSubmit(): void {
-    if (this.signupForm.invalid) {
-      this.markFormGroupTouched(this.signupForm);
-      return;
-    }
+    console.log('Signup form submitted:', this.credentials);
+    this.loading = true;
+    this.errorMessage = '';
 
-    this.isLoading = true;
-    this.errorMessage = null;
-
-    const registerRequest: RegisterRequest = {
-      firstName: this.signupForm.value.firstName,
-      lastName: this.signupForm.value.lastName,
-      email: this.signupForm.value.email,
-      password: this.signupForm.value.password,
-      confirmPassword: this.signupForm.value.confirmPassword
-    };
-
-    this.authService.register(registerRequest).subscribe({
-      next: () => {
-        this.router.navigate(['/dashboard']);
+    this.authService.signup(this.credentials.name, this.credentials.email, this.credentials.password).subscribe({
+      next: (user: User) => {
+        console.log('Signup successful:', user);
+        console.log('User role:', user.role);
+        this.loading = false;
+        
+        // Redirect based on user role
+        if (user.role === 'admin') {
+          console.log('Redirecting to admin dashboard');
+          // Navigate to main dashboard route
+          this.router.navigate(['/dashboard']);
+        } else {
+          console.log('Redirecting to user dashboard');
+          this.router.navigate(['/dashboard']);
+        }
       },
       error: (error: any) => {
-        this.errorMessage = error.message || 'Registration failed. Please try again.';
-        this.isLoading = false;
-      },
-      complete: () => {
-        this.isLoading = false;
+        console.log('Signup error:', error);
+        this.loading = false;
+        this.errorMessage = 'Failed to create account';
       }
-    });
-  }
-
-  togglePasswordVisibility(): void {
-    this.showPassword = !this.showPassword;
-  }
-
-  toggleConfirmPasswordVisibility(): void {
-    this.showConfirmPassword = !this.showConfirmPassword;
-  }
-
-  navigateToSignin(): void {
-    this.router.navigate(['/auth/signin']);
-  }
-
-  private markFormGroupTouched(formGroup: FormGroup): void {
-    Object.values(formGroup.controls).forEach(control => {
-      control.markAsTouched();
     });
   }
 }
