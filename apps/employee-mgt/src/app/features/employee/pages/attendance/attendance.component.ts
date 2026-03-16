@@ -1,65 +1,199 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, computed, signal } from '@angular/core';
+
 import { FormsModule } from '@angular/forms';
+
 import { NzTableModule } from 'ng-zorro-antd/table';
+
 import { NzButtonModule } from 'ng-zorro-antd/button';
+
 import { NzSelectModule } from 'ng-zorro-antd/select';
+
 import { NzInputModule } from 'ng-zorro-antd/input';
+
 import { NzTagModule } from 'ng-zorro-antd/tag';
+
 import { NzCardModule } from 'ng-zorro-antd/card';
+
 import { NzIconModule } from 'ng-zorro-antd/icon';
+
 import { CommonModule } from '@angular/common';
+
 import { SidebarComponent } from '@employee-payroll/sidebar';
+
 import { EmployeeSimpleFacade } from '../../facades/employee-simple.facade';
+
 import { EmployeeAttendance } from '../../api/employee.model';
+
 import { DashboardService } from '@employee-payroll/features';
 
+
+
 @Component({
+
   selector: 'app-attendance',
+
   templateUrl: './attendance.component.html',
+
   standalone: true,
+
   imports: [
+
     CommonModule,
+
     FormsModule,
+
     NzTableModule,
+
     NzButtonModule,
+
     NzSelectModule,
+
     NzInputModule,
+
     NzTagModule,
+
     NzCardModule,
+
     NzIconModule,
+
     SidebarComponent,
+
   ],
+
 })
+
 export class AttendanceComponent {
+
   facade = inject(EmployeeSimpleFacade);
+
   dashboardService = inject(DashboardService);
 
+
+
   sidebarItems = [
+
     { label: 'Dashboard', icon: '📊', path: '/dashboard' },
+
     { label: 'Employee', icon: '👥', path: '/employees' },
+
     { label: 'Payroll', icon: '💰', path: '/payroll' },
+
     { label: 'Attendance', icon: '🕒', path: '/attendance' },
+
   ];
 
-  // Store attendance records
-  private attendanceRecords: { [key: string]: { checkIn?: Date; checkOut?: Date; } } = {};
+
+
+  // Store attendance records as signal for reactivity
+  private attendanceRecords = signal<Record<string, { checkIn?: Date; checkOut?: Date; }>>({});
+
+
+
 
   // Expose facade data to template
+
   attendanceData = this.facade.filteredAttendance;
-  attendanceSummary = this.facade.attendanceSummary;
+
   loading = this.facade.loading;
+
   error = this.facade.error;
 
+  // Custom attendance summary based on actual attendance status
+
+  attendanceSummary = computed(() => {
+
+    const employees = this.facade.employees();
+
+    let present = 0;
+
+    let absent = 0;
+
+    let total = employees.length;
+
+    employees.forEach(emp => {
+
+      const attendance = this.getEmployeeAttendance(emp.id);
+
+      switch (attendance.status) {
+
+        case 'Present':
+
+          present++;
+
+          break;
+
+        case 'Absent':
+
+          absent++;
+
+          break;
+
+      }
+
+    });
+
+    return { present, absent, total };
+
+  });
+
+  // Expose attendance filter signals to template
+
+  attendanceSearchTerm = this.facade.attendanceSearchTerm;
+
+  attendanceDepartmentFilter = this.facade.attendanceDepartmentFilter;
+
+  attendanceStatusFilter = this.facade.attendanceStatusFilter;
+
+  // Expose filtered employees for table
+  filteredEmployees = computed(() => {
+    let employees = this.facade.employees();
+
+    // Apply search filter
+    const searchTerm = this.facade.attendanceSearchTerm().toLowerCase();
+    if (searchTerm) {
+      employees = employees.filter(emp =>
+        emp.fullName.toLowerCase().includes(searchTerm) ||
+        emp.empId.toLowerCase().includes(searchTerm) ||
+        emp.department.toLowerCase().includes(searchTerm)
+      );
+    }
+
+    // Apply department filter
+    const dept = this.facade.attendanceDepartmentFilter();
+    if (dept) {
+      employees = employees.filter(emp => emp.department === dept);
+    }
+
+    // Apply attendance status filter
+    const status = this.facade.attendanceStatusFilter();
+    if (status) {
+      employees = employees.filter(emp => {
+        const attendance = this.getEmployeeAttendance(emp.id);
+        return attendance.status === status;
+      });
+    }
+
+    return employees;
+  });
+
+
+
   constructor() {
+
     // Load existing attendance from localStorage
+
     this.loadAttendanceFromStorage();
+
   }
+
+
 
   private loadAttendanceFromStorage(): void {
     try {
       const stored = localStorage.getItem('attendanceRecords');
       if (stored) {
-        this.attendanceRecords = JSON.parse(stored);
+        const parsedRecords = JSON.parse(stored);
+        this.attendanceRecords.set(parsedRecords);
         // Auto-reset for new day
         this.resetForNewDay();
       }
@@ -68,18 +202,23 @@ export class AttendanceComponent {
     }
   }
 
+
+
   private resetForNewDay(): void {
     const today = new Date().toDateString();
     
-    Object.keys(this.attendanceRecords).forEach(employeeId => {
-      const record = this.attendanceRecords[employeeId];
+    const currentRecords = this.attendanceRecords();
+    const updatedRecords = { ...currentRecords };
+    
+    Object.keys(updatedRecords).forEach(employeeId => {
+      const record = updatedRecords[employeeId];
       
       // If there's a check-in from a previous day, reset it
       if (record.checkIn) {
         const checkInDate = new Date(record.checkIn);
         if (checkInDate.toDateString() !== today) {
           // Reset for new day
-          this.attendanceRecords[employeeId] = {};
+          updatedRecords[employeeId] = {};
         }
       }
       
@@ -88,25 +227,31 @@ export class AttendanceComponent {
         const checkOutDate = new Date(record.checkOut);
         if (checkOutDate.toDateString() !== today) {
           // Reset for new day
-          this.attendanceRecords[employeeId] = {};
+          updatedRecords[employeeId] = {};
         }
       }
     });
     
-    // Save the reset data
+    // Update the signal with the reset data
+    this.attendanceRecords.set(updatedRecords);
     this.saveAttendanceToStorage();
   }
 
+
+
   private saveAttendanceToStorage(): void {
     try {
-      localStorage.setItem('attendanceRecords', JSON.stringify(this.attendanceRecords));
+      localStorage.setItem('attendanceRecords', JSON.stringify(this.attendanceRecords()));
     } catch (error) {
       console.error('Error saving attendance records:', error);
     }
   }
 
+
+
   getEmployeeAttendance(employeeId: string): { checkIn?: string; checkOut?: string; workingHours?: string; status: string } {
-    const record = this.attendanceRecords[employeeId] || {};
+    const records = this.attendanceRecords();
+    const record = records[employeeId] || {};
     const employee = this.facade.employees().find(emp => emp.id === employeeId);
     
     let status = 'Absent';
@@ -124,13 +269,23 @@ export class AttendanceComponent {
     };
   }
 
+
+
   private formatTime(date: Date | string): string {
+
     return new Date(date).toLocaleTimeString('en-US', { 
+
       hour: '2-digit', 
+
       minute: '2-digit',
+
       hour12: false 
+
     });
+
   }
+
+
 
   private calculateWorkingHours(checkIn: Date | string, checkOut: Date | string): string {
     if (!checkIn || !checkOut) return '0h 0m';
@@ -149,61 +304,44 @@ export class AttendanceComponent {
     const employee = this.facade.employees().find(emp => emp.id === targetEmployeeId);
     if (!employee) return;
 
-    // Initialize record if not exists
-    if (!this.attendanceRecords[targetEmployeeId]) {
-      this.attendanceRecords[targetEmployeeId] = {};
+    // Update the signal with new check-in record
+    const currentRecords = this.attendanceRecords();
+    const updatedRecords = { ...currentRecords };
+    
+    if (!updatedRecords[targetEmployeeId]) {
+      updatedRecords[targetEmployeeId] = {};
     }
-
-    // Check if already checked in today
-    if (this.attendanceRecords[targetEmployeeId].checkIn && !this.attendanceRecords[targetEmployeeId].checkOut) {
-      alert(`${employee.fullName} is already checked in!`);
-      return;
-    }
-
-    // Reset for new day if checked out yesterday
-    if (this.attendanceRecords[targetEmployeeId].checkOut) {
-      const checkOutDate = new Date(this.attendanceRecords[targetEmployeeId].checkOut);
-      const today = new Date();
-      if (checkOutDate.toDateString() !== today.toDateString()) {
-        this.attendanceRecords[targetEmployeeId] = {};
-      }
-    }
-
-    // Record check-in time
-    this.attendanceRecords[targetEmployeeId].checkIn = new Date();
+    
+    updatedRecords[targetEmployeeId].checkIn = new Date();
+    this.attendanceRecords.set(updatedRecords);
     this.saveAttendanceToStorage();
 
-    const time = this.formatTime(this.attendanceRecords[targetEmployeeId].checkIn);
-    
-    // Track activity in dashboard
-    try {
-      this.dashboardService.trackAttendanceCheckIn(employee.fullName, targetEmployeeId);
-    } catch (error) {
-      console.warn('Failed to track attendance activity:', error);
-    }
-    
-    alert(`${employee.fullName} checked in at ${time}`);
+    const checkInTime = this.formatTime(updatedRecords[targetEmployeeId].checkIn!);
+    alert(`${employee.fullName} checked in at ${checkInTime}`);
   }
 
   checkOut(employeeId: string) {
     const employee = this.facade.employees().find(emp => emp.id === employeeId);
     if (!employee) return;
 
+    const currentRecords = this.attendanceRecords();
+    const updatedRecords = { ...currentRecords };
+
     // Initialize record if not exists
-    if (!this.attendanceRecords[employeeId]) {
-      this.attendanceRecords[employeeId] = {};
+    if (!updatedRecords[employeeId]) {
+      updatedRecords[employeeId] = {};
     }
 
     // Check if checked in
-    if (!this.attendanceRecords[employeeId].checkIn) {
+    if (!updatedRecords[employeeId].checkIn) {
       alert(`${employee.fullName} is not checked in!`);
       return;
     }
 
     // Check if already checked out
-    if (this.attendanceRecords[employeeId].checkOut) {
-      const checkOutDate = new Date(this.attendanceRecords[employeeId].checkOut);
-      const checkInDate = new Date(this.attendanceRecords[employeeId].checkIn);
+    if (updatedRecords[employeeId].checkOut) {
+      const checkOutDate = new Date(updatedRecords[employeeId].checkOut!);
+      const checkInDate = new Date(updatedRecords[employeeId].checkIn!);
       if (checkOutDate > checkInDate) {
         alert(`${employee.fullName} is already checked out!`);
         return;
@@ -211,54 +349,68 @@ export class AttendanceComponent {
     }
 
     // Record check-out time
-    this.attendanceRecords[employeeId].checkOut = new Date();
+    updatedRecords[employeeId].checkOut = new Date();
+    this.attendanceRecords.set(updatedRecords);
     this.saveAttendanceToStorage();
 
-    const checkInTime = this.formatTime(this.attendanceRecords[employeeId].checkIn);
-    const checkOutTime = this.formatTime(this.attendanceRecords[employeeId].checkOut);
+    const checkInTime = this.formatTime(updatedRecords[employeeId].checkIn!);
+    const checkOutTime = this.formatTime(updatedRecords[employeeId].checkOut!);
     const workingHours = this.calculateWorkingHours(
-      this.attendanceRecords[employeeId].checkIn,
-      this.attendanceRecords[employeeId].checkOut
+      updatedRecords[employeeId].checkIn!,
+      updatedRecords[employeeId].checkOut!
     );
-
-    // Track activity in dashboard
-    try {
-      this.dashboardService.trackAttendanceCheckOut(employee.fullName, employeeId, workingHours);
-    } catch (error) {
-      console.warn('Failed to track attendance activity:', error);
-    }
 
     alert(`${employee.fullName} checked out at ${checkOutTime}. Working hours: ${workingHours}`);
   }
 
+
+
+  // Filter and clear methods
   filterAttendance() {
-    // Filter functionality is handled by facade signals
-    alert('Filter applied!');
+    // The filtering is already reactive through computed properties
+    // This method can be used to trigger any additional logic
+    console.log('Filters applied:', {
+      search: this.facade.attendanceSearchTerm(),
+      department: this.facade.attendanceDepartmentFilter(),
+      status: this.facade.attendanceStatusFilter()
+    });
   }
 
   clearFilters() {
     this.facade.setAttendanceSearchTerm('');
     this.facade.setAttendanceDepartmentFilter('');
     this.facade.setAttendanceStatusFilter('');
-    alert('Filters cleared!');
   }
+
+
 
   searchAttendance(term: string) {
+
     this.facade.setAttendanceSearchTerm(term);
+
   }
+
+
 
   setDepartmentFilter(dept: string | null) {
+
     this.facade.setAttendanceDepartmentFilter(dept);
+
   }
+
+
 
   setStatusFilter(status: string | null) {
+
     this.facade.setAttendanceStatusFilter(status);
+
   }
 
-  // Admin method to reset all attendance (for testing or daily reset)
+
+// Admin method to reset all attendance (for testing or daily reset)
   resetAllAttendance(): void {
     if (confirm('Are you sure you want to reset all attendance records for today?')) {
-      this.attendanceRecords = {};
+      this.attendanceRecords.set({});
       this.saveAttendanceToStorage();
       alert('All attendance records have been reset for today.');
     }
@@ -268,7 +420,10 @@ export class AttendanceComponent {
   resetEmployeeAttendance(employeeId: string): void {
     const employee = this.facade.employees().find(emp => emp.id === employeeId);
     if (employee && confirm(`Reset attendance for ${employee.fullName}?`)) {
-      this.attendanceRecords[employeeId] = {};
+      const currentRecords = this.attendanceRecords();
+      const updatedRecords = { ...currentRecords };
+      updatedRecords[employeeId] = {};
+      this.attendanceRecords.set(updatedRecords);
       this.saveAttendanceToStorage();
       alert(`Attendance reset for ${employee.fullName}.`);
     }

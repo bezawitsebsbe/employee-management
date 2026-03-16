@@ -88,8 +88,10 @@ export class DashboardService {
         try {
           const parsedEmployees = JSON.parse(storedEmployees);
           if (Array.isArray(parsedEmployees) && parsedEmployees.length > 0) {
-            console.log('DashboardService: Loaded employees from localStorage:', parsedEmployees.length);
-            this.employeeData$.next({ length: parsedEmployees.length });
+            // Count only active employees
+            const activeEmployees = parsedEmployees.filter(emp => emp.status === 'Active');
+            console.log('DashboardService: Loaded employees from localStorage:', parsedEmployees.length, 'Active:', activeEmployees.length);
+            this.employeeData$.next({ length: activeEmployees.length });
           }
         } catch (parseError) {
           console.error('DashboardService: Error parsing employees from localStorage:', parseError);

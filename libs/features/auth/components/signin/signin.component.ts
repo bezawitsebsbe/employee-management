@@ -25,7 +25,7 @@ import { AuthService, User } from '../../src/lib/auth.service';
     <div class="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div class="max-w-md w-full space-y-8">
         <!-- Sign In Card with improved styling -->
-        <div class="bg-white rounded-2xl shadow-xl p-8">
+        <div class="bg-white rounded-2xl shadow-xl p-8 pb-12">
           <!-- Header -->
           <div class="text-center mb-8">
             <h2 class="text-3xl font-extrabold text-gray-900">
@@ -63,17 +63,24 @@ import { AuthService, User } from '../../src/lib/auth.service';
                 <label for="password" class="block text-sm font-medium text-gray-700">
                   Password
                 </label>
-                <div class="mt-1">
+                <div class="mt-1 relative">
                   <input
                     nz-input
                     id="password"
                     name="password"
-                    type="password"
+                    [type]="showPassword ? 'text' : 'password'"
                     autocomplete="current-password"
                     required
                     [(ngModel)]="credentials.password"
                     placeholder="Enter your password"
                   />
+                  <button
+                    type="button"
+                    (click)="togglePasswordVisibility()"
+                    class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                  >
+                    <i nz-icon [nzType]="showPassword ? 'eye-invisible' : 'eye'"></i>
+                  </button>
                 </div>
               </div>
 
@@ -101,7 +108,7 @@ import { AuthService, User } from '../../src/lib/auth.service';
           <div class="text-center mt-6 pt-6 border-t border-gray-200">
             <p class="text-sm text-gray-600">
               Don't have an account?
-              <a routerLink="/auth/signup" class="font-medium text-orange-600 hover:text-orange-500">
+              <a (click)="navigateToSignup()" class="font-medium text-orange-600 hover:text-orange-500 cursor-pointer">
                 Sign up
               </a>
             </p>
@@ -123,6 +130,7 @@ export class SigninComponent {
   };
   loading = false;
   errorMessage = '';
+  showPassword = false;
 
   constructor(
     private authService: AuthService,
@@ -132,6 +140,14 @@ export class SigninComponent {
   ngOnInit(): void {
     // Clear any existing session to ensure fresh login
     this.authService.logout();
+  }
+
+  navigateToSignup(): void {
+    this.router.navigate(['/auth/signup']);
+  }
+
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
   }
 
   onSubmit(): void {
