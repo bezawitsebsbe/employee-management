@@ -76,7 +76,7 @@ export class ActivityTrackerService {
   }
 
   // Get recent activities (last N)
-  getRecentActivities(limit: number = 10): Observable<ActivityItem[]> {
+  getRecentActivities(limit = 10): Observable<ActivityItem[]> {
     return new Observable(observer => {
       this.activities$.subscribe(activities => {
         const recent = activities.slice(0, limit);
