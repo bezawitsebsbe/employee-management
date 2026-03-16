@@ -100,11 +100,9 @@
         <table class="records-table">
           <thead>
             <tr>
-              <th>Department</th>
+              <th>Position</th>
               <th>Base Salary</th>
-              <th>Weekly Bonus</th>
               <th>Monthly Bonus</th>
-              <th>Other Bonuses</th>
               <th>Tax</th>
               <th>Net Salary</th>
               <th>Status</th>
@@ -115,9 +113,7 @@
             <tr *ngFor="let record of filteredRecords; let i = index">
               <td>{{ record.department }}</td>
               <td>{{ record.baseSalary }}</td>
-              <td>{{ record.weeklyBonus }}</td>
               <td>{{ record.monthlyBonus }}</td>
-              <td>{{ record.otherBonuses }}</td>
               <td class="deduction">{{ record.deductions }}</td>
               <td class="net-salary">{{ record.netSalary }}</td>
               <td><span class="status-badge" [class]="record.status.toLowerCase()">{{ record.status }}</span></td>
@@ -133,7 +129,7 @@
               </td>
             </tr>
             <tr *ngIf="filteredRecords.length === 0">
-              <td colspan="9" class="no-records">
+              <td colspan="7" class="no-records">
                 {{ searchTerm ? 'No records found matching your search.' : 'No payroll records found. Click "Add Payroll" to create your first record.' }}
               </td>
             </tr>

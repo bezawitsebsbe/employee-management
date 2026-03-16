@@ -73,6 +73,17 @@
         }
       }
 
+      &.readonly-field {
+        background-color: #f3f4f6;
+        color: #6b7280;
+        cursor: not-allowed;
+        border-color: #e5e7eb;
+
+        &:hover {
+          border-color: #e5e7eb;
+        }
+      }
+
       &::placeholder {
         color: #9ca3af;
       }
@@ -88,6 +99,13 @@
       font-size: 0.75rem;
       margin-top: 0.25rem;
       font-weight: 500;
+    }
+
+    .info-text {
+      color: #6b7280;
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      font-style: italic;
     }
   }
 }

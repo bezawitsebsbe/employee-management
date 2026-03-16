@@ -7,10 +7,8 @@
         <tr>
           <th>Department</th>
           <th>Base Salary</th>
-          <th>Leave Bonus</th>
-          <th>Weekly Bonus</th>
+         
           <th>Monthly Bonus</th>
-          <th>Other Bonuses</th>
           <th>Deductions</th>
           <th>Net Salary</th>
           <th>Status</th>
@@ -20,10 +18,7 @@
         <tr *ngFor="let record of records">
           <td>{{ record.department }}</td>
           <td>{{ record.baseSalary }}</td>
-          <td>{{ record.leaveBonus }}</td>
-          <td>{{ record.weeklyBonus }}</td>
           <td>{{ record.monthlyBonus }}</td>
-          <td>{{ record.otherBonuses }}</td>
           <td class="deductions">{{ record.deductions }}</td>
           <td class="net-salary">{{ record.netSalary }}</td>
           <td>
