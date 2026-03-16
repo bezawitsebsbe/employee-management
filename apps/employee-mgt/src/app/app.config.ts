@@ -28,8 +28,7 @@ import { provideEffects } from '@ngrx/effects';
 import { provideStoreDevtools } from '@ngrx/store-devtools';
 
 import { appRoutes } from './app.routes';
-import { employeeReducer } from './features/employee/store/employee.reducer';
-import { EmployeeEffects } from './features/employee/store/employee.effects';
+
 
 import { AuthService } from '@employee-payroll/core'; // assuming this is injectable
 import { DashboardBridgeService } from './services/dashboard-bridge.service';
@@ -59,12 +58,7 @@ export const appConfig: ApplicationConfig = {
       BankOutline,
     ]),
 
-    // ── NgRx ────────────────────────────────────────────────────────────────
-    provideStore({
-      employee: employeeReducer, // feature key = 'employee'
-    }),
-
-    provideEffects([EmployeeEffects]),
+    
 
     // DevTools — only in development
     provideStoreDevtools({

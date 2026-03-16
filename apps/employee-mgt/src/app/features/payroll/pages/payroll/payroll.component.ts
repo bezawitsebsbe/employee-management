@@ -377,14 +377,16 @@ export class PayrollComponent implements OnInit, OnDestroy {
     return `$${totalDeductions.toFixed(2)}`;
   }
 
-  // Get employee count from localStorage (same as dashboard)
+  // Get employee count from localStorage (same as dashboard) - count only active employees
   getEmployeeCount(): number {
     try {
       const storedEmployees = localStorage.getItem('employees');
       if (storedEmployees) {
         const employees = JSON.parse(storedEmployees);
         if (Array.isArray(employees)) {
-          return employees.length;
+          // Count only active employees
+          const activeEmployees = employees.filter(emp => emp.status === 'Active');
+          return activeEmployees.length;
         }
       }
     } catch (error) {
@@ -395,6 +397,7 @@ export class PayrollComponent implements OnInit, OnDestroy {
       if (storedPayroll) {
         const payrollData = JSON.parse(storedPayroll);
         if (payrollData && payrollData.statistics && payrollData.statistics.employees) {
+          // Note: This might need adjustment if payroll statistics don't account for active status
           return payrollData.statistics.employees;
         }
       }
