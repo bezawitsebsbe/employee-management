@@ -30,7 +30,7 @@ import { provideStoreDevtools } from '@ngrx/store-devtools';
 import { appRoutes } from './app.routes';
 
 
-import { AuthService } from '@employee-payroll/core'; // assuming this is injectable
+
 import { DashboardBridgeService } from './services/dashboard-bridge.service';
 
 import { provideBrowserGlobalErrorListeners } from '@angular/core'; // if you really need it
@@ -68,7 +68,7 @@ export const appConfig: ApplicationConfig = {
       name: 'Employee Portal', // optional: label in devtools
     }),
 
-    AuthService, // if it's @Injectable({ providedIn: 'root' }) → no need to provide manually
+
     DashboardBridgeService, // Bridge service for dashboard integration
 
     provideBrowserGlobalErrorListeners(), // keep if you need it
