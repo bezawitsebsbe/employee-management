@@ -273,45 +273,63 @@ export class EmployeeSimpleFacade {
   }
 
   checkIn(employeeId: string) {
-    const now = new Date();
-    const checkInTime = now.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  const now = new Date();
+  const checkInTime = now.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 
-    const current = this.attendanceData();
-    const existingRecord = current.find(
-      (record) => record.employeeId === employeeId,
+  const current = this.attendanceData();
+  const existingRecord = current.find(
+    (record) => record.employeeId === employeeId,
+  );
+
+  let updatedData: EmployeeAttendance[] = [];
+
+  if (existingRecord) {
+    updatedData = current.map((record) =>
+      record.employeeId === employeeId
+        ? { ...record, checkin: checkInTime, status: 'Present' as const }
+        : record,
     );
 
-    if (existingRecord) {
-      const updatedData = current.map((record) =>
-        record.employeeId === employeeId
-          ? { ...record, checkin: checkInTime, status: 'Present' as const }
-          : record,
-      );
+    this.attendanceData.set(updatedData);
+  } else {
+    const employee = this.employees().find((emp) => emp.id === employeeId);
 
+    if (employee) {
+      const newRecord: EmployeeAttendance = {
+        employeeId,
+        name: employee.fullName,
+        department: employee.department,
+        checkin: checkInTime,
+        checkout: '-',
+        hours: '-',
+        status: 'Present',
+      };
+
+      updatedData = [...current, newRecord];
       this.attendanceData.set(updatedData);
-    } else {
-      const employee = this.employees().find((emp) => emp.id === employeeId);
-
-      if (employee) {
-        const newRecord: EmployeeAttendance = {
-          employeeId,
-          name: employee.fullName,
-          department: employee.department,
-          checkin: checkInTime,
-          checkout: '-',
-          hours: '-',
-          status: 'Present',
-        };
-
-        this.attendanceData.set([...current, newRecord]);
-      }
     }
-
-    this.updateAttendanceSummary();
   }
+
+  this.updateAttendanceSummary();
+
+  
+  try {
+    const employee = this.employees().find((emp) => emp.id === employeeId);
+
+    if (employee) {
+      console.log('CHECK-IN TRIGGERED');
+      this.dashboardService.trackAttendanceCheckIn(
+        employee.fullName,
+        employee.empId,
+      );
+    }
+  } catch (error) {
+    console.warn('Failed to track attendance check-in:', error);
+  }
+}
 
   checkOut(employeeId: string) {
     const now = new Date();
@@ -345,6 +363,22 @@ export class EmployeeSimpleFacade {
 
     this.attendanceData.set(updatedData);
     this.updateAttendanceSummary();
+      try {
+    const employee = this.employees().find((emp) => emp.id === employeeId);
+    const record = updatedData.find(
+      (r) => r.employeeId === employeeId,
+    );
+
+    if (employee && record) {
+      this.dashboardService.trackAttendanceCheckOut(
+        employee.fullName,
+        employee.empId,
+        record.hours || '',
+      );
+    }
+  } catch (error) {
+    console.warn('Failed to track attendance check-out:', error);
+  }
   }
 
   private updateAttendanceSummary() {

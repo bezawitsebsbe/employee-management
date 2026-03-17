@@ -221,6 +221,7 @@ export class DashboardService {
   }
 
   trackAttendanceCheckIn(employeeName: string, employeeId: string): void {
+    console.log('TRACK ATTENDANCE CALLED'); 
     this.addActivity({
       id: `attendance-checkin-${employeeId}-${Date.now()}`,
       type: 'attendance',

@@ -317,6 +317,10 @@ export class AttendanceComponent {
     this.saveAttendanceToStorage();
 
     const checkInTime = this.formatTime(updatedRecords[targetEmployeeId].checkIn!);
+    
+    // Track activity in dashboard
+    this.dashboardService.trackAttendanceCheckIn(employee.fullName, employee.id);
+    
     alert(`${employee.fullName} checked in at ${checkInTime}`);
   }
 
@@ -358,6 +362,11 @@ export class AttendanceComponent {
     const workingHours = this.calculateWorkingHours(
       updatedRecords[employeeId].checkIn!,
       updatedRecords[employeeId].checkOut!
+    );
+    this.dashboardService.trackAttendanceCheckOut(
+      employee.fullName,
+      employee.id,
+      workingHours
     );
 
     alert(`${employee.fullName} checked out at ${checkOutTime}. Working hours: ${workingHours}`);
