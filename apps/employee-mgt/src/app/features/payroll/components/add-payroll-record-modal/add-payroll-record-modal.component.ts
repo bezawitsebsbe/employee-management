@@ -105,9 +105,8 @@ export class AddPayrollRecordModalComponent implements OnInit {
     const base = parseFloat(this.formData.baseSalary) || 0;
     const monthlyBonus = parseFloat(this.formData.monthlyBonus) || 0;
     
-    // Calculate tax based on income brackets
-    const totalIncome = base + monthlyBonus;
-    const tax = this.calculateTaxBracket(totalIncome);
+    // Calculate tax based on base salary only (before adding bonus)
+    const tax = this.calculateTaxBracket(base);
     this.calculatedTax = tax.toFixed(2);
     
     // Calculate pension (7% of basic salary)
@@ -118,6 +117,8 @@ export class AddPayrollRecordModalComponent implements OnInit {
     const totalDeductions = tax + pension;
     this.formData.deductions = totalDeductions.toFixed(2);
     
+    // Net salary = base salary + bonus - deductions
+    const totalIncome = base + monthlyBonus;
     const net = totalIncome - totalDeductions;
     return net >= 0 ? net.toFixed(2) : '0.00';
   }
