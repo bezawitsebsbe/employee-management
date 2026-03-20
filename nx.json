@@ -1,6 +1,12 @@
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "defaultBase": "master",
+  "projects": {
+    "employee": "apps/employee/project.json",
+    "employee-mgt": "apps/employee-mgt/project.json",
+    "payroll": "apps/payroll/project.json",
+    "models": "libs/models/project.json"
+  },
   "namedInputs": {
     "default": ["{projectRoot}/**/*", "sharedGlobals"],
     "production": [

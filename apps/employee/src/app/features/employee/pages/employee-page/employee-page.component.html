@@ -1,0 +1,150 @@
+<div class="flex h-screen bg-gray-100">
+  <!-- Sidebar -->
+  <app-sidebar [items]="sidebarItems"></app-sidebar>
+
+  <!-- Main Content -->
+  <main class="flex-1 p-6 md:p-8 overflow-y-auto">
+    <!-- Header -->
+    <div
+      class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8"
+    >
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Employee Management</h1>
+        <p class="text-gray-600">
+          Manage employee profiles, performance metrics, and compensation
+          details
+        </p>
+      </div>
+      <div class="flex gap-3 flex-wrap">
+        <button
+          nz-button
+          nzType="default"
+          (click)="exportEmployees()"
+          class="flex items-center gap-1.5"
+        >
+          <span nz-icon nzType="download"></span> Export
+        </button>
+        <button
+          nz-button
+          class="bg-orange-500 hover:bg-orange-600 text-white border-none flex items-center gap-1.5 shadow-sm rounded-l"
+          (click)="addNewEmployee()"
+        >
+          <span nz-icon nzType="plus"></span> Add Employee
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <nz-card
+        nzHoverable
+        class="rounded-xl shadow-sm border border-gray-100 text-center"
+      >
+        <nz-statistic
+          nzTitle="Total Employees"
+          [nzValue]="summary.totalEmployees"
+          [nzValueStyle]="{ 'font-weight': 700, color: '#111827' }"
+        >
+          <ng-template #suffix>
+            <span nz-icon nzType="team" class="text-blue-600"></span>
+          </ng-template>
+        </nz-statistic>
+      </nz-card>
+
+      <nz-card
+        nzHoverable
+        class="rounded-xl shadow-sm border border-gray-100 text-center"
+      >
+        <nz-statistic
+          nzTitle="Active"
+          [nzValue]="summary.active"
+          [nzValueStyle]="{ 'font-weight': 700, color: '#111827' }"
+        >
+          <ng-template #suffix>
+            <span nz-icon nzType="check-circle" class="text-green-600"></span>
+          </ng-template>
+        </nz-statistic>
+      </nz-card>
+
+      <nz-card
+        nzHoverable
+        class="rounded-xl shadow-sm border border-gray-100 text-center"
+      >
+        <nz-statistic
+          nzTitle="Total Departments"
+          [nzValue]="summary.avgPerformance"
+          [nzValueStyle]="{ 'font-weight': 700, color: '#111827' }"
+        >
+          <ng-template #prefix>
+            <span nz-icon nzType="apartment" class="text-purple-600"></span>
+          </ng-template>
+        </nz-statistic>
+      </nz-card>
+
+      <nz-card
+        nzHoverable
+        class="rounded-xl shadow-sm border border-gray-100 text-center"
+      >
+        <nz-statistic
+          nzTitle="Total Payroll"
+          [nzValue]="summary.totalPayroll"
+          nzPrefix="$"
+          [nzValueStyle]="{ 'font-weight': 700, color: '#111827' }"
+        >
+          <ng-template #suffix>
+            <span nz-icon nzType="dollar" class="text-green-600"></span>
+          </ng-template>
+        </nz-statistic>
+      </nz-card>
+    </div>
+
+    <!-- Filters -->
+    <div class="flex flex-wrap gap-4 mb-6">
+      <input
+        nz-input
+        placeholder="Search by name, ID or email..."
+        [ngModel]="searchTerm"
+        (ngModelChange)="setSearchTerm($event)"
+        class="w-full max-w-md rounded-lg"
+      />
+
+      <nz-select
+        nzPlaceHolder="All Departments"
+        [ngModel]="departmentFilter"
+        (ngModelChange)="setDepartmentFilter($event)"
+        style="width: 180px"
+      >
+        <nz-option nzValue="" nzLabel="All Departments"></nz-option>
+        <nz-option nzValue="Sales" nzLabel="Sales"></nz-option>
+        <nz-option nzValue="Marketing" nzLabel="Marketing"></nz-option>
+        <nz-option nzValue="HR" nzLabel="HR"></nz-option>
+        <nz-option nzValue="Finance" nzLabel="Finance"></nz-option>
+        <nz-option nzValue="IT" nzLabel="IT"></nz-option>
+      </nz-select>
+
+      <nz-select
+        nzPlaceHolder="All Status"
+        [ngModel]="statusFilter"
+        (ngModelChange)="setStatusFilter($event)"
+        style="width: 140px"
+      >
+        <nz-option nzValue="null" nzLabel="All Status"></nz-option>
+        <nz-option nzValue="Active" nzLabel="Active"></nz-option>
+        <nz-option nzValue="Inactive" nzLabel="Inactive"></nz-option>
+      </nz-select>
+    </div>
+
+    <!-- List + Detail -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-1">
+        <app-employee-list></app-employee-list>
+      </div>
+      <div class="lg:col-span-2">
+        <app-employee-detail></app-employee-detail>
+      </div>
+    </div>
+
+    <!-- Add Employee Modal -->
+    <app-add-employee-modal #addEmployeeModal></app-add-employee-modal>
+  </main>
+</div>
