@@ -1,0 +1,446 @@
+import { Component, inject, computed, signal } from '@angular/core';
+import { of } from 'rxjs';
+
+import { FormsModule } from '@angular/forms';
+
+import { NzTableModule } from 'ng-zorro-antd/table';
+
+import { NzButtonModule } from 'ng-zorro-antd/button';
+
+import { NzSelectModule } from 'ng-zorro-antd/select';
+
+import { NzInputModule } from 'ng-zorro-antd/input';
+
+import { NzTagModule } from 'ng-zorro-antd/tag';
+
+import { NzCardModule } from 'ng-zorro-antd/card';
+
+import { NzIconModule } from 'ng-zorro-antd/icon';
+
+import { CommonModule } from '@angular/common';
+
+import { SidebarComponent } from '@employee-payroll/sidebar';
+
+import { AttendanceFacadeService } from '../../facades/attendance.facade.service';
+
+import { EmployeeAttendance } from '../../models/attendance.model';
+
+import { DashboardService } from '@employee-payroll/features';
+
+
+
+@Component({
+
+  selector: 'app-attendance',
+
+  templateUrl: './attendance.component.html',
+
+  standalone: true,
+
+  imports: [
+
+    CommonModule,
+
+    FormsModule,
+
+    NzTableModule,
+
+    NzButtonModule,
+
+    NzSelectModule,
+
+    NzInputModule,
+
+    NzTagModule,
+
+    NzCardModule,
+
+    NzIconModule,
+
+    SidebarComponent,
+
+  ],
+
+})
+
+export class AttendanceComponent {
+
+  facade = inject(AttendanceFacadeService);
+
+  dashboardService = inject(DashboardService);
+
+
+
+  sidebarItems = [
+
+    { label: 'Dashboard', icon: '📊', path: '/dashboard' },
+
+    { label: 'Employee', icon: '👥', path: '/employees' },
+
+    { label: 'Payroll', icon: '💰', path: '/payroll' },
+
+    { label: 'Attendance', icon: '🕒', path: '/attendance' },
+
+  ];
+
+
+
+  // Store attendance records as signal for reactivity
+  private attendanceRecords = signal<Record<string, { checkIn?: Date; checkOut?: Date; }>>({});
+
+  // Expose facade data to template
+  attendanceData$ = this.facade.attendanceData$;
+  loading$ = this.facade.attendanceDataLoading$;
+  error$ = of(null); // Attendance facade doesn't have error property
+
+  // Local state for filters
+  attendanceSearchTerm = signal('');
+  attendanceDepartmentFilter = signal<string | null>(null);
+  attendanceStatusFilter = signal<string | null>(null);
+
+  // Mock employee data for demo purposes
+  private mockEmployees = signal([
+    { 
+      id: '1', 
+      fullName: 'John Doe', 
+      empId: 'EMP001', 
+      department: 'Engineering',
+      avatarColor: '#1890ff',
+      initials: 'JD',
+      status: 'Active'
+    },
+    { 
+      id: '2', 
+      fullName: 'Jane Smith', 
+      empId: 'EMP002', 
+      department: 'HR',
+      avatarColor: '#52c41a',
+      initials: 'JS',
+      status: 'Active'
+    },
+    { 
+      id: '3', 
+      fullName: 'Bob Johnson', 
+      empId: 'EMP003', 
+      department: 'Sales',
+      avatarColor: '#faad14',
+      initials: 'BJ',
+      status: 'Active'
+    }
+  ]);
+
+  attendanceSummary = computed(() => {
+    const employees = this.mockEmployees();
+    let present = 0;
+    let absent = 0;
+    let total = employees.length;
+
+    employees.forEach((emp: any) => {
+      const attendance = this.getEmployeeAttendance(emp.id);
+      switch (attendance.status) {
+        case 'Present':
+          present++;
+          break;
+        case 'Absent':
+          absent++;
+          break;
+      }
+    });
+
+    return { present, absent, total };
+  });
+
+  // Expose filtered employees for table
+  filteredEmployees = computed(() => {
+    let employees = this.mockEmployees();
+    
+    // Search filter
+    const searchTerm = this.attendanceSearchTerm().toLowerCase();
+    if (searchTerm) {
+      employees = employees.filter((emp: any) =>
+        emp.fullName.toLowerCase().includes(searchTerm) ||
+        emp.empId.toLowerCase().includes(searchTerm) ||
+        emp.department.toLowerCase().includes(searchTerm)
+      );
+    }
+
+    // Department filter
+    const dept = this.attendanceDepartmentFilter();
+    if (dept) {
+      employees = employees.filter((emp: any) => emp.department === dept);
+    }
+
+    // Status filter
+    const status = this.attendanceStatusFilter();
+    if (status) {
+      employees = employees.filter((emp: any) => {
+        const attendance = this.getEmployeeAttendance(emp.id);
+        return attendance.status === status;
+      });
+    }
+
+    return employees;
+  });
+
+
+
+  constructor() {
+
+    // Load existing attendance from localStorage
+
+    this.loadAttendanceFromStorage();
+
+  }
+
+
+
+  private loadAttendanceFromStorage(): void {
+    try {
+      const stored = localStorage.getItem('attendanceRecords');
+      if (stored) {
+        const parsedRecords = JSON.parse(stored);
+        this.attendanceRecords.set(parsedRecords);
+        // Auto-reset for new day
+        this.resetForNewDay();
+      }
+    } catch (error) {
+      console.error('Error loading attendance records:', error);
+    }
+  }
+
+
+
+  private resetForNewDay(): void {
+    const today = new Date().toDateString();
+    
+    const currentRecords = this.attendanceRecords();
+    const updatedRecords = { ...currentRecords };
+    
+    Object.keys(updatedRecords).forEach(employeeId => {
+      const record = updatedRecords[employeeId];
+      
+      // If there's a check-in from a previous day, reset it
+      if (record.checkIn) {
+        const checkInDate = new Date(record.checkIn);
+        if (checkInDate.toDateString() !== today) {
+          // Reset for new day
+          updatedRecords[employeeId] = {};
+        }
+      }
+      
+      // Also reset if there's a check-out from previous day
+      if (record.checkOut) {
+        const checkOutDate = new Date(record.checkOut);
+        if (checkOutDate.toDateString() !== today) {
+          // Reset for new day
+          updatedRecords[employeeId] = {};
+        }
+      }
+    });
+    
+    // Update the signal with the reset data
+    this.attendanceRecords.set(updatedRecords);
+    this.saveAttendanceToStorage();
+  }
+
+
+
+  private saveAttendanceToStorage(): void {
+    try {
+      localStorage.setItem('attendanceRecords', JSON.stringify(this.attendanceRecords()));
+    } catch (error) {
+      console.error('Error saving attendance records:', error);
+    }
+  }
+
+
+
+  getEmployeeAttendance(employeeId: string): { checkIn?: string; checkOut?: string; workingHours?: string; status: string } {
+    const records = this.attendanceRecords();
+    const record = records[employeeId] || {};
+    const employee = this.mockEmployees().find((emp: any) => emp.id === employeeId);
+    
+    let status = 'Absent';
+    if (record.checkIn && !record.checkOut) {
+      status = 'Present';
+    } else if (record.checkIn && record.checkOut) {
+      status = 'Present';
+    }
+
+    return {
+      checkIn: record.checkIn ? this.formatTime(record.checkIn) : '-',
+      checkOut: record.checkOut ? this.formatTime(record.checkOut) : '-',
+      workingHours: record.checkIn && record.checkOut ? this.calculateWorkingHours(record.checkIn, record.checkOut) : '0h 0m',
+      status
+    };
+  }
+
+
+
+  private formatTime(date: Date | string): string {
+
+    return new Date(date).toLocaleTimeString('en-US', { 
+
+      hour: '2-digit', 
+
+      minute: '2-digit',
+
+      hour12: false 
+
+    });
+
+  }
+
+
+
+  private calculateWorkingHours(checkIn: Date | string, checkOut: Date | string): string {
+    if (!checkIn || !checkOut) return '0h 0m';
+    
+    const diffMs = new Date(checkOut).getTime() - new Date(checkIn).getTime();
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    
+    return `${diffHours}h ${diffMinutes}m`;
+  }
+
+  checkIn(employeeId?: string) {
+    const targetEmployeeId = employeeId || this.mockEmployees()[0]?.id;
+    if (!targetEmployeeId) return;
+
+    const employee = this.mockEmployees().find((emp: any) => emp.id === targetEmployeeId);
+    if (!employee) return;
+
+    // Update the signal with new check-in record
+    const currentRecords = this.attendanceRecords();
+    const updatedRecords = { ...currentRecords };
+    
+    if (!updatedRecords[targetEmployeeId]) {
+      updatedRecords[targetEmployeeId] = {};
+    }
+    
+    updatedRecords[targetEmployeeId].checkIn = new Date();
+    this.attendanceRecords.set(updatedRecords);
+    this.saveAttendanceToStorage();
+
+    const checkInTime = this.formatTime(updatedRecords[targetEmployeeId].checkIn!);
+    
+    // Track activity in dashboard
+    this.dashboardService.trackAttendanceCheckIn(employee.fullName, employee.id);
+    
+    alert(`${employee.fullName} checked in at ${checkInTime}`);
+  }
+
+  checkOut(employeeId: string) {
+    const employee = this.mockEmployees().find((emp: any) => emp.id === employeeId);
+    if (!employee) return;
+
+    const currentRecords = this.attendanceRecords();
+    const updatedRecords = { ...currentRecords };
+
+    // Initialize record if not exists
+    if (!updatedRecords[employeeId]) {
+      updatedRecords[employeeId] = {};
+    }
+
+    // Check if checked in
+    if (!updatedRecords[employeeId].checkIn) {
+      alert(`${employee.fullName} is not checked in!`);
+      return;
+    }
+
+    // Check if already checked out
+    if (updatedRecords[employeeId].checkOut) {
+      const checkOutDate = new Date(updatedRecords[employeeId].checkOut!);
+      const checkInDate = new Date(updatedRecords[employeeId].checkIn!);
+      if (checkOutDate > checkInDate) {
+        alert(`${employee.fullName} is already checked out!`);
+        return;
+      }
+    }
+
+    // Record check-out time
+    updatedRecords[employeeId].checkOut = new Date();
+    this.attendanceRecords.set(updatedRecords);
+    this.saveAttendanceToStorage();
+
+    const checkInTime = this.formatTime(updatedRecords[employeeId].checkIn!);
+    const checkOutTime = this.formatTime(updatedRecords[employeeId].checkOut!);
+    const workingHours = this.calculateWorkingHours(
+      updatedRecords[employeeId].checkIn!,
+      updatedRecords[employeeId].checkOut!
+    );
+    this.dashboardService.trackAttendanceCheckOut(
+      employee.fullName,
+      employee.id,
+      workingHours
+    );
+
+    alert(`${employee.fullName} checked out at ${checkOutTime}. Working hours: ${workingHours}`);
+  }
+
+
+
+  // Filter and clear methods
+  filterAttendance() {
+    // The filtering is already reactive through computed properties
+    // This method can be used to trigger any additional logic
+    console.log('Filters applied:', {
+      search: this.attendanceSearchTerm(),
+      department: this.attendanceDepartmentFilter(),
+      status: this.attendanceStatusFilter()
+    });
+  }
+
+  clearFilters() {
+    this.attendanceSearchTerm.set('');
+    this.attendanceDepartmentFilter.set(null);
+    this.attendanceStatusFilter.set(null);
+  }
+
+  searchAttendance(term: string) {
+    this.attendanceSearchTerm.set(term);
+  }
+
+  filterByDepartment(dept: string) {
+    this.attendanceDepartmentFilter.set(dept);
+  }
+
+  filterByStatus(status: string) {
+    this.attendanceStatusFilter.set(status);
+  }
+
+  exportAttendance() {
+    const employees = this.mockEmployees();
+    const attendanceData = employees.map((emp: any) => ({
+      employee: emp.fullName,
+      employeeId: emp.empId,
+      department: emp.department,
+      ...this.getEmployeeAttendance(emp.id)
+    }));
+
+    console.log('Exporting attendance data:', attendanceData);
+    alert('Attendance data exported to console');
+  }
+
+// Admin method to reset all attendance (for testing or daily reset)
+  resetAllAttendance(): void {
+    if (confirm('Are you sure you want to reset all attendance records for today?')) {
+      this.attendanceRecords.set({});
+      this.saveAttendanceToStorage();
+      alert('All attendance records have been reset for today.');
+    }
+  }
+
+  // Admin method to reset specific employee attendance
+  resetEmployeeAttendance(employeeId: string): void {
+    const employee = this.mockEmployees().find((emp: any) => emp.id === employeeId);
+    if (employee && confirm(`Reset attendance for ${employee.fullName}?`)) {
+      const currentRecords = this.attendanceRecords();
+      const updatedRecords = { ...currentRecords };
+      updatedRecords[employeeId] = {};
+      this.attendanceRecords.set(updatedRecords);
+      this.saveAttendanceToStorage();
+      alert(`Attendance reset for ${employee.fullName}.`);
+    }
+  }
+}
