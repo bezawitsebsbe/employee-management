@@ -5,7 +5,11 @@
     "employee": "apps/employee/project.json",
     "employee-mgt": "apps/employee-mgt/project.json",
     "payroll": "apps/payroll/project.json",
-    "models": "libs/models/project.json"
+    "models": "libs/models/project.json",
+    "firebase": "libs/data-access/firebase/project.json",
+    "auth": "libs/features/auth/project.json",
+    "dashboard": "libs/features/dashboard/project.json",
+    "sidebar": "libs/ui/sidebar/project.json"
   },
   "namedInputs": {
     "default": ["{projectRoot}/**/*", "sharedGlobals"],
@@ -23,6 +27,11 @@
   },
   "targetDefaults": {
     "@angular/build:application": {
+      "cache": true,
+      "dependsOn": ["^build"],
+      "inputs": ["production", "^production"]
+    },
+    "@nx/angular:package": {
       "cache": true,
       "dependsOn": ["^build"],
       "inputs": ["production", "^production"]
@@ -49,6 +58,9 @@
         }
       }
     }
+  },
+  "implicitDependencies": {
+    "auth": ["firebase"]
   },
   "generators": {
     "@nx/angular:application": {

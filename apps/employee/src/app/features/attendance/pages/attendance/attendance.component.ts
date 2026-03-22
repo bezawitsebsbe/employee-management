@@ -22,10 +22,11 @@ import { CommonModule } from '@angular/common';
 import { SidebarComponent } from '@employee-payroll/sidebar';
 
 import { AttendanceFacadeService } from '../../facades/attendance.facade.service';
+import { EmployeeSimpleFacade } from '../../../employee/facades/employee-simple.facade';
 
 import { EmployeeAttendance } from '../../models/attendance.model';
 
-import { DashboardService } from '@employee-payroll/features';
+import { DashboardFacadeService } from '@employee-payroll/features';
 
 
 
@@ -61,18 +62,22 @@ import { DashboardService } from '@employee-payroll/features';
 
   ],
 
+  providers: [
+    AttendanceFacadeService
+  ],
+
 })
 
 export class AttendanceComponent {
 
   facade = inject(AttendanceFacadeService);
-
-  dashboardService = inject(DashboardService);
-
+  dashboardService: DashboardFacadeService = inject(DashboardFacadeService);
+  employeeFacade = inject(EmployeeSimpleFacade);
 
 
   sidebarItems = [
 
+    { label: 'Dashboard', icon: '', path: '/dashboard' },
     { label: 'Dashboard', icon: '📊', path: '/dashboard' },
 
     { label: 'Employee', icon: '👥', path: '/employees' },
@@ -98,39 +103,12 @@ export class AttendanceComponent {
   attendanceDepartmentFilter = signal<string | null>(null);
   attendanceStatusFilter = signal<string | null>(null);
 
-  // Mock employee data for demo purposes
-  private mockEmployees = signal([
-    { 
-      id: '1', 
-      fullName: 'John Doe', 
-      empId: 'EMP001', 
-      department: 'Engineering',
-      avatarColor: '#1890ff',
-      initials: 'JD',
-      status: 'Active'
-    },
-    { 
-      id: '2', 
-      fullName: 'Jane Smith', 
-      empId: 'EMP002', 
-      department: 'HR',
-      avatarColor: '#52c41a',
-      initials: 'JS',
-      status: 'Active'
-    },
-    { 
-      id: '3', 
-      fullName: 'Bob Johnson', 
-      empId: 'EMP003', 
-      department: 'Sales',
-      avatarColor: '#faad14',
-      initials: 'BJ',
-      status: 'Active'
-    }
-  ]);
+  // Real employee data from Firestore
+  employees$ = this.employeeFacade.employees$;
+  employeesLoading$ = this.employeeFacade.employeesLoading$;
 
   attendanceSummary = computed(() => {
-    const employees = this.mockEmployees();
+    const employees = this.getEmployees();
     let present = 0;
     let absent = 0;
     let total = employees.length;
@@ -152,7 +130,7 @@ export class AttendanceComponent {
 
   // Expose filtered employees for table
   filteredEmployees = computed(() => {
-    let employees = this.mockEmployees();
+    let employees = this.getEmployees();
     
     // Search filter
     const searchTerm = this.attendanceSearchTerm().toLowerCase();
@@ -185,11 +163,31 @@ export class AttendanceComponent {
 
 
   constructor() {
-
-    // Load existing attendance from localStorage
-
+    // Load employees from Firestore
+    this.employeeFacade.loadEmployees();
+    // Load attendance data from Firestore
+    this.facade.loadAttendanceData();
+    // Load existing attendance from localStorage for backward compatibility
     this.loadAttendanceFromStorage();
+  }
 
+  // Helper method to get current employees synchronously
+  private getEmployees(): any[] {
+    let employees: any[] = [];
+    this.employees$.subscribe(emp => employees = emp || []).unsubscribe();
+    return employees;
+  }
+
+  // Helper method to get attendance data from Firestore
+  private getAttendanceData(): any[] {
+    let attendanceData: any[] = [];
+    try {
+      this.facade.attendanceData$.subscribe(data => attendanceData = data || []).unsubscribe();
+    } catch (error) {
+      console.error('Error accessing attendance data:', error);
+      attendanceData = [];
+    }
+    return attendanceData;
   }
 
 
@@ -256,9 +254,27 @@ export class AttendanceComponent {
 
 
   getEmployeeAttendance(employeeId: string): { checkIn?: string; checkOut?: string; workingHours?: string; status: string } {
+    const attendanceData = this.getAttendanceData();
+    const today = new Date().toDateString();
+    
+    // Find today's attendance record for this employee
+    const todayRecord = attendanceData.find(record => {
+      const recordDate = new Date(record.createdAt || '').toDateString();
+      return record.employeeId === employeeId && recordDate === today;
+    });
+
+    if (todayRecord) {
+      return {
+        checkIn: todayRecord.checkin || '-',
+        checkOut: todayRecord.checkout || '-',
+        workingHours: todayRecord.hours || '0h 0m',
+        status: todayRecord.status || 'Present'
+      };
+    }
+
+    // Fallback to localStorage for backward compatibility
     const records = this.attendanceRecords();
     const record = records[employeeId] || {};
-    const employee = this.mockEmployees().find((emp: any) => emp.id === employeeId);
     
     let status = 'Absent';
     if (record.checkIn && !record.checkOut) {
@@ -304,78 +320,40 @@ export class AttendanceComponent {
   }
 
   checkIn(employeeId?: string) {
-    const targetEmployeeId = employeeId || this.mockEmployees()[0]?.id;
+    const targetEmployeeId = employeeId || this.getEmployees()[0]?.id;
     if (!targetEmployeeId) return;
 
-    const employee = this.mockEmployees().find((emp: any) => emp.id === targetEmployeeId);
+    const employee = this.getEmployees().find((emp: any) => emp.id === targetEmployeeId);
     if (!employee) return;
 
-    // Update the signal with new check-in record
-    const currentRecords = this.attendanceRecords();
-    const updatedRecords = { ...currentRecords };
-    
-    if (!updatedRecords[targetEmployeeId]) {
-      updatedRecords[targetEmployeeId] = {};
-    }
-    
-    updatedRecords[targetEmployeeId].checkIn = new Date();
-    this.attendanceRecords.set(updatedRecords);
-    this.saveAttendanceToStorage();
-
-    const checkInTime = this.formatTime(updatedRecords[targetEmployeeId].checkIn!);
+    // Use the attendance facade to check in (this will save to Firestore)
+    this.facade.checkIn(targetEmployeeId, employee.fullName, employee.department || 'Unknown');
     
     // Track activity in dashboard
     this.dashboardService.trackAttendanceCheckIn(employee.fullName, employee.id);
-    
-    alert(`${employee.fullName} checked in at ${checkInTime}`);
   }
 
   checkOut(employeeId: string) {
-    const employee = this.mockEmployees().find((emp: any) => emp.id === employeeId);
+    const employee = this.getEmployees().find((emp: any) => emp.id === employeeId);
     if (!employee) return;
 
-    const currentRecords = this.attendanceRecords();
-    const updatedRecords = { ...currentRecords };
+    // Find today's attendance record for this employee
+    let attendanceRecordId: string | undefined;
+    this.facade.attendanceByEmployeeId$.subscribe(records => {
+      const today = new Date().toDateString();
+      const todayRecord = records.find(record => {
+        const recordDate = new Date(record.createdAt || '').toDateString();
+        return record.employeeId === employeeId && recordDate === today;
+      });
+      attendanceRecordId = todayRecord?.id;
+    }).unsubscribe();
 
-    // Initialize record if not exists
-    if (!updatedRecords[employeeId]) {
-      updatedRecords[employeeId] = {};
+    if (attendanceRecordId) {
+      // Use the attendance facade to check out (this will save to Firestore)
+      this.facade.checkOut(attendanceRecordId);
+    } else {
+      alert(`${employee.fullName} has no check-in record for today!`);
     }
-
-    // Check if checked in
-    if (!updatedRecords[employeeId].checkIn) {
-      alert(`${employee.fullName} is not checked in!`);
-      return;
-    }
-
-    // Check if already checked out
-    if (updatedRecords[employeeId].checkOut) {
-      const checkOutDate = new Date(updatedRecords[employeeId].checkOut!);
-      const checkInDate = new Date(updatedRecords[employeeId].checkIn!);
-      if (checkOutDate > checkInDate) {
-        alert(`${employee.fullName} is already checked out!`);
-        return;
-      }
-    }
-
-    // Record check-out time
-    updatedRecords[employeeId].checkOut = new Date();
-    this.attendanceRecords.set(updatedRecords);
-    this.saveAttendanceToStorage();
-
-    const checkInTime = this.formatTime(updatedRecords[employeeId].checkIn!);
-    const checkOutTime = this.formatTime(updatedRecords[employeeId].checkOut!);
-    const workingHours = this.calculateWorkingHours(
-      updatedRecords[employeeId].checkIn!,
-      updatedRecords[employeeId].checkOut!
-    );
-    this.dashboardService.trackAttendanceCheckOut(
-      employee.fullName,
-      employee.id,
-      workingHours
-    );
-
-    alert(`${employee.fullName} checked out at ${checkOutTime}. Working hours: ${workingHours}`);
   }
 
 
@@ -410,10 +388,10 @@ export class AttendanceComponent {
   }
 
   exportAttendance() {
-    const employees = this.mockEmployees();
+    const employees = this.getEmployees();
     const attendanceData = employees.map((emp: any) => ({
       employee: emp.fullName,
-      employeeId: emp.empId,
+      employeeId: emp.empId || emp.id,
       department: emp.department,
       ...this.getEmployeeAttendance(emp.id)
     }));
@@ -433,7 +411,7 @@ export class AttendanceComponent {
 
   // Admin method to reset specific employee attendance
   resetEmployeeAttendance(employeeId: string): void {
-    const employee = this.mockEmployees().find((emp: any) => emp.id === employeeId);
+    const employee = this.getEmployees().find((emp: any) => emp.id === employeeId);
     if (employee && confirm(`Reset attendance for ${employee.fullName}?`)) {
       const currentRecords = this.attendanceRecords();
       const updatedRecords = { ...currentRecords };

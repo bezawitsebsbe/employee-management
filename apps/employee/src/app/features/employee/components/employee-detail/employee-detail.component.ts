@@ -1,13 +1,15 @@
-import { Component, inject, effect } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
+import { RxwebValidators } from '@rxweb/reactive-form-validators';
 import { NzCardModule } from 'ng-zorro-antd/card';
-import { NzTagModule } from 'ng-zorro-antd/tag';
-import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzTagModule } from 'ng-zorro-antd/tag';
+import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { Employee } from '../../models/employee.model';
 import { EmployeeSimpleFacade } from '../../facades/employee-simple.facade';
 
@@ -26,75 +28,82 @@ import { EmployeeSimpleFacade } from '../../facades/employee-simple.facade';
     NzSelectModule,
   ],
   templateUrl: './employee-detail.component.html',
-  styleUrls: ['./employee-detail.component.scss'],
 })
-export class EmployeeDetailComponent {
+export class EmployeeDetailComponent implements OnInit {
   private fb = inject(FormBuilder);
   private facade = inject(EmployeeSimpleFacade);
+
+  employee: Employee | null = null; 
   isEditing = false;
 
-  selected = this.facade.selectedEmployee;
-
   detailForm = this.fb.group({
-    fullName: ['', Validators.required],
-    email: ['', [Validators.required, Validators.email]],
-    phone: [''],
-    department: [''],
-    position: [''],
-    joinDate: [''],
-    status: ['Active'],
-    baseSalary: [0, [Validators.required, Validators.min(0)]],
+    fullName: ['', [
+      RxwebValidators.required(),
+      RxwebValidators.minLength({ value: 2 }),
+      RxwebValidators.maxLength({ value: 50 })
+    ]],
+    email: ['', [
+      RxwebValidators.required(),
+      RxwebValidators.email()
+    ]],
+    phone: ['', [
+      RxwebValidators.pattern({
+        expression: { phone: /^[+]?[\d\s\-\(\)]+$/ },
+        message: 'Invalid phone number format'
+      })
+    ]],
+    department: ['', [
+      RxwebValidators.maxLength({ value: 50 })
+    ]],
+    position: ['', [
+      RxwebValidators.maxLength({ value: 100 })
+    ]],
+    joinDate: ['', [
+      RxwebValidators.required()
+    ]],
+    status: ['Active', [
+      RxwebValidators.required()
+    ]],
+    baseSalary: [0, [
+      RxwebValidators.minNumber({ value: 0 }),
+      RxwebValidators.maxNumber({ value: 1000000 })
+    ]]
   });
 
-  constructor() {
-    // Auto-patch form when selected employee changes
-    effect(() => {
-      const emp = this.facade.selectedEmployee();
-      if (emp) {
-        this.detailForm.patchValue(emp);
-      } else {
-        this.detailForm.reset();
-      }
+  ngOnInit(): void {
+    this.facade.selectedEmployee$.subscribe((emp) => {
+      this.employee = emp;
+      if (emp) this.detailForm.patchValue(emp);
     });
   }
-  cancelEdit() {
+
+  startEditing(): void {
+    this.isEditing = true;
+  }
+
+  cancelEditing(): void {
     this.isEditing = false;
-    const emp = this.selected();
-    if (emp) {
-      this.detailForm.patchValue(emp); // revert changes
+    if (this.employee) {
+      this.detailForm.patchValue(this.employee);
     }
   }
 
-  saveChanges() {
-    if (this.detailForm.valid && this.selected()) {
-      const current = this.selected()!;
-      const formValue = this.detailForm.value;
-
-      const updated: Employee = {
-        ...current,
-        fullName: formValue.fullName ?? current.fullName,
-        email: formValue.email ?? current.email,
-        phone: formValue.phone ?? current.phone,
-        department: formValue.department ?? current.department,
-        position: formValue.position ?? current.position,
-        joinDate: formValue.joinDate ?? current.joinDate,
-        status: (formValue.status ?? current.status) as
-          | 'Active'
-          | 'Inactive'
-          | 'On Leave',
-        baseSalary: formValue.baseSalary ?? current.baseSalary,
+  saveChanges(): void {
+    if (this.detailForm.valid && this.employee && this.employee.id) {
+      const { id, ...data } = {
+        ...this.employee,
+        ...this.detailForm.value,
       };
-
-      this.facade.updateEmployee(current.id, updated); // save to facade/store
-      this.facade.loadEmployee(current.id); // keep selected
-      this.isEditing = false; // exit edit mode
+      this.facade.updateEmployee(id!, data);
+      this.isEditing = false;
     }
   }
 
-  deleteEmployee() {
-    const current = this.selected();
-    if (current && confirm(`Delete ${current.fullName}?`)) {
-      this.facade.deleteEmployee(current.id);
+  deleteEmployee(): void {
+    if (!this.employee || !this.employee.id) return;
+    const confirmDelete = confirm('Are you sure you want to delete this employee?');
+    if (confirmDelete) {
+      this.facade.deleteEmployee(this.employee.id);
     }
   }
 }

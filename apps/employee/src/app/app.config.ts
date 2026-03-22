@@ -2,6 +2,7 @@
 import { ApplicationConfig, isDevMode } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
+import { provideHttpClient } from '@angular/common/http';
 import { provideNzIcons } from 'ng-zorro-antd/icon';
 import {
   DollarOutline,
@@ -23,10 +24,11 @@ import {
   PhoneOutline,
 } from '@ant-design/icons-angular/icons';
 
-import { provideStore } from '@ngrx/store';
-import { provideEffects } from '@ngrx/effects';
-import { provideStoreDevtools } from '@ngrx/store-devtools';
-
+import { provideStore } from '@ngxs/store';
+import { AuthState } from '../../../../libs/features/auth/src/lib/store/state/auth.state';
+import { DashboardState } from '../../../../libs/features/dashboard/src/lib/store/state/dashboard.state';
+import { EmployeeState } from './features/employee/store/state/employee.state';
+import { AttendanceState } from './features/attendance/store/state/attendance.state';
 import { appRoutes } from './app.routes';
 
 import { provideBrowserGlobalErrorListeners } from '@angular/core'; // if you really need it
@@ -34,8 +36,13 @@ import { provideBrowserGlobalErrorListeners } from '@angular/core'; // if you re
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(appRoutes),
+    
+
+    provideHttpClient(),
 
     provideAnimations(), // or provideNoopAnimations() if you don't need real animations
+
+    provideStore([AuthState, DashboardState, EmployeeState, AttendanceState]),
 
     provideNzIcons([
       DollarOutline,
@@ -54,16 +61,8 @@ export const appConfig: ApplicationConfig = {
       BankOutline,
     ]),
 
-    
-
-    // DevTools — only in development
-    provideStoreDevtools({
-      maxAge: 25, // keep last 25 actions
-      logOnly: !isDevMode(), // no actions in production
-      autoPause: true, // pause when tab inactive
-      name: 'Employee Portal', // optional: label in devtools
-    }),
-
     provideBrowserGlobalErrorListeners(), // keep if you need it
   ],
 };
+
+console.log('App config initialized with routes:', appRoutes);

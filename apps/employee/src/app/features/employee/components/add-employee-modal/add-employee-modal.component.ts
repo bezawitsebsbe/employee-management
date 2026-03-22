@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
+import { RxwebValidators } from '@rxweb/reactive-form-validators';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
@@ -46,20 +47,41 @@ export interface AddEmployeeFormData {
 export class AddEmployeeModalComponent {
   private fb = inject(FormBuilder);
   private facade = inject(EmployeeSimpleFacade);
-  
+
   isVisible = false;
 
   departments = ['Sales', 'Marketing', 'HR', 'Finance', 'IT', 'Operations'];
 
   addForm = this.fb.group({
-    fullName: ['', [Validators.required]],
-    email: ['', [Validators.required, Validators.email]],
-    phone: [''],
-    department: ['', [Validators.required]],
-    position: [''],
-    joinDate: ['', [Validators.required]],
-    status: ['Active', [Validators.required]],
-    baseSalary: [0, [Validators.required, Validators.min(0)]],
+    fullName: ['', [
+      RxwebValidators.required(),
+      RxwebValidators.minLength({ value: 2 }),
+      RxwebValidators.maxLength({ value: 50 })
+    ]],
+    email: ['', [
+      RxwebValidators.required(),
+      RxwebValidators.email()
+    ]],
+    phone: ['', [
+      RxwebValidators.pattern({ expression: { phone: /^[+]?[\d\s\-\(\)]+$/ }, message: 'Invalid phone number format' })
+    ]],
+    department: ['', [
+      RxwebValidators.required()
+    ]],
+    position: ['', [
+      RxwebValidators.maxLength({ value: 100 })
+    ]],
+    joinDate: ['', [
+      RxwebValidators.required()
+    ]],
+    status: ['Active', [
+      RxwebValidators.required()
+    ]],
+    baseSalary: [0, [
+      RxwebValidators.required(),
+      RxwebValidators.minNumber({ value: 0 }),
+      RxwebValidators.maxNumber({ value: 1000000 })
+    ]]
   });
 
   show(): void {
@@ -79,7 +101,6 @@ export class AddEmployeeModalComponent {
     if (this.addForm.valid) {
       const formData = this.addForm.value;
       const newEmployee: Employee = {
-        id: this.generateEmployeeId(),
         empId: this.generateEmployeeId(),
         fullName: formData.fullName!,
         initials: this.getInitials(formData.fullName!),
@@ -90,11 +111,10 @@ export class AddEmployeeModalComponent {
         joinDate: formData.joinDate!,
         status: formData.status as 'Active' | 'Inactive' | 'On Leave',
         baseSalary: formData.baseSalary!,
-        performance: 75, // Default performance
+        performance: 75,
         avatarColor: this.getRandomColor(),
       };
 
-      // Add employee directly
       this.facade.addEmployee(newEmployee);
       this.isVisible = false;
       this.addForm.reset();
@@ -108,10 +128,14 @@ export class AddEmployeeModalComponent {
     }
   }
 
+  onSubmit(): void {
+    this.handleOk();
+  }
+
   private generateEmployeeId(): string {
     const employees = this.facade.employees;
     const maxId = employees.reduce((max: number, emp: any) => {
-      const num = parseInt(emp.empId.replace(/\D/g, ''), 10);
+      const num = parseInt((emp.empId || '').replace(/\D/g, ''), 10) || 0;
       return num > max ? num : max;
     }, 0);
     return `EMP${String(maxId + 1).padStart(3, '0')}`;
