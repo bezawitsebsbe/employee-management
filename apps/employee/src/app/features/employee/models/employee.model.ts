@@ -1,6 +1,6 @@
 // apps/portal/employee-portal/src/app/features/employee/api/employee.model.ts
 export interface Employee {
-  id: string;
+  id?: string;     // ✅ Optional - Firestore doc ID
   empId: string; // e.g. EMP001
   fullName: string;
   initials: string; // e.g. JD
@@ -13,5 +13,7 @@ export interface Employee {
   performance?: number; // 0-100
   baseSalary?: number;
   avatarColor?: string; // e.g. '#fadb14' for orange-ish
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 

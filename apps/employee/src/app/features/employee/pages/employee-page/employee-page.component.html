@@ -137,7 +137,7 @@
     <!-- List + Detail -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div class="lg:col-span-1">
-        <app-employee-list></app-employee-list>
+        <app-employee-list [employees]="filteredEmployees"></app-employee-list>
       </div>
       <div class="lg:col-span-2">
         <app-employee-detail></app-employee-detail>

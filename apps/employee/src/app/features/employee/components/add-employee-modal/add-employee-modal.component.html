@@ -13,62 +13,119 @@
     <div class="p-6">
       <h3 class="text-lg font-semibold text-gray-800 mb-6">Basic Information</h3>
 
-      <form [formGroup]="addForm" nz-form>
+      <form [formGroup]="addForm" nz-form (ngSubmit)="onSubmit()">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
           <!-- Full Name -->
           <nz-form-item>
             <nz-form-label nzRequired>Full Name *</nz-form-label>
-            <input nz-input formControlName="fullName" placeholder="Mike Johnson" />
+            <nz-form-control>
+              <input nz-input formControlName="fullName" placeholder="Mike Johnson" />
+              <div class="ant-form-item-explain" *ngIf="addForm.get('fullName')?.errors">
+                <div role="alert" *ngIf="addForm.get('fullName')?.errors?.['required']">
+                  Full name is required
+                </div>
+                <div role="alert" *ngIf="addForm.get('fullName')?.errors?.['minLength'] || addForm.get('fullName')?.errors?.['minlength']">
+                  Full name must be at least 2 characters
+                </div>
+                <div role="alert" *ngIf="addForm.get('fullName')?.errors?.['maxLength'] || addForm.get('fullName')?.errors?.['maxlength']">
+                  Full name cannot exceed 50 characters
+                </div>
+              </div>
+            </nz-form-control>
           </nz-form-item>
 
           <!-- Email -->
           <nz-form-item>
             <nz-form-label nzRequired>Email *</nz-form-label>
-            <input nz-input type="email" formControlName="email" placeholder="mike.johnson@company.com" />
+            <nz-form-control>
+              <input nz-input type="email" formControlName="email" placeholder="mike.johnson@company.com" />
+              <div class="ant-form-item-explain" *ngIf="addForm.get('email')?.errors">
+                <div role="alert" *ngIf="addForm.get('email')?.errors?.['required']">Email is required</div>
+                <div role="alert" *ngIf="addForm.get('email')?.errors?.['email']">Please enter a valid email address</div>
+              </div>
+            </nz-form-control>
           </nz-form-item>
 
           <!-- Phone -->
           <nz-form-item>
             <nz-form-label>Phone</nz-form-label>
-            <input nz-input formControlName="phone" placeholder="+1234-567-8922" />
+            <nz-form-control>
+              <input nz-input formControlName="phone" placeholder="+1 (555) 123-4567" />
+              <div class="ant-form-item-explain" *ngIf="addForm.get('phone')?.errors">
+                <div role="alert" *ngIf="addForm.get('phone')?.errors?.['pattern'] || addForm.get('phone')?.errors?.['phone']">
+                  Invalid phone number format
+                </div>
+              </div>
+            </nz-form-control>
           </nz-form-item>
 
           <!-- Department -->
           <nz-form-item>
             <nz-form-label>Department *</nz-form-label>
-            <nz-select formControlName="department" nzPlaceHolder="Select department">
-              @for (dept of departments; track dept) {
-                <nz-option [nzValue]="dept" [nzLabel]="dept"></nz-option>
-              }
-            </nz-select>
+            <nz-form-control>
+              <nz-select formControlName="department" nzPlaceHolder="Select department">
+                <nz-option *ngFor="let dept of departments" [nzValue]="dept" [nzLabel]="dept"></nz-option>
+              </nz-select>
+              <div class="ant-form-item-explain" *ngIf="addForm.get('department')?.errors">
+                <div role="alert" *ngIf="addForm.get('department')?.errors?.['required']">Department is required</div>
+              </div>
+            </nz-form-control>
           </nz-form-item>
 
           <!-- Position -->
           <nz-form-item>
             <nz-form-label>Position</nz-form-label>
-            <input nz-input formControlName="position" placeholder="Sales Representative" />
+            <nz-form-control>
+              <input nz-input formControlName="position" placeholder="Sales Representative" />
+              <div class="ant-form-item-explain" *ngIf="addForm.get('position')?.errors">
+                <div role="alert" *ngIf="addForm.get('position')?.errors?.['maxLength'] || addForm.get('position')?.errors?.['maxlength']">
+                  Position cannot exceed 100 characters
+                </div>
+              </div>
+            </nz-form-control>
           </nz-form-item>
 
           <!-- Join Date -->
           <nz-form-item>
             <nz-form-label>Join Date *</nz-form-label>
-            <input nz-input formControlName="joinDate" placeholder="05/03/2023" />
+            <nz-form-control>
+              <input nz-input formControlName="joinDate" placeholder="05/03/2023" />
+              <div class="ant-form-item-explain" *ngIf="addForm.get('joinDate')?.errors">
+                <div role="alert" *ngIf="addForm.get('joinDate')?.errors?.['required']">Join date is required</div>
+              </div>
+            </nz-form-control>
           </nz-form-item>
 
           <!-- Status -->
           <nz-form-item>
             <nz-form-label>Status *</nz-form-label>
-            <nz-select formControlName="status">
-              <nz-option nzValue="Active" nzLabel="Active"></nz-option>
-              <nz-option nzValue="Inactive" nzLabel="Inactive"></nz-option>
-              <nz-option nzValue="On Leave" nzLabel="On Leave"></nz-option>
-            </nz-select>
+            <nz-form-control>
+              <nz-select formControlName="status">
+                <nz-option nzValue="Active" nzLabel="Active"></nz-option>
+                <nz-option nzValue="Inactive" nzLabel="Inactive"></nz-option>
+                <nz-option nzValue="On Leave" nzLabel="On Leave"></nz-option>
+              </nz-select>
+              <div class="ant-form-item-explain" *ngIf="addForm.get('status')?.errors">
+                <div role="alert" *ngIf="addForm.get('status')?.errors?.['required']">Status is required</div>
+              </div>
+            </nz-form-control>
           </nz-form-item>
 
           <!-- Base Salary -->
           <nz-form-item>
             <nz-form-label nzRequired>Base Salary *</nz-form-label>
-            <input nz-input type="number" formControlName="baseSalary" placeholder="3800" />
+            <nz-form-control>
+              <input nz-input type="number" formControlName="baseSalary" placeholder="3800" />
+              <div class="ant-form-item-explain" *ngIf="addForm.get('baseSalary')?.errors">
+                <div role="alert" *ngIf="addForm.get('baseSalary')?.errors?.['required']">Base salary is required</div>
+                <div role="alert" *ngIf="addForm.get('baseSalary')?.errors?.['minNumber'] || addForm.get('baseSalary')?.errors?.['min']">
+                  Base salary must be at least 0
+                </div>
+                <div role="alert" *ngIf="addForm.get('baseSalary')?.errors?.['maxNumber'] || addForm.get('baseSalary')?.errors?.['max']">
+                  Base salary cannot exceed 1,000,000
+                </div>
+              </div>
+            </nz-form-control>
           </nz-form-item>
         </div>
       </form>

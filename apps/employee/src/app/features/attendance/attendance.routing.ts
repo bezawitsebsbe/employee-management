@@ -6,5 +6,10 @@ export const ATTENDANCE_ROUTES: Routes = [
     path: '',
     component: AttendanceComponent,
     title: 'Attendance Management'
+  },
+  {
+    path: '**',
+    redirectTo: '',
+    pathMatch: 'full'
   }
 ];

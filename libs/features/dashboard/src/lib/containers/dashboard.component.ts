@@ -1,36 +1,72 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SidebarComponent } from '../../ui/sidebar/src/lib/sidebar.component'; 
+import { SidebarComponent } from '@employee-payroll/sidebar';
 import { 
-  NzIconModule,
-  NzIconDirective,
-  NzIconService
+  NzIconModule
 } from 'ng-zorro-antd/icon';
+import { 
+  NzButtonModule
+} from 'ng-zorro-antd/button';
+import { 
+  NzCardModule
+} from 'ng-zorro-antd/card';
+import { 
+  NzSpinModule
+} from 'ng-zorro-antd/spin';
+import { 
+  NzEmptyModule
+} from 'ng-zorro-antd/empty';
 import { NzTagModule } from 'ng-zorro-antd/tag';
-import { DashboardService, DashboardStats, ActivityItem } from './src/lib/dashboard.service';
+import { DashboardFacadeService } from '../facades/dashboard.facade.service';
+import { DashboardStats, ActivityItem } from '../models/dashboard.model';
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { CurrencyPipe } from '@angular/common';
+
 @Component({
   selector: 'app-dashboard', 
   standalone: true,
-  imports: [CommonModule, SidebarComponent, NzIconModule, NzIconDirective, NzTagModule, CurrencyPipe],
+  imports: [
+    CommonModule, 
+    SidebarComponent, 
+    NzIconModule, 
+    NzTagModule, 
+    NzButtonModule,
+    NzCardModule,
+    NzSpinModule,
+    NzEmptyModule,
+    CurrencyPipe
+  ],
   templateUrl: './dashboard.component.html',
+  styleUrls: ['./dashboard.component.scss']
 })
 export class DashboardComponent implements OnInit, OnDestroy {
-  sidebarItems = [
+  @Input() sidebarItems: { label: string; icon: string; path: string }[] = [
     { label: 'Dashboard', icon: '📊', path: '/dashboard' },
     { label: 'Employee', icon: '👥', path: '/employees' },
     { label: 'Payroll', icon: '💰', path: '/payroll' },
     { label: 'Attendance', icon: '🕒', path: '/attendance' },
   ];
-  dashboardStats$!: Observable<DashboardStats>;
-  recentActivities$!: Observable<ActivityItem[]>;
+
+  // Expose facade observables to template
+  dashboardStats$: Observable<DashboardStats | null>;
+  recentActivities$: Observable<ActivityItem[]>;
+  loading$: Observable<boolean>;
+  error$: Observable<string | null>;
+
   private destroy$ = new Subject<void>();
-  constructor(private dashboardService: DashboardService) {}
+
+  constructor(private dashboardFacade: DashboardFacadeService) {
+    this.dashboardStats$ = this.dashboardFacade.stats$;
+    this.recentActivities$ = this.dashboardFacade.recentActivities$;
+    this.loading$ = this.dashboardFacade.loading$;
+    this.error$ = this.dashboardFacade.error$;
+  }
+
   ngOnInit(): void {
-    console.log('DashboardComponent ngOnInit called');
-    this.dashboardStats$ = this.dashboardService.getDashboardStats();
-    this.recentActivities$ = this.dashboardService.getRecentActivities();
+    console.log('DashboardComponent initialized');
+    // Initialize dashboard data
+    this.dashboardFacade.initializeDashboard();
+
     // Subscribe to see what data we're getting
     this.dashboardStats$.subscribe(stats => {
       console.log('Dashboard stats received:', stats);
@@ -39,10 +75,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
       console.log('Dashboard activities received:', activities);
     });
   }
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
   }
+
   // Format activity time (e.g., "2 hours ago", "1 day ago")
   formatActivityTime(timestamp: Date): string {
     const now = new Date();
@@ -57,29 +95,24 @@ export class DashboardComponent implements OnInit, OnDestroy {
       return 'Just now';
     }
   }
+
   // Get activity color class
   getActivityColor(color: string): string {
     const colorMap: { [key: string]: string } = {
-      green: 'bg-green-500',
-      blue: 'bg-blue-500',
-      yellow: 'bg-yellow-500',
-      red: 'bg-red-500',
-      purple: 'bg-purple-500'
+      green: 'green',
+      blue: 'blue',
+      yellow: 'orange',
+      red: 'red',
+      purple: 'purple'
     };
-
-    return colorMap[color] || 'bg-gray-500';
-
+    return colorMap[color] || 'default';
   }
+
   // Get activity icon class based on type
   getActivityIconClass(type: string): string {
-    const classMap: { [key: string]: string } = {
-      employee: 'bg-blue-500',
-      payroll: 'bg-green-500',
-      attendance: 'bg-yellow-500',
-      system: 'bg-purple-500'
-    };
-    return classMap[type] || 'bg-gray-500';
-    }
+    return type;
+  }
+
   // Get activity icon based on type
   getActivityIcon(type: string): string {
     const iconMap: { [key: string]: string } = {
@@ -90,55 +123,55 @@ export class DashboardComponent implements OnInit, OnDestroy {
     };
     return iconMap[type] || 'info';
   }
+
   // Get activity tag color based on type
   getActivityTagColor(type: string): string {
-
     const colorMap: { [key: string]: string } = {
-
       employee: 'blue',
-
       payroll: 'green',
-
       attendance: 'orange',
-
       system: 'purple'
-
     };
-
     return colorMap[type] || 'default';
-
   }
+
   // Get activity type label
   getActivityTypeLabel(type: string): string {
-
     const labelMap: { [key: string]: string } = {
-
       employee: 'Employee',
-
       payroll: 'Payroll',
-
       attendance: 'Attendance',
-
       system: 'System'
-
     };
-
     return labelMap[type] || 'Other';
-
   }
+
   // Handle quick action button click
   onQuickAction(): void {
     console.log('Quick action clicked');
-    // Could open a modal or navigate to a quick action page
+    this.dashboardFacade.trackSystemAction('Quick Action', 'User clicked quick action button');
   }
+
   // Handle filter button click
   onFilter(): void {
     console.log('Filter clicked');
-    // Could open filter options
+    this.dashboardFacade.trackSystemAction('Filter', 'User clicked filter button');
   }
+
   // Handle export button click
   onExport(): void {
     console.log('Export clicked');
-    // Could export dashboard data
+    this.dashboardFacade.trackSystemAction('Export', 'User exported dashboard data');
+  }
+
+  // Handle clear activities
+  onClearActivities(): void {
+    this.dashboardFacade.clearActivities();
+  }
+
+  // Refresh dashboard data
+  onRefresh(): void {
+    this.dashboardFacade.initializeDashboard();
+    this.dashboardFacade.trackSystemAction('Refresh', 'Dashboard data refreshed');
   }
 }

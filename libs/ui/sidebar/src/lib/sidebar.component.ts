@@ -3,7 +3,6 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
-import { AuthService } from '@employee-payroll/features';
 
 interface NavItem {
   label: string;
@@ -25,8 +24,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   constructor(
     private router: Router, 
-    private route: ActivatedRoute,
-    private authService: AuthService
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
@@ -47,7 +45,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   navigate(item: NavItem): void {
-    this.router.navigate([item.path]);
+    console.log('Navigating to:', item.path);
+    this.router.navigate([item.path]).then(success => {
+      console.log('Navigation success:', success);
+    }).catch(error => {
+      console.error('Navigation error:', error);
+    });
   }
 
   isActive(item: NavItem): boolean {
@@ -56,7 +59,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   logout(): void {
     if (confirm('Are you sure you want to logout?')) {
-      this.authService.logout();
+      // Clear local storage and navigate to signin
+      localStorage.removeItem('authToken');
       this.router.navigate(['/auth/signin']);
     }
   }
