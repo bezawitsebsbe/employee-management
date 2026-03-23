@@ -1,6 +1,6 @@
 import { Component, inject, computed, signal, ChangeDetectorRef } from '@angular/core';
 import { of } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
 
 import { FormsModule } from '@angular/forms';
@@ -246,16 +246,29 @@ export class AttendanceComponent {
 
 
   constructor() {
-    // Load employees from Firestore
+    // Load employees from Firestore (this is fine to keep)
     this.employeeFacade.loadEmployees();
-    // Load attendance data from Firestore
-    this.facade.loadAttendanceData();
+    // ❌ REMOVED: Don't auto-load attendance data to preserve reset state
+    // this.facade.loadAttendanceData();
   }
 
   ngOnInit() {
     // Subscribe to loading states only
     this.facade.checkingIn$.subscribe(val => this.checkingIn.set(val));
     this.facade.checkingOut$.subscribe(val => this.checkingOut.set(val));
+    
+    // ✅ Load attendance data only if state is empty (first time visit)
+    // This preserves reset state when navigating back
+    this.attendanceData$.pipe(
+      take(1)
+    ).subscribe(data => {
+      if (!data || data.length === 0) {
+        console.log('🚀 First visit - loading attendance data...');
+        this.facade.loadAttendanceData();
+      } else {
+        console.log('📊 Attendance data already exists, preserving current state');
+      }
+    });
   }
 
   // Helper method to get current employees synchronously
@@ -398,5 +411,11 @@ checkOut(attendanceId: string | null) {
       this.cdr.detectChanges();
       alert('All attendance records have been reset. Employees can now check in.');
     }
+  }
+
+  // ✅ Manual refresh method
+  refreshAttendanceData() {
+    console.log('🔄 Manually refreshing attendance data...');
+    this.facade.loadAttendanceData();
   }
 }
