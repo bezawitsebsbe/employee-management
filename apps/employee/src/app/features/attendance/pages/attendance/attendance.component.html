@@ -32,6 +32,22 @@
 
         </button>
 
+        <button
+
+          nz-button
+
+          nzType="default"
+
+          class="border-blue-300 text-blue-600 hover:bg-blue-50"
+
+          (click)="refreshAttendanceData()"
+
+        >
+
+          Refresh Data
+
+        </button>
+
       </div>
 
     </div>
@@ -229,6 +245,7 @@
                   <button
                     nz-button
                     nzType="primary"
+                    class="bg-green-500 border-green-500 text-white hover:bg-green-600"
                     size="small"
                     (click)="checkIn(emp.id)"
                   >
@@ -245,11 +262,12 @@
                   <span class="text-gray-400">Not Available</span>
                 } @else if (!attendance || !attendance.checkin || attendance.checkin === '-') {
                   <span>-</span>
-                } @else if (attendance.checkin && !attendance.checkout) {
+                } @else if (attendance.checkin && attendance.checkout === '-') {
                   <button
                     nz-button
                     nzType="primary"
                     nzDanger
+                    class="bg-red-500 border-red-500 text-white hover:bg-red-600"
                     size="small"
                     (click)="checkOut(attendance.id)"
                   >

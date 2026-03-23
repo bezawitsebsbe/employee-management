@@ -6,6 +6,8 @@ import { DashboardApiService } from '../api/dashboard.service';
 import {
   LoadDashboardStats,
   LoadRecentActivities,
+  LoadRecentActivitiesSuccess,
+  LoadRecentActivitiesFailure,
   AddActivity,
   ClearActivities,
   UpdateStats
@@ -59,7 +61,20 @@ export class DashboardFacadeService {
 
   // Load recent activities
   loadRecentActivities(): void {
-    this.store.dispatch(new LoadRecentActivities());
+    // ✅ Load real data from API
+    this.dashboardApi.getActivitiesData().pipe(
+      tap((activities) => {
+        console.log('✅ Loaded activities from API:', activities);
+        // Update state with real data
+        this.store.dispatch(new LoadRecentActivitiesSuccess({ activities }));
+      }),
+      catchError((error) => {
+        console.error('❌ Failed to load activities from API:', error);
+        // Dispatch failure action
+        this.store.dispatch(new LoadRecentActivitiesFailure({ error: error.message || 'Failed to load activities' }));
+        return of();
+      })
+    ).subscribe();
   }
 
   // Add new activity
@@ -69,8 +84,9 @@ export class DashboardFacadeService {
     // ✅ Call API first, then update state
     this.dashboardApi.addActivityData(activityWithMeta).pipe(
       tap(() => {
-        console.log('✅ Activity added to API, updating state...');
-        this.store.dispatch(new AddActivity({ activity: activityWithMeta }));
+        console.log('✅ Activity added to API, refreshing activities...');
+        // Refresh activities list to get latest data
+        this.loadRecentActivities();
       }),
       catchError((error) => {
         console.error('❌ Failed to add activity to API, using local state only:', error);
