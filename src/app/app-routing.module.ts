@@ -1,7 +1,9 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { SigninComponent, SignupComponent } from '@employee-payroll/features/auth';
-import { AuthGuard, AdminGuard } from '@employee-payroll/features/auth';
+import { SigninComponent } from '../../libs/features/auth/src/lib/containers/signin/signin.component';
+import { SignupComponent } from '../../libs/features/auth/src/lib/containers/signup/signup.component';
+import { AuthGuard } from '../../libs/features/auth/src/lib/api/auth.guard';
+import { AdminGuard } from '../../libs/features/auth/src/lib/api/auth.guard';
 
 const routes: Routes = [
   // Redirect root to signin

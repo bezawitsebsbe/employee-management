@@ -10,7 +10,9 @@ import {
 } from '../store/action/employee.action';
 import { EmployeeState } from '../store/state/employee.state';
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class EmployeeSimpleFacade {
   employees$: Observable<any[]>;
   selectedEmployee$: Observable<any>;
@@ -19,6 +21,13 @@ export class EmployeeSimpleFacade {
   creatingEmployee$: Observable<boolean>;
   updatingEmployee$: Observable<boolean>;
   deletingEmployee$: Observable<boolean>;
+
+  // Add selectedEmployee property
+  get selectedEmployee(): any {
+    let employee: any;
+    this.selectedEmployee$.subscribe(emp => employee = emp).unsubscribe();
+    return employee;
+  }
 
   // Attendance-related properties for compatibility
   attendanceSearchTerm: string = '';
@@ -82,7 +91,7 @@ export class EmployeeSimpleFacade {
     return employees;
   }
 
-  get selectedEmployee(): any {
+  getSelectedEmployee(): any {
     let employee: any;
     this.selectedEmployee$.subscribe(emp => employee = emp).unsubscribe();
     return employee;

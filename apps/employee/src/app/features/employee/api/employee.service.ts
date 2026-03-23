@@ -24,8 +24,17 @@ export class EmployeeApiService {
     return from(
       getDocs(collection(this.firebaseService.database, this.employeeRootEndpoint.employees))
     ).pipe(
-      map(snapshot => 
-        snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Employee))
+      map(snapshot =>
+        snapshot.docs.map(doc => {
+          const data = doc.data();
+
+          return {
+            ...data,
+            id: doc.id, // ✅ FORCE overwrite ALWAYS
+            createdAt: data['createdAt']?.toDate() || new Date(),
+            updatedAt: data['updatedAt']?.toDate() || new Date()
+          } as Employee;
+        })
       ),
       catchError(error => {
         console.error('Error fetching employees:', error);
@@ -40,7 +49,13 @@ export class EmployeeApiService {
     ).pipe(
       map(docSnapshot => {
         if (docSnapshot.exists()) {
-          return { id: docSnapshot.id, ...docSnapshot.data() } as Employee;
+          const data = docSnapshot.data();
+          return {
+            ...data,
+            id: docSnapshot.id, // ✅ FORCE overwrite ALWAYS
+            createdAt: data['createdAt']?.toDate() || new Date(),
+            updatedAt: data['updatedAt']?.toDate() || new Date()
+          } as Employee;
         }
         return null;
       }),
@@ -51,22 +66,28 @@ export class EmployeeApiService {
     );
   }
 
-  createEmployee(employee: Omit<Employee, 'id'>): Observable<Employee> {
-    const employeeWithTimestamp = {
-      ...employee,
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now()
-    };
+  createEmployee(employee: any): Observable<Employee> {
+  const { id, ...safeEmployee } = employee; // ✅ strip id ALWAYS
 
-    return from(
-      addDoc(collection(this.firebaseService.database, this.employeeRootEndpoint.employees), employeeWithTimestamp)
-    ).pipe(
-      map(docRef => ({ id: docRef.id, ...employeeWithTimestamp } as Employee)),
-      catchError(error => {
-        console.error('Error creating employee:', error);
-        throw error;
-      })
-    );
+  const employeeWithTimestamp = {
+    ...safeEmployee,   // ✅ id removed
+    createdAt: Timestamp.now(),
+    updatedAt: Timestamp.now()
+  };
+
+  return from(
+    addDoc(
+      collection(this.firebaseService.database, this.employeeRootEndpoint.employees),
+      employeeWithTimestamp
+    )
+  ).pipe(
+    map(docRef => ({
+      id: docRef.id, // ✅ real ID
+      ...safeEmployee,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }))
+  );
   }
 
   updateEmployee(id: string, changes: Partial<Employee>): Observable<Employee> {
@@ -78,7 +99,11 @@ export class EmployeeApiService {
     return from(
       updateDoc(doc(this.firebaseService.database, this.employeeRootEndpoint.employees, id), changesWithTimestamp)
     ).pipe(
-      map(() => ({ id, ...changesWithTimestamp } as Employee)),
+      map(() => ({ 
+        id, 
+        ...changesWithTimestamp,
+        updatedAt: new Date()
+      } as Employee)),
       catchError(error => {
         console.error('Error updating employee:', error);
         throw error;

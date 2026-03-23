@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, Input, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzTagModule } from 'ng-zorro-antd/tag';
@@ -14,26 +14,28 @@ import { EmployeeState } from '../../store/state/employee.state';
   imports: [CommonModule, NzCardModule, NzTagModule, NzIconModule],
   templateUrl: './employee-list.component.html',
 })
-export class EmployeeListComponent {
+export class EmployeeListComponent implements OnChanges {
   private facade = inject(EmployeeSimpleFacade);
   private store = inject(Store);
 
-  // Public properties for template
-  employees: Employee[] = [];
+  @Input() employees: Employee[] = [];
   selectedEmployee: Employee | null = null;
 
   constructor() {
-    // Subscribe to observables and update local properties
-    this.facade.employees$.subscribe((employees: Employee[]) => {
-      this.employees = employees;
-    });
-    
+    // Subscribe to selected employee observable
     this.facade.selectedEmployee$.subscribe((employee: Employee | null) => {
       this.selectedEmployee = employee;
     });
   }
 
+  ngOnChanges() {
+    console.log('📋 EmployeeListComponent received employees:', this.employees.length, this.employees);
+  }
+
   select(emp: Employee): void {
-    this.facade.loadEmployee(emp.id);
+    console.log('CLICKED EMP:', emp); // 👈 ADD THIS
+    if (emp.id) {
+      this.facade.loadEmployee(emp.id);
+    }
   }
 }

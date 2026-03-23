@@ -1,2 +1,4 @@
-export * from '../dashboard.component';
-export * from './lib/dashboard.service';
+export * from './lib/containers/dashboard.component';
+export * from './lib/api/dashboard.service';
+export * from './lib/facades/dashboard.facade.service';
+export * from './lib/dashboard.module';
