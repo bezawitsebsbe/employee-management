@@ -1,0 +1,235 @@
+.table-container {
+  padding: 24px;
+  
+  .table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+    
+    .table-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #262626;
+      margin: 0;
+    }
+    
+    .table-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      
+      .search-box {
+        width: 280px;
+        
+        .ant-input {
+          border-radius: 8px;
+          height: 40px;
+          
+          &:focus {
+            border-color: #1677ff;
+            box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.2);
+          }
+        }
+      }
+      
+      .department-filter {
+        .ant-select-selector {
+          border-radius: 8px;
+          height: 40px;
+          
+          .ant-select-selection-placeholder,
+          .ant-select-selection-item {
+            line-height: 38px;
+          }
+        }
+        
+        &.ant-select-focused .ant-select-selector {
+          border-color: #1677ff;
+          box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.2);
+        }
+      }
+    }
+  }
+  
+  .table-content {
+    .ant-table {
+      border-radius: 8px;
+      overflow: hidden;
+      
+      .ant-table-thead > tr > th {
+        background: #fafafa;
+        border-bottom: 1px solid #f0f0f0;
+        font-weight: 600;
+        color: #262626;
+        font-size: 14px;
+        padding: 16px;
+        
+        &:first-child {
+          border-top-left-radius: 8px;
+        }
+        
+        &:last-child {
+          border-top-right-radius: 8px;
+        }
+      }
+      
+      .ant-table-tbody > tr {
+        transition: all 0.2s ease;
+        
+        &:hover {
+          background: #f5f5f5;
+        }
+        
+        > td {
+          padding: 16px;
+          border-bottom: 1px solid #f0f0f0;
+          vertical-align: middle;
+          
+          .employee-info {
+            .employee-name {
+              font-weight: 600;
+              color: #262626;
+              font-size: 14px;
+              margin-bottom: 2px;
+            }
+            
+            .employee-id {
+              font-size: 12px;
+              color: #8c8c8c;
+              font-family: 'Courier New', monospace;
+            }
+          }
+          
+          &.salary-cell, &.bonus-cell {
+            font-weight: 600;
+            color: #262626;
+          }
+          
+          &.deductions-cell {
+            font-weight: 600;
+            color: #ff4d4f;
+          }
+          
+          &.net-salary-cell {
+            font-weight: 600;
+            color: #52c41a;
+          }
+          
+          .action-buttons {
+            display: flex;
+            gap: 4px;
+            
+            .edit-btn {
+              color: #1677ff;
+              
+              &:hover {
+                background: rgba(22, 119, 255, 0.1);
+                color: #1677ff;
+              }
+            }
+            
+            .delete-btn {
+              color: #ff4d4f;
+              
+              &:hover {
+                background: rgba(255, 77, 79, 0.1);
+                color: #ff4d4f;
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    .ant-pagination {
+      margin-top: 24px;
+      text-align: right;
+      
+      .ant-pagination-item {
+        border-radius: 6px;
+        
+        &.ant-pagination-item-active {
+          background: #1677ff;
+          border-color: #1677ff;
+          
+          a {
+            color: white;
+          }
+        }
+        
+        &:hover:not(.ant-pagination-item-active) {
+          border-color: #1677ff;
+          color: #1677ff;
+        }
+      }
+      
+      .ant-pagination-prev,
+      .ant-pagination-next {
+        border-radius: 6px;
+        
+        &:hover {
+          border-color: #1677ff;
+          color: #1677ff;
+        }
+      }
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 1024px) {
+  .table-container {
+    padding: 20px;
+    
+    .table-header {
+      .table-title {
+        font-size: 18px;
+      }
+      
+      .table-actions {
+        .search-box {
+          width: 240px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .table-container {
+    padding: 16px;
+    
+    .table-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+      
+      .table-actions {
+        width: 100%;
+        justify-content: space-between;
+        
+        .search-box {
+          width: 100%;
+        }
+      }
+    }
+    
+    .table-content {
+      overflow-x: auto;
+      
+      .ant-table {
+        min-width: 800px;
+        
+        .ant-table-thead > tr > th,
+        .ant-table-tbody > tr > td {
+          padding: 12px;
+          font-size: 12px;
+        }
+      }
+    }
+  }
+}

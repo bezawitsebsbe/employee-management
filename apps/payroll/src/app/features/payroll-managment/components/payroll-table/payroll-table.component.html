@@ -1,0 +1,99 @@
+<div class="table-container">
+  <div class="table-header">
+    <h2 class="table-title">Payroll Records</h2>
+    <div class="table-actions">
+      <div class="search-box">
+        <nz-input-group nzCompact>
+          <input 
+            type="text" 
+            nz-input 
+            placeholder="Search employees..."
+            [(ngModel)]="searchTerm"
+          />
+          <span nz-input-group-suffix>
+            <span nz-icon nzType="search"></span>
+          </span>
+        </nz-input-group>
+      </div>
+      <nz-select 
+        [(ngModel)]="selectedDepartment"
+        class="department-filter"
+        nzPlaceHolder="All Departments"
+        style="width: 180px;"
+      >
+        <nz-option nzValue="all" nzLabel="All Departments"></nz-option>
+        <nz-option nzValue="engineering" nzLabel="Engineering"></nz-option>
+        <nz-option nzValue="design" nzLabel="Design"></nz-option>
+        <nz-option nzValue="management" nzLabel="Management"></nz-option>
+      </nz-select>
+    </div>
+  </div>
+  
+  <div class="table-content">
+    <nz-table 
+      #dynamicTable
+      [nzData]="payrollRecords"
+      [nzFrontPagination]="true"
+      [nzPageSize]="10"
+      [nzShowSizeChanger]="true"
+      [nzShowQuickJumper]="true"
+      [nzPageSizeOptions]="[10, 20, 50, 100]"
+    >
+      <thead>
+        <tr>
+          <th nzCustomTh nzWidth="200">Employee</th>
+          <th nzCustomTh nzWidth="120">Department</th>
+          <th nzCustomTh nzWidth="120">Base Salary</th>
+          <th nzCustomTh nzWidth="120">Monthly Bonus</th>
+          <th nzCustomTh nzWidth="120">Deductions</th>
+          <th nzCustomTh nzWidth="120">Net Salary</th>
+          <th nzCustomTh nzWidth="100">Status</th>
+          <th nzCustomTh nzWidth="120">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let record of dynamicTable.data">
+          <td>
+            <div class="employee-info">
+              <div class="employee-name">{{ record.employeeName }}</div>
+              <div class="employee-id">{{ record.employeeId }}</div>
+            </div>
+          </td>
+          <td>{{ record.department }}</td>
+          <td class="salary-cell">${{ record.baseSalary.toLocaleString() }}</td>
+          <td class="bonus-cell">${{ record.monthlyBonus.toLocaleString() }}</td>
+          <td class="deductions-cell">${{ record.deductions.toLocaleString() }}</td>
+          <td class="net-salary-cell">${{ record.netSalary.toLocaleString() }}</td>
+          <td>
+            <nz-tag [nzColor]="getStatusColor(record.status)">
+              {{ record.status }}
+            </nz-tag>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <button 
+                nz-button 
+                nzType="text" 
+                nzSize="small" 
+                (click)="onEditRecord(record)"
+                class="edit-btn"
+              >
+                <span nz-icon nzType="edit"></span>
+              </button>
+              <button 
+                nz-button 
+                nzType="text" 
+                nzSize="small" 
+                nzDanger
+                (click)="onDeleteRecord(record)"
+                class="delete-btn"
+              >
+                <span nz-icon nzType="delete"></span>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+  </div>
+</div>
