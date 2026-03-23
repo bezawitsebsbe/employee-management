@@ -8,6 +8,7 @@ interface NavItem {
   label: string;
   icon: string;
   path: string;
+  apps?: string[]; // Which apps should show this item
 }
 
 @Component({
@@ -19,21 +20,38 @@ interface NavItem {
 })
 export class SidebarComponent implements OnInit, OnDestroy {
   @Input() items: NavItem[] = [];
+  @Input() currentApp = 'employee'; // Default to employee app
   currentPath = '';
   private destroy$ = new Subject<void>();
 
   constructor(
     private router: Router, 
     private route: ActivatedRoute
-  ) {}
+  ) {
+    console.log('Sidebar constructor - currentApp:', this.currentApp);
+    console.log('Sidebar constructor - items:', this.items);
+  }
 
   ngOnInit(): void {
+    console.log('Sidebar ngOnInit - currentApp:', this.currentApp);
+    console.log('Sidebar ngOnInit - items:', this.items);
     this.getCurrentPath();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  // Filter items based on current app
+  get filteredItems(): NavItem[] {
+    console.log('Sidebar Debug - currentApp:', this.currentApp);
+    console.log('Sidebar Debug - items:', this.items);
+    const filtered = this.items.filter(item => 
+      !item.apps || item.apps.length === 0 || item.apps.includes(this.currentApp)
+    );
+    console.log('Sidebar Debug - filteredItems:', filtered);
+    return filtered;
   }
 
   getCurrentPath(): void {

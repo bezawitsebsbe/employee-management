@@ -3,7 +3,6 @@ import { DashboardStats, ActivityItem } from '../../models/dashboard.model';
 // Load Dashboard Stats
 export class LoadDashboardStats {
   static readonly type = '[Dashboard] Load Dashboard Stats';
-  constructor() {}
 }
 
 export class LoadDashboardStatsSuccess {
@@ -19,7 +18,6 @@ export class LoadDashboardStatsFailure {
 // Load Recent Activities
 export class LoadRecentActivities {
   static readonly type = '[Dashboard] Load Recent Activities';
-  constructor() {}
 }
 
 export class LoadRecentActivitiesSuccess {
@@ -41,7 +39,6 @@ export class AddActivity {
 // Clear Activities
 export class ClearActivities {
   static readonly type = '[Dashboard] Clear Activities';
-  constructor() {}
 }
 
 // Update Stats

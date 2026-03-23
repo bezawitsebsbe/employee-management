@@ -46,6 +46,7 @@ export class EmployeePageComponent implements OnInit {
   sidebarItems = [
     { label: 'Dashboard', icon: '📊', path: '/dashboard' },
     { label: 'Employee', icon: '👥', path: '/employees' },
+    { label: 'Payroll', icon: '💰', path: '/payroll', apps: ['payroll'] }, // Only show in payroll app
     { label: 'Attendance', icon: '🕒', path: '/attendance' },
   ];
   

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngxs/store';
-import { Observable } from 'rxjs';
+import { Observable, map, of } from 'rxjs';
+import { tap, catchError } from 'rxjs/operators';
 import { DashboardApiService } from '../api/dashboard.service';
 import {
   LoadDashboardStats,
@@ -11,6 +12,7 @@ import {
 } from '../store/action/dashboard.action';
 import { DashboardState } from '../store/state/dashboard.state';
 import { DashboardStats, ActivityItem } from '../models/dashboard.model';
+import { State } from '@ngxs/store';
 
 @Injectable({
   providedIn: 'root'
@@ -38,6 +40,23 @@ export class DashboardFacadeService {
     this.store.dispatch(new LoadDashboardStats());
   }
 
+  // Get total employees from employee state
+  getTotalEmployees(): Observable<number> {
+    return this.store.select((state: any) => state.employee?.employees || []).pipe(
+      map((employees: any[]) => {
+        console.log('🔍 Dashboard - Total Employees from state:', employees?.length || 0);
+        return employees ? employees.length : 0;
+      })
+    );
+  }
+
+  // Load employees for stats (ensure employee state is populated)
+  loadEmployeesForStats(): void {
+    console.log('🚀 Dashboard - Loading employees for stats');
+    // Dispatch employee load action - adjust action name if different
+    this.store.dispatch({ type: '[Employee] Load Employees' });
+  }
+
   // Load recent activities
   loadRecentActivities(): void {
     this.store.dispatch(new LoadRecentActivities());
@@ -45,7 +64,21 @@ export class DashboardFacadeService {
 
   // Add new activity
   addActivity(activity: Omit<ActivityItem, 'id' | 'timestamp'>): void {
-    this.store.dispatch(new AddActivity({ activity: { ...activity, id: Date.now().toString(), timestamp: new Date() } }));
+    const activityWithMeta = { ...activity, id: Date.now().toString(), timestamp: new Date() };
+    
+    // ✅ Call API first, then update state
+    this.dashboardApi.addActivityData(activityWithMeta).pipe(
+      tap(() => {
+        console.log('✅ Activity added to API, updating state...');
+        this.store.dispatch(new AddActivity({ activity: activityWithMeta }));
+      }),
+      catchError((error) => {
+        console.error('❌ Failed to add activity to API, using local state only:', error);
+        // Still update local state even if API fails
+        this.store.dispatch(new AddActivity({ activity: activityWithMeta }));
+        return of();
+      })
+    ).subscribe();
   }
 
   // Update dashboard stats
