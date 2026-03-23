@@ -9,7 +9,8 @@ import {
   UpdateAttendanceRecord,
   DeleteAttendanceRecord,
   CheckIn,
-  CheckOut
+  CheckOut,
+  ResetAttendance
 } from '../store/action/attendance.action';
 import { AttendanceState } from '../store/state/attendance.state';
 
@@ -71,5 +72,9 @@ export class AttendanceFacadeService {
 
   checkOut(attendanceId: string): void {
     this.store.dispatch(new CheckOut(attendanceId));
+  }
+
+  resetAttendance(): void {
+    this.store.dispatch(new ResetAttendance());
   }
 }

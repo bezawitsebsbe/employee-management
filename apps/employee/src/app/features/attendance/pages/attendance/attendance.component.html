@@ -2,7 +2,7 @@
 
   <!-- Sidebar -->
 
-  <app-sidebar [items]="sidebarItems"></app-sidebar>
+  <app-sidebar [items]="sidebarItems" [currentApp]="'employee'"></app-sidebar>
 
   <!-- Main Content -->
 
@@ -48,7 +48,7 @@
 
         <h2 class="text-3xl font-semibold mt-1">
 
-          {{ attendanceSummary().present }}
+          {{ (attendanceSummary$ | async)?.present || 0 }}
 
         </h2>
 
@@ -62,7 +62,7 @@
 
         <h2 class="text-3xl font-semibold mt-1">
 
-          {{ attendanceSummary().absent }}
+          {{ (attendanceSummary$ | async)?.absent || 0 }}
 
         </h2>
 
@@ -76,7 +76,7 @@
 
         <h2 class="text-3xl font-semibold mt-1">
 
-          {{ attendanceSummary().total }}
+          {{ (attendanceSummary$ | async)?.total || 0 }}
 
         </h2>
 
@@ -202,155 +202,85 @@
 
         </thead>
 
-
-
         <tbody>
-
           @for (emp of filteredEmployees(); track emp.id) {
-
-            @let attendance = getEmployeeAttendance(emp.id);
-
+            @let attendanceRecordMap = (attendanceMap$ | async);
+            @let attendance = attendanceRecordMap?.[emp.id];
             <tr>
-
               <td class="font-medium">
-
                 <div class="flex items-center gap-2">
-
                   <div
-
                     class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm"
-
                     [style.backgroundColor]="emp.avatarColor || '#1890ff'"
-
                   >
-
                     {{ emp.initials }}
-
                   </div>
-
                   <div>
-
                     <div>{{ emp.fullName }}</div>
-
                     <div class="text-xs text-gray-500">{{ emp.empId }}</div>
-
                   </div>
-
                 </div>
-
               </td>
-
-
-
               <td>{{ emp.department }}</td>
-
-
-
               <td>
-
-                @if (emp.status === 'Active') {
-
-                  @if (attendance.checkIn === '-') {
-
-                    <button
-
-                      nz-button
-
-                      nzType="primary"
-
-                      size="small"
-
-                      (click)="checkIn(emp.id)"
-
-                      class="bg-green-500 border-green-500"
-
-                    >
-
-                      Check In
-
-                    </button>
-
-                  } @else {
-
-                    <span class="text-green-600 font-medium">{{ attendance.checkIn }}</span>
-
-                  }
-
-                } @else {
-
+                @if (emp.status !== 'Active') {
                   <span class="text-gray-400">Not Available</span>
-
-                }
-
-              </td>
-
-
-
-              <td>
-
-                @if (emp.status === 'Active') {
-
-                  @if (attendance.checkIn !== '-' && attendance.checkOut === '-') {
-
-                    <button
-
-                      nz-button
-
-                      nzType="default"
-
-                      size="small"
-
-                      (click)="checkOut(emp.id)"
-
-                      class="bg-red-500 border-red-500 text-white"
-
-                    >
-
-                      Check Out
-
-                    </button>
-
-                  } @else if (attendance.checkOut !== '-') {
-
-                    <span class="text-red-600 font-medium">{{ attendance.checkOut }}</span>
-
-                  } @else {
-
-                    <span class="text-gray-400">-</span>
-
-                  }
-
+                } @else if (!attendance || !attendance.checkin || attendance.checkin === '-') {
+                  <button
+                    nz-button
+                    nzType="primary"
+                    size="small"
+                    (click)="checkIn(emp.id)"
+                  >
+                    Check In
+                  </button>
+                } @else if (attendance.checkin && attendance.checkout === '-') {
+                  <span class="text-green-600 font-medium">{{ attendance.checkin }}</span>
                 } @else {
-
-                  <span class="text-gray-400">Not Available</span>
-
+                  <span class="text-green-600 font-medium">{{ attendance.checkin }}</span>
                 }
-
               </td>
-
-
-
               <td>
-
-                <span class="font-medium">{{ attendance.workingHours }}</span>
-
+                @if (emp.status !== 'Active') {
+                  <span class="text-gray-400">Not Available</span>
+                } @else if (!attendance || !attendance.checkin || attendance.checkin === '-') {
+                  <span>-</span>
+                } @else if (attendance.checkin && !attendance.checkout) {
+                  <button
+                    nz-button
+                    nzType="primary"
+                    nzDanger
+                    size="small"
+                    (click)="checkOut(attendance.id)"
+                  >
+                    Check Out
+                  </button>
+                } @else {
+                  <span class="text-green-600 font-medium">{{ attendance?.checkout }}</span>
+                }
               </td>
-
+              <td>
+                <span class="font-medium">{{ attendance?.hours || '0h 0m' }}</span>
+              </td>
               <td>
                 <nz-tag
                   [nzColor]="
-                    attendance.status === 'Present'
-                      ? 'green'
-                      : 'red'
+                    (emp.status !== 'Active' || !attendance || !attendance.checkin || attendance.checkin === '-')
+                      ? 'red'
+                      : 'green'
                   "
                 >
-                  {{ attendance.status }}
+                  {{ (emp.status !== 'Active' || !attendance || !attendance.checkin || attendance.checkin === '-') ? 'Absent' : 'Present' }}
                 </nz-tag>
               </td>
             </tr>
           }
         </tbody>
+
       </nz-table>
+
     </div>
+
   </main>
+
 </div>
