@@ -78,12 +78,10 @@ export class DashboardFacadeService {
   }
 
   // Add new activity
-  addActivity(activity: Omit<ActivityItem, 'id' | 'timestamp'>): void {
-<<<<<<< HEAD
-    console.log('Adding activity to dashboard:', activity);
-    this.store.dispatch(new AddActivity({ activity: { ...activity, id: Date.now().toString(), timestamp: new Date() } }));
-=======
+ addActivity(activity: Omit<ActivityItem, 'id' | 'timestamp'>): void {
     const activityWithMeta = { ...activity, id: Date.now().toString(), timestamp: new Date() };
+    
+    console.log('🚀 Dashboard: Adding activity:', activityWithMeta);
     
     // ✅ Call API first, then update state
     this.dashboardApi.addActivityData(activityWithMeta).pipe(
@@ -99,7 +97,6 @@ export class DashboardFacadeService {
         return of();
       })
     ).subscribe();
->>>>>>> origin
   }
 
   // Update dashboard stats

@@ -41,15 +41,11 @@ import { CurrencyPipe } from '@angular/common';
   styleUrls: ['./dashboard.component.scss']
 })
 export class DashboardComponent implements OnInit, OnDestroy {
-  @Input() sidebarItems: { label: string; icon: string; path: string; apps?: string[] }[] = [
+ @Input() sidebarItems: { label: string; icon: string; path: string; apps?: string[] }[] = [
     { label: 'Dashboard', icon: '📊', path: '/dashboard' },
-<<<<<<< HEAD
-    { label: 'Payroll', icon: '💰', path: '/payroll' },
-=======
     { label: 'Employee', icon: '👥', path: '/employees' },
     { label: 'Payroll', icon: '💰', path: '/payroll', apps: ['payroll'] }, // Only show in payroll app
     { label: 'Attendance', icon: '🕒', path: '/attendance' },
->>>>>>> origin
   ];
    @Input() currentApp = 'employee';  // Default to employee app
 
