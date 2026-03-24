@@ -10,12 +10,9 @@ import {
   updateDoc, 
   deleteDoc,
   query, 
-  where,
   orderBy,
   limit,
   Timestamp,
-  DocumentData,
-  QueryDocumentSnapshot 
 } from 'firebase/firestore';
 import { FirebaseService } from '@employee-payroll/firebase';
 import { DashboardStats, ActivityItem } from '../models/dashboard.model';
@@ -213,7 +210,7 @@ export class DashboardApiService {
         const deletePromises = querySnapshot.docs.map(doc => deleteDoc(doc.ref));
         return from(Promise.all(deletePromises));
       }),
-      map(() => undefined), // ✅ Fixed: return undefined instead of empty object
+      map(() => undefined), 
       catchError(error => {
         console.error('Error clearing activities:', error);
         throw error;

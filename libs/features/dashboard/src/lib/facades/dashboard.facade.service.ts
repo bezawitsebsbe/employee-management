@@ -84,7 +84,7 @@ export class DashboardFacadeService {
 
   // Load employees for stats (ensure employee state is populated)
   loadEmployeesForStats(): void {
-    console.log('🚀 Dashboard - Loading employees for stats');
+    console.log(' Dashboard - Loading employees for stats');
     //  Use string-based action to avoid import issues
     this.store.dispatch({ type: '[EmployeeState] LoadEmployees' });
   }
@@ -109,11 +109,7 @@ export class DashboardFacadeService {
   }
 
   // Add new activity
-  addActivity(activity: Omit<ActivityItem, 'id' | 'timestamp'>): void {
-<<<<<<< HEAD
-    console.log('Adding activity to dashboard:', activity);
-    this.store.dispatch(new AddActivity({ activity: { ...activity, id: Date.now().toString(), timestamp: new Date() } }));
-=======
+ addActivity(activity: Omit<ActivityItem, 'id' | 'timestamp'>): void {
     const activityWithMeta = { ...activity, id: Date.now().toString(), timestamp: new Date() };
     
     console.log(' Dashboard: Adding activity:', activityWithMeta);
@@ -132,7 +128,6 @@ export class DashboardFacadeService {
         return of();
       })
     ).subscribe();
->>>>>>> origin
   }
 
   // Update dashboard stats

@@ -251,23 +251,6 @@ export class AuthApiService {
     }
   }
 
-  // Mock password verification
-  private mockPasswordVerify(password: string, email: string): boolean {
-    // Mock verification - accepts any password for demo users
-    const demoUsers = [
-      { email: 'admin@company.com', password: 'admin123' },
-      { email: 'user@company.com', password: 'user123' }
-    ];
-    
-    const demoUser = demoUsers.find(u => u.email === email);
-    if (demoUser) {
-      return password === demoUser.password;
-    }
-    
-    // For any other email, accept "password123"
-    return password === 'password123';
-  }
-
   // Generate mock JWT token
   private generateToken(user: User): string {
     const payload = {

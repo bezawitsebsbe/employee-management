@@ -24,29 +24,35 @@ import { Observable, Subject, } from 'rxjs';
 import { CurrencyPipe } from '@angular/common';
 
 @Component({
-  selector: 'app-dashboard', 
+  selector: 'app-dashboard',
   standalone: true,
   imports: [
-    CommonModule, 
-    SidebarComponent, 
-    NzIconModule, 
-    NzTagModule, 
+    CommonModule,
+    SidebarComponent,
+    NzIconModule,
+    NzTagModule,
     NzButtonModule,
     NzCardModule,
     NzSpinModule,
     NzEmptyModule,
-    CurrencyPipe
+    CurrencyPipe,
   ],
   templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.scss']
+  styleUrls: ['./dashboard.component.scss'],
 })
 export class DashboardComponent implements OnInit, OnDestroy {
-  @Input() sidebarItems: { label: string; icon: string; path: string; apps?: string[] }[] = [
+  @Input() sidebarItems: {
+    label: string;
+    icon: string;
+    path: string;
+    apps?: string[];
+  }[] = [
     { label: 'Dashboard', icon: '📊', path: '/dashboard' },
-    { label: 'Payroll', icon: '💰', path: '/payroll' },
-
+    { label: 'Employee', icon: '👥', path: '/employees' },
+    { label: 'Payroll', icon: '💰', path: '/payroll', apps: ['payroll'] }, // Only show in payroll app
+    { label: 'Attendance', icon: '🕒', path: '/attendance' },
   ];
-   @Input() currentApp = 'employee';  // Default to employee app
+  @Input() currentApp = 'employee'; // Default to employee app
 
   // Expose facade observables to template
   dashboardStats$: Observable<DashboardStats | null>;
@@ -59,19 +65,19 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   constructor(
     private dashboardFacade: DashboardFacadeService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
   ) {
     this.dashboardStats$ = this.dashboardFacade.stats$;
     this.recentActivities$ = this.dashboardFacade.recentActivities$;
     this.loading$ = this.dashboardFacade.loading$;
     this.error$ = this.dashboardFacade.error$;
     this.totalEmployees$ = this.dashboardFacade.getTotalEmployees();
-    
+
     // Read currentApp from route data, fallback to default
     this.currentApp = this.route.snapshot.data?.['currentApp'] || 'employee';
-    
+
     // Subscribe to total employees for real-time updates
-    this.dashboardFacade.getTotalEmployees().subscribe(count => {
+    this.dashboardFacade.getTotalEmployees().subscribe((count) => {
       console.log('Total employees from facade:', count);
     });
   }
@@ -79,7 +85,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     // Initialize dashboard data
     this.dashboardFacade.initializeDashboard();
-    
+
     // Ensure Employee State is Loaded
     this.dashboardFacade.loadEmployeesForStats();
   }
@@ -107,12 +113,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
   // Get activity color class
   getActivityColor(color: string): string {
     const colorMap: { [key: string]: string } = {
-      'blue': 'blue',
-      'green': 'green',
-      'orange': 'orange',
-      'purple': 'purple',
-      'red': 'red',
-      'yellow': 'yellow'
+      blue: 'blue',
+      green: 'green',
+      orange: 'orange',
+      purple: 'purple',
+      red: 'red',
+      yellow: 'yellow',
     };
     return colorMap[color] || 'blue';
   }
@@ -128,7 +134,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       employee: 'user-o',
       payroll: 'dollar-o',
       attendance: 'clock-circle-o',
-      system: 'setting-o'
+      system: 'setting-o',
     };
     return iconMap[type] || 'info-circle-o';
   }
@@ -139,7 +145,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       employee: 'blue',
       payroll: 'green',
       attendance: 'orange',
-      system: 'purple'
+      system: 'purple',
     };
     return colorMap[type] || 'default';
   }
@@ -150,7 +156,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       employee: 'Employee',
       payroll: 'Payroll',
       attendance: 'Attendance',
-      system: 'System'
+      system: 'System',
     };
     return labelMap[type] || 'Other';
   }
@@ -158,19 +164,28 @@ export class DashboardComponent implements OnInit, OnDestroy {
   // Handle quick action button click
   onQuickAction(): void {
     console.log('Quick action clicked');
-    this.dashboardFacade.trackSystemAction('Quick Action', 'User clicked quick action button');
+    this.dashboardFacade.trackSystemAction(
+      'Quick Action',
+      'User clicked quick action button',
+    );
   }
 
   // Handle filter button click
   onFilter(): void {
     console.log('Filter clicked');
-    this.dashboardFacade.trackSystemAction('Filter', 'User clicked filter button');
+    this.dashboardFacade.trackSystemAction(
+      'Filter',
+      'User clicked filter button',
+    );
   }
 
   // Handle export button click
   onExport(): void {
     console.log('Export clicked');
-    this.dashboardFacade.trackSystemAction('Export', 'User exported dashboard data');
+    this.dashboardFacade.trackSystemAction(
+      'Export',
+      'User exported dashboard data',
+    );
   }
 
   // Handle clear activities
@@ -181,6 +196,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
   // Refresh dashboard data
   onRefresh(): void {
     this.dashboardFacade.initializeDashboard();
-    this.dashboardFacade.trackSystemAction('Refresh', 'Dashboard data refreshed');
+    this.dashboardFacade.trackSystemAction(
+      'Refresh',
+      'Dashboard data refreshed',
+    );
   }
 }
