@@ -20,7 +20,7 @@ import {
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { DashboardFacadeService } from '../facades/dashboard.facade.service';
 import { DashboardStats, ActivityItem } from '../models/dashboard.model';
-import { Observable, Subject, takeUntil } from 'rxjs';
+import { Observable, Subject, } from 'rxjs';
 import { CurrencyPipe } from '@angular/common';
 
 @Component({
