@@ -4,9 +4,7 @@ import { Observable, map, of } from 'rxjs';
 import { tap, catchError, take } from 'rxjs/operators';
 import { DashboardApiService } from '../api/dashboard.service';
 import {
-  LoadDashboardStats,
   LoadDashboardStatsSuccess,
-  LoadRecentActivities,
   LoadRecentActivitiesSuccess,
   LoadRecentActivitiesFailure,
   AddActivity,
@@ -15,7 +13,7 @@ import {
 } from '../store/action/dashboard.action';
 import { DashboardState } from '../store/state/dashboard.state';
 import { DashboardStats, ActivityItem } from '../models/dashboard.model';
-import { State } from '@ngxs/store';
+
 
 @Injectable({
   providedIn: 'root'
@@ -40,7 +38,7 @@ export class DashboardFacadeService {
 
   // Initialize dashboard (load all required data)
   initializeDashboard(): void {
-    console.log('🚀 Initializing dashboard...');
+    console.log(' Initializing dashboard...');
     // Load employees first, then stats
     this.loadEmployeesForStats();
     // Load activities
@@ -51,11 +49,11 @@ export class DashboardFacadeService {
 
   // Load dashboard statistics
   loadDashboardStats(): void {
-    // ✅ Load real stats including total employees
+    //  Load real stats including total employees
     this.getTotalEmployees().pipe(
       take(1)
     ).subscribe((totalEmployees: number) => {
-      console.log('🚀 Loading dashboard stats with real employee count:', totalEmployees);
+      console.log(' Loading dashboard stats with real employee count:', totalEmployees);
       
       const realStats: DashboardStats = {
         id: 'main',
@@ -78,7 +76,7 @@ export class DashboardFacadeService {
     return this.store.select((state: any) => state.EmployeeState?.employees || []).pipe(
       map((employees: any[]) => {
         const count = employees ? employees.length : 0;
-        console.log('🔍 Dashboard - Total Employees from employee state:', count);
+        console.log(' Dashboard - Total Employees from employee state:', count);
         return count;
       })
     );
@@ -86,23 +84,23 @@ export class DashboardFacadeService {
 
   // Load employees for stats (ensure employee state is populated)
   loadEmployeesForStats(): void {
-    console.log('🚀 Dashboard - Loading employees for stats');
-    // ✅ Use string-based action to avoid import issues
+    console.log(' Dashboard - Loading employees for stats');
+    //  Use string-based action to avoid import issues
     this.store.dispatch({ type: '[EmployeeState] LoadEmployees' });
   }
 
   // Load recent activities
   loadRecentActivities(): void {
-    console.log('🔄 Dashboard: Loading recent activities...');
-    // ✅ Load real data from API
+    console.log(' Dashboard: Loading recent activities...');
+    // Load real data from API
     this.dashboardApi.getActivitiesData().pipe(
       tap((activities) => {
-        console.log('✅ Loaded activities from API:', activities);
+        console.log(' Loaded activities from API:', activities);
         // Update state with real data
         this.store.dispatch(new LoadRecentActivitiesSuccess({ activities }));
       }),
       catchError((error) => {
-        console.error('❌ Failed to load activities from API:', error);
+        console.error(' Failed to load activities from API:', error);
         // Dispatch failure action
         this.store.dispatch(new LoadRecentActivitiesFailure({ error: error.message || 'Failed to load activities' }));
         return of();
@@ -111,30 +109,25 @@ export class DashboardFacadeService {
   }
 
   // Add new activity
-  addActivity(activity: Omit<ActivityItem, 'id' | 'timestamp'>): void {
-<<<<<<< HEAD
-    console.log('Adding activity to dashboard:', activity);
-    this.store.dispatch(new AddActivity({ activity: { ...activity, id: Date.now().toString(), timestamp: new Date() } }));
-=======
+ addActivity(activity: Omit<ActivityItem, 'id' | 'timestamp'>): void {
     const activityWithMeta = { ...activity, id: Date.now().toString(), timestamp: new Date() };
     
-    console.log('🚀 Dashboard: Adding activity:', activityWithMeta);
+    console.log(' Dashboard: Adding activity:', activityWithMeta);
     
-    // ✅ Call API first, then update state
+    //  Call API first, then update state
     this.dashboardApi.addActivityData(activityWithMeta).pipe(
       tap(() => {
-        console.log('✅ Activity added to API, refreshing activities...');
+        console.log(' Activity added to API, refreshing activities...');
         // Refresh activities list to get latest data
         this.loadRecentActivities();
       }),
       catchError((error) => {
-        console.error('❌ Failed to add activity to API, using local state only:', error);
+        console.error(' Failed to add activity to API, using local state only:', error);
         // Still update local state even if API fails
         this.store.dispatch(new AddActivity({ activity: activityWithMeta }));
         return of();
       })
     ).subscribe();
->>>>>>> origin
   }
 
   // Update dashboard stats

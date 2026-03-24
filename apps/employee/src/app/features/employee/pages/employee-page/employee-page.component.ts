@@ -9,7 +9,6 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
-import { Store } from '@ngxs/store';
 import { Employee } from '../../models/employee.model';
 import { EmployeeSimpleFacade } from '../../facades/employee-simple.facade';
 import { EmployeeListComponent } from '../../components/employee-list/employee-list.component';
@@ -172,18 +171,18 @@ export class EmployeePageComponent implements OnInit {
   }
 
   handleAddEmployee(employee: any) {
-    console.log('🚀 Adding employee:', employee);
+    console.log(' Adding employee:', employee);
     this.facade.createEmployee(employee);
     
-    // ✅ Track new employee addition in dashboard
-    console.log('📊 Tracking employee addition:', employee.fullName, employee.id);
+    //  Track new employee addition in dashboard
+    console.log('Tracking employee addition:', employee.fullName, employee.id);
     this.dashboardService.trackEmployeeAdded(employee.fullName, employee.id);
   }
 
   handleUpdateEmployee(id: string, changes: any) {
     this.facade.updateEmployee(id, changes);
     
-    // ✅ Track employee update in dashboard
+    //  Track employee update in dashboard
     const employee = this.employees.find(emp => emp.id === id);
     if (employee && employee.id) {
       this.dashboardService.trackEmployeeUpdated(employee.fullName, employee.id);
@@ -195,7 +194,7 @@ export class EmployeePageComponent implements OnInit {
     
     this.facade.deleteEmployee(id);
     
-    // ✅ Track employee deletion in dashboard
+    //  Track employee deletion in dashboard
     if (employee && employee.id) {
       this.dashboardService.trackEmployeeDeleted(employee.fullName, employee.id);
     }
