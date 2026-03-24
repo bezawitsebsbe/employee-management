@@ -1,24 +1,24 @@
-<div class="dashboard-layout">
+<div class="flex h-screen bg-gray-100">
   <!-- Sidebar -->
   <app-sidebar [items]="sidebarItems" [currentApp]="currentApp"></app-sidebar>
 
   <!-- Main Content -->
-  <main class="dashboard-main">
+  <main class="flex-1 p-6 md:p-8 overflow-y-auto">
     <!-- Header -->
-    <div class="dashboard-header">
+    <div class="mb-8">
       <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
-      <p class="subtitle text-gray-600 mt-1">
+      <p class="text-gray-600 mt-1">
         Welcome back! Here's what's happening today
       </p>
     </div>
 
     <!-- Loading State -->
-    <div class="loading-container flex justify-center items-center min-h-[50vh]" *ngIf="loading$ | async">
+    <div class="flex justify-center items-center min-h-[50vh]" *ngIf="loading$ | async">
       <nz-spin nzSize="large"></nz-spin>
     </div>
 
     <!-- Error State -->
-    <div class="error-container text-center py-12" *ngIf="error$ | async as error">
+    <div class="text-center py-12" *ngIf="error$ | async as error">
       <h3 class="text-xl font-semibold text-red-700 mb-3">Error loading dashboard</h3>
       <p class="text-gray-600 mb-6">{{ error }}</p>
       <button nz-button nzType="primary" (click)="onRefresh()">
@@ -29,78 +29,48 @@
     <!-- Dashboard Content -->
     <div *ngIf="!(loading$ | async) && !(error$ | async)">
       <!-- Stats Cards -->
-<<<<<<< HEAD
-      <div class="stats-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10" *ngIf="dashboardStats$ | async as stats">
-=======
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10" *ngIf="dashboardStats$ | async as stats">
->>>>>>> origin
         <!-- Total Employees -->
-        <div class="stat-card bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow transition-shadow">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow transition-shadow">
           <div class="flex items-center justify-between mb-4">
-            <div class="stat-icon blue p-3 rounded-lg">
+            <div class="text-blue-600 bg-blue-50 p-3 rounded-lg">
               <nz-icon nzType="team" class="text-xl"></nz-icon>
             </div>
           </div>
-<<<<<<< HEAD
-          <div class="stat-value text-3xl font-bold text-gray-900">{{ stats.totalEmployees || 0 }}</div>
-          <div class="stat-label text-sm text-gray-500 mt-1">Total Employees</div>
-          <div class="stat-change positive mt-3 text-sm text-green-600 flex items-center gap-1">
-            <nz-icon nzType="arrow-up"></nz-icon>
-            {{ stats.activeEmployees || 0 }} active
-          </div>
-=======
-          <div class="text-3xl font-bold text-gray-900">{{ (totalEmployees$ | async) || 0 }}</div>
+          <div class="text-3xl font-bold text-gray-900">{{ (totalEmployees$ | async) ||  0 }}</div>
           <div class="text-sm text-gray-500 mt-1">Total Employees</div>
->>>>>>> origin
         </div>
 
         <!-- Total Payroll -->
-        <div class="stat-card bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow transition-shadow">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow transition-shadow">
           <div class="flex items-center justify-between mb-4">
-            <div class="stat-icon green p-3 rounded-lg">
+            <div class="text-green-600 bg-green-50 p-3 rounded-lg">
               <nz-icon nzType="dollar" class="text-xl"></nz-icon>
             </div>
           </div>
-          <div class="stat-value text-3xl font-bold text-gray-900">
+          <div class="text-3xl font-bold text-gray-900">
             {{ stats.totalPayroll | currency:'USD':'symbol':'1.0-0' }}
           </div>
-<<<<<<< HEAD
-          <div class="stat-label text-sm text-gray-500 mt-1">Total Payroll</div>
-          <div class="stat-change positive mt-3 text-sm text-green-600 flex items-center gap-1">
-            <nz-icon nzType="arrow-up"></nz-icon>
-            {{ stats.thisMonthPayroll | currency:'USD':'symbol':'1.0-0' }} this month
-          </div>
-=======
           <div class="text-sm text-gray-500 mt-1">Total Payroll</div>
->>>>>>> origin
         </div>
 
-        <!-- Attendance Rate -->
-        <div class="stat-card bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow transition-shadow">
+        <!--  Deduction -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow transition-shadow">
           <div class="flex items-center justify-between mb-4">
-            <div class="stat-icon orange p-3 rounded-lg">
-              <nz-icon nzType="clock-circle" class="text-xl"></nz-icon>
+            <div class="text-orange-600 bg-orange-50 p-3 rounded-lg">
+              <nz-icon nzType="dollar" class="text-xl"></nz-icon>
             </div>
           </div>
-<<<<<<< HEAD
-          <div class="stat-value text-3xl font-bold text-gray-900">{{ stats.attendanceRate || 0 }}%</div>
-          <div class="stat-label text-sm text-gray-500 mt-1">Attendance Rate</div>
-          <div class="stat-change positive mt-3 text-sm text-green-600 flex items-center gap-1">
-            <nz-icon nzType="arrow-up"></nz-icon>
-            Good performance
-          </div>
-=======
-          <div class="text-3xl font-bold text-gray-900">{{ stats.attendanceRate || 0 }}%</div>
-          <div class="text-sm text-gray-500 mt-1">Attendance Rate</div>
->>>>>>> origin
+          <div class="text-3xl font-bold text-gray-900">{{ stats.attendanceRate || 0 }}</div>
+          <div class="text-sm text-gray-500 mt-1">Deduction</div>
         </div>
       </div>
 
       <!-- Recent Activities Section -->
-      <div class="activities-section bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <div class="section-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <h2 class="text-xl font-semibold text-gray-900">Recent Activities</h2>
-          <div class="section-actions flex gap-3 flex-wrap">
+          <div class="flex gap-3 flex-wrap">
             <button nz-button nzSize="small" (click)="onRefresh()">
               <nz-icon nzType="sync"></nz-icon>
               Refresh
@@ -111,20 +81,24 @@
             </button>
           </div>
         </div>
-
-        <!-- Activities List -->
+  <!-- Activities List -->
         <div *ngIf="recentActivities$ | async as activities; else emptyActivities">
-          <div class="activities-list space-y-4">
-            <div class="activity-item flex items-start gap-4 p-4 rounded-lg hover:bg-gray-50 transition-colors" 
+          <div class="space-y-4">
+            <div class="flex items-start gap-4 p-4 rounded-lg hover:bg-gray-50 transition-colors" 
                  *ngFor="let activity of activities">
-              <div class="activity-icon p-3 rounded-lg" [ngClass]="getActivityColor(activity.color)">
-                <nz-icon [nzType]="activity.icon || getActivityIcon(activity.type)"></nz-icon>
+              <div class="activity-icon p-3 rounded-lg" [ngClass]="{
+                'bg-blue-50 text-blue-600': activity.type === 'employee',
+                'bg-green-50 text-green-600': activity.type === 'payroll',
+                'bg-orange-50 text-orange-600': activity.type === 'attendance',
+                'bg-purple-50 text-purple-600': activity.type === 'system'
+              }">
+                <nz-icon [nzType]="getActivityIcon(activity.type)"></nz-icon>
               </div>
 
-              <div class="activity-content flex-1">
-                <div class="activity-title font-medium text-gray-900">{{ activity.title }}</div>
-                <div class="activity-description text-sm text-gray-600 mt-0.5">{{ activity.description }}</div>
-                <div class="activity-time text-xs text-gray-500 mt-2 flex items-center gap-1.5">
+              <div class="flex-1">
+                <div class="font-medium text-gray-900">{{ activity.title }}</div>
+                <div class="text-sm text-gray-600 mt-0.5">{{ activity.description }}</div>
+                <div class="text-xs text-gray-500 mt-2 flex items-center gap-1.5">
                   <nz-icon nzType="clock-circle"></nz-icon>
                   {{ formatActivityTime(activity.timestamp) }}
                 </div>
@@ -138,8 +112,8 @@
         </div>
 
         <ng-template #emptyActivities>
-          <div class="empty-state text-center py-12 text-gray-500">
-            <nz-icon nzType="inbox" class="empty-icon text-5xl mb-4 opacity-40"></nz-icon>
+          <div class="text-center py-12 text-gray-500">
+            <nz-icon nzType="inbox" class="text-5xl mb-4 opacity-40"></nz-icon>
             <h3 class="text-lg font-medium">No recent activities</h3>
             <p class="mt-2">Activities will appear here as you use the system</p>
           </div>
@@ -147,4 +121,4 @@
       </div>
     </div>
   </main>
-</div>
+</div>      

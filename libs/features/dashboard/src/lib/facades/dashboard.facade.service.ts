@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngxs/store';
 import { Observable, map, of } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
+import { tap, catchError, take } from 'rxjs/operators';
 import { DashboardApiService } from '../api/dashboard.service';
 import {
   LoadDashboardStats,
+  LoadDashboardStatsSuccess,
   LoadRecentActivities,
   LoadRecentActivitiesSuccess,
   LoadRecentActivitiesFailure,
@@ -37,17 +38,48 @@ export class DashboardFacadeService {
     this.error$ = this.store.select(DashboardState.error);
   }
 
-  // Load dashboard statistics
-  loadDashboardStats(): void {
-    this.store.dispatch(new LoadDashboardStats());
+  // Initialize dashboard (load all required data)
+  initializeDashboard(): void {
+    console.log('🚀 Initializing dashboard...');
+    // Load employees first, then stats
+    this.loadEmployeesForStats();
+    // Load activities
+    this.loadRecentActivities();
+    // Load stats (will use employee count)
+    this.loadDashboardStats();
   }
 
-  // Get total employees from employee state
+  // Load dashboard statistics
+  loadDashboardStats(): void {
+    // ✅ Load real stats including total employees
+    this.getTotalEmployees().pipe(
+      take(1)
+    ).subscribe((totalEmployees: number) => {
+      console.log('🚀 Loading dashboard stats with real employee count:', totalEmployees);
+      
+      const realStats: DashboardStats = {
+        id: 'main',
+        totalEmployees: totalEmployees,
+        activeEmployees: totalEmployees, // Assume all are active for now
+        totalPayroll: 0, // Will be calculated when payroll data is available
+        thisMonthPayroll: 0,
+        attendanceRate: 0, // Will be calculated from attendance data
+        pendingTasks: 0,
+        timestamp: new Date()
+      };
+      
+      // Update state with real data
+      this.store.dispatch(new LoadDashboardStatsSuccess({ stats: realStats }));
+    });
+  }
+
+  // Get total employees from employee state (best available source)
   getTotalEmployees(): Observable<number> {
-    return this.store.select((state: any) => state.employee?.employees || []).pipe(
+    return this.store.select((state: any) => state.EmployeeState?.employees || []).pipe(
       map((employees: any[]) => {
-        console.log('🔍 Dashboard - Total Employees from state:', employees?.length || 0);
-        return employees ? employees.length : 0;
+        const count = employees ? employees.length : 0;
+        console.log('🔍 Dashboard - Total Employees from employee state:', count);
+        return count;
       })
     );
   }
@@ -55,12 +87,13 @@ export class DashboardFacadeService {
   // Load employees for stats (ensure employee state is populated)
   loadEmployeesForStats(): void {
     console.log('🚀 Dashboard - Loading employees for stats');
-    // Dispatch employee load action - adjust action name if different
-    this.store.dispatch({ type: '[Employee] Load Employees' });
+    // ✅ Use string-based action to avoid import issues
+    this.store.dispatch({ type: '[EmployeeState] LoadEmployees' });
   }
 
   // Load recent activities
   loadRecentActivities(): void {
+    console.log('🔄 Dashboard: Loading recent activities...');
     // ✅ Load real data from API
     this.dashboardApi.getActivitiesData().pipe(
       tap((activities) => {
@@ -84,6 +117,8 @@ export class DashboardFacadeService {
     this.store.dispatch(new AddActivity({ activity: { ...activity, id: Date.now().toString(), timestamp: new Date() } }));
 =======
     const activityWithMeta = { ...activity, id: Date.now().toString(), timestamp: new Date() };
+    
+    console.log('🚀 Dashboard: Adding activity:', activityWithMeta);
     
     // ✅ Call API first, then update state
     this.dashboardApi.addActivityData(activityWithMeta).pipe(
@@ -182,6 +217,7 @@ export class DashboardFacadeService {
   }
 
   trackEmployeeAdded(employeeName: string, employeeId: string): void {
+    console.log('📊 Dashboard: Tracking employee added:', employeeName, employeeId);
     this.addActivity({
       type: 'employee',
       title: 'New Employee Added',
@@ -201,6 +237,16 @@ export class DashboardFacadeService {
     });
   }
 
+  trackEmployeeDeleted(employeeName: string, employeeId: string): void {
+    this.addActivity({
+      type: 'employee',
+      title: 'Employee Deleted',
+      description: `${employeeName} removed from system`,
+      color: 'red',
+      icon: 'user-delete'
+    });
+  }
+
   trackSystemAction(action: string, description: string): void {
     this.addActivity({
       type: 'system',
@@ -209,11 +255,5 @@ export class DashboardFacadeService {
       color: 'purple',
       icon: 'setting'
     });
-  }
-
-  // Initialize dashboard data
-  initializeDashboard(): void {
-    this.loadDashboardStats();
-    this.loadRecentActivities();
   }
 }
