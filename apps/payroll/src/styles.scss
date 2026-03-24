@@ -18,3 +18,20 @@ app-root {
   display: block;
   min-height: 100vh;
 }
+
+/* Force auth pages to have white background */
+app-signin,
+app-signup {
+  background: white !important;
+}
+
+/* Override any potential blue backgrounds in auth components */
+.signin-container,
+.signup-container {
+  background: white !important;
+}
+
+/* Ensure body is always white for auth pages */
+body {
+  background: white !important;
+}

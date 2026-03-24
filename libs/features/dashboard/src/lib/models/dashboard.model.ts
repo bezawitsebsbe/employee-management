@@ -15,7 +15,7 @@ export interface ActivityItem {
   title: string;
   description: string;
   timestamp: Date;
-  color: 'green' | 'blue' | 'yellow' | 'red' | 'purple';
+  color: 'green' | 'blue' | 'yellow' | 'red' | 'purple' | 'orange';
   icon?: string;
 } 
 

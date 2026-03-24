@@ -54,182 +54,218 @@
       }
     }
   }
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  overflow-y: visible;
+  min-width: 100%;
   
-  .table-content {
-    .ant-table {
-      border-radius: 8px;
-      overflow: hidden;
+  .payroll-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    
+    thead {
+      background: #fafafa;
+      border-bottom: 1px solid #f0f0f0;
       
-      .ant-table-thead > tr > th {
-        background: #fafafa;
-        border-bottom: 1px solid #f0f0f0;
+      th {
+        padding: 16px;
+        text-align: left;
         font-weight: 600;
         color: #262626;
         font-size: 14px;
-        padding: 16px;
-        
-        &:first-child {
-          border-top-left-radius: 8px;
-        }
+        border-bottom: 1px solid #f0f0f0;
         
         &:last-child {
-          border-top-right-radius: 8px;
+          min-width: 150px;
+          text-align: center;
         }
       }
-      
-      .ant-table-tbody > tr {
-        transition: all 0.2s ease;
-        
+    }
+    
+    tbody {
+      tr {
         &:hover {
-          background: #f5f5f5;
+          background: #fafafa;
         }
         
-        > td {
+        td {
           padding: 16px;
           border-bottom: 1px solid #f0f0f0;
           vertical-align: middle;
           
+          &:last-child {
+            min-width: 150px;
+            text-align: center;
+          }
+          
           .employee-info {
             .employee-name {
-              font-weight: 600;
+              font-weight: 500;
               color: #262626;
-              font-size: 14px;
-              margin-bottom: 2px;
+              margin-bottom: 4px;
             }
             
             .employee-id {
               font-size: 12px;
               color: #8c8c8c;
-              font-family: 'Courier New', monospace;
             }
           }
           
-          &.salary-cell, &.bonus-cell {
-            font-weight: 600;
-            color: #262626;
-          }
-          
-          &.deductions-cell {
-            font-weight: 600;
-            color: #ff4d4f;
-          }
-          
-          &.net-salary-cell {
+          &.net-salary {
             font-weight: 600;
             color: #52c41a;
           }
           
-          .action-buttons {
-            display: flex;
-            gap: 4px;
+          .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
             
-            .edit-btn {
+            &.status-paid {
+              background: #f6ffed;
+              color: #52c41a;
+              border: 1px solid #b7eb8f;
+            }
+            
+            &.status-processed {
+              background: #e6f7ff;
               color: #1677ff;
-              
-              &:hover {
-                background: rgba(22, 119, 255, 0.1);
-                color: #1677ff;
-              }
+              border: 1px solid #91d5ff;
             }
             
-            .delete-btn {
-              color: #ff4d4f;
+            &.status-pending {
+              background: #fff7e6;
+              color: #fa8c16;
+              border: 1px solid #ffd591;
+            }
+          }
+          
+          .action-buttons {
+            display: flex !important;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: nowrap;
+            visibility: visible !important;
+            position: relative;
+            z-index: 10;
+            
+            .action-btn {
+              min-width: auto;
+              height: 32px;
+              padding: 0 12px;
+              font-size: 12px;
+              border-radius: 6px;
+              transition: all 0.2s ease;
+              white-space: nowrap;
+              display: inline-flex !important;
+              align-items: center;
+              justify-content: center;
+              gap: 4px;
+              visibility: visible !important;
+              position: relative;
+              z-index: 11;
               
-              &:hover {
-                background: rgba(255, 77, 79, 0.1);
-                color: #ff4d4f;
+              &.edit-btn {
+                background: #1677ff;
+                border-color: #1677ff;
+                color: white;
+                
+                &:hover {
+                  background: #4096ff;
+                  border-color: #4096ff;
+                  transform: translateY(-1px);
+                  box-shadow: 0 2px 4px rgba(22, 119, 255, 0.3);
+                }
+                
+                .anticon {
+                  font-size: 14px;
+                }
+              }
+              
+              &.delete-btn {
+                background: #ff4d4f;
+                border-color: #ff4d4f;
+                color: white;
+                font-weight: 500;
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                
+                &:hover {
+                  background: #ff7875;
+                  border-color: #ff7875;
+                  color: white;
+                  transform: translateY(-1px);
+                  box-shadow: 0 2px 4px rgba(255, 77, 79, 0.3);
+                }
+                
+                &:active {
+                  background: #d9363e;
+                  border-color: #d9363e;
+                }
+                
+                .anticon {
+                  font-size: 14px;
+                }
               }
             }
           }
         }
       }
     }
+  }
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px;
+  
+  .loading-spinner {
+    text-align: center;
     
-    .ant-pagination {
-      margin-top: 24px;
-      text-align: right;
-      
-      .ant-pagination-item {
-        border-radius: 6px;
-        
-        &.ant-pagination-item-active {
-          background: #1677ff;
-          border-color: #1677ff;
-          
-          a {
-            color: white;
-          }
-        }
-        
-        &:hover:not(.ant-pagination-item-active) {
-          border-color: #1677ff;
-          color: #1677ff;
-        }
-      }
-      
-      .ant-pagination-prev,
-      .ant-pagination-next {
-        border-radius: 6px;
-        
-        &:hover {
-          border-color: #1677ff;
-          color: #1677ff;
-        }
-      }
+    .anticon-loading {
+      font-size: 32px;
+      color: #1677ff;
+      margin-bottom: 16px;
+    }
+    
+    p {
+      color: #8c8c8c;
+      margin: 0;
     }
   }
 }
 
-// Responsive Design
-@media (max-width: 1024px) {
-  .table-container {
-    padding: 20px;
-    
-    .table-header {
-      .table-title {
-        font-size: 18px;
-      }
-      
-      .table-actions {
-        .search-box {
-          width: 240px;
-        }
-      }
+.empty-state {
+  text-align: center;
+  padding: 60px;
+  
+  .empty-icon {
+    .anticon-inbox {
+      font-size: 48px;
+      color: #d9d9d9;
+      margin-bottom: 16px;
     }
   }
-}
-
-@media (max-width: 768px) {
-  .table-container {
-    padding: 16px;
-    
-    .table-header {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 12px;
-      
-      .table-actions {
-        width: 100%;
-        justify-content: space-between;
-        
-        .search-box {
-          width: 100%;
-        }
-      }
+  
+  .empty-content {
+    h3 {
+      color: #262626;
+      margin-bottom: 8px;
     }
     
-    .table-content {
-      overflow-x: auto;
-      
-      .ant-table {
-        min-width: 800px;
-        
-        .ant-table-thead > tr > th,
-        .ant-table-tbody > tr > td {
-          padding: 12px;
-          font-size: 12px;
-        }
-      }
+    p {
+      color: #8c8c8c;
+      margin: 0;
     }
   }
 }

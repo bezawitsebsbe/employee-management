@@ -4,46 +4,77 @@
 
     <div class="form-grid">
       <div class="form-group">
-        <label>Employee Name *</label>
-        <input 
-          type="text" 
-          placeholder="Enter employee name"
-          [(ngModel)]="formData.employeeName"
-          name="employeeName"
-          (input)="onEmployeeNameChange()"
-          [class.error]="employeeNameError"
+        <label>Select Employee *</label>
+        <select 
+          [(ngModel)]="formData.employeeId"
+          name="employeeId"
+          (ngModelChange)="onEmployeeSelect($event)"
+          [class.error]="employeeIdError"
         >
-        <div class="error-message" *ngIf="employeeNameError">
-          {{ employeeNameError }}
+          <option value="">Select an employee</option>
+          <option *ngFor="let employee of getAvailableEmployees()" [value]="employee.empId">
+            {{ employee.fullName }} - {{ employee.position }}
+          </option>
+        </select>
+        <div class="error-message" *ngIf="employeeIdError">
+          {{ employeeIdError }}
+        </div>
+        <div class="info-text" *ngIf="getAvailableEmployees().length === 0">
+          All employees are already in the payroll system
         </div>
       </div>
 
       <div class="form-group">
-        <label>Employee ID *</label>
+        <label>Employee Name</label>
         <input 
           type="text" 
-          placeholder="Enter employee ID"
+          placeholder="Auto-filled from selection"
+          [(ngModel)]="formData.employeeName"
+          name="employeeName"
+          (input)="onEmployeeNameChange()"
+          [class.error]="employeeNameError"
+          [readonly]="isEmployeeFound()"
+          [class.readonly-field]="isEmployeeFound()"
+        >
+        <div class="error-message" *ngIf="employeeNameError">
+          {{ employeeNameError }}
+        </div>
+        <div class="info-text" *ngIf="isEmployeeFound()">
+          Auto-filled from employee selection
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Employee ID</label>
+        <input 
+          type="text" 
+          placeholder="Auto-filled from selection"
           [(ngModel)]="formData.employeeId"
-          name="employeeId"
+          name="employeeIdDisplay"
           (input)="onEmployeeIdChange()"
           [class.error]="employeeIdError"
+          [readonly]="isEmployeeFound()"
+          [class.readonly-field]="isEmployeeFound()"
         >
         <div class="error-message" *ngIf="employeeIdError">
           {{ employeeIdError }}
+        </div>
+        <div class="info-text" *ngIf="isEmployeeFound()">
+          Auto-filled from employee selection
         </div>
       </div>
 
       <div class="form-group">
         <label>Position</label>
-        <select 
+        <input 
+          type="text" 
+          placeholder="Auto-filled from selection"
           [(ngModel)]="formData.department"
           name="department"
           (change)="onInputChange()"
-          [disabled]="isEmployeeFound()"
+          [readonly]="isEmployeeFound()"
+          [class.readonly-field]="isEmployeeFound()"
         >
-          <option value="">Select position</option>
-          <option *ngFor="let position of positions" [value]="position">{{ position }}</option>
-        </select>
         <div class="info-text" *ngIf="isEmployeeFound()">
           Auto-filled from employee record
         </div>
@@ -53,7 +84,7 @@
         <label>Base Salary *</label>
         <input 
           type="number" 
-          placeholder="Enter base salary"
+          placeholder="Auto-filled from selection"
           [(ngModel)]="formData.baseSalary"
           name="baseSalary"
           (input)="onInputChange()"
@@ -119,7 +150,14 @@
 
     <div class="actions">
       <button class="cancel" (click)="onClose()">Cancel</button>
-      <button class="create" (click)="onSave()">Create Payroll</button>
+      <button 
+        class="create" 
+        [class.disabled]="!isFormValid()"
+        [disabled]="!isFormValid()"
+        (click)="onSave()"
+      >
+        Create Payroll
+      </button>
     </div>
   </div>
 </div>

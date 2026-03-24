@@ -1,35 +1,9 @@
-import { Component, EventEmitter, Output, OnInit } from '@angular/core';
+import { Component, EventEmitter, Output, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
-// Mock interfaces since we don't have the exact models
-interface PayrollFormData {
-  employeeName: string;
-  employeeId: string;
-  department: string;
-  baseSalary: string;
-  weeklyBonus: string;
-  monthlyBonus: string;
-  jobDoneBonus: string;
-  deductions: string;
-  netSalary: string;
-  status: string;
-}
-
-interface PayrollRecord {
-  employeeName: string;
-  employeeId: string;
-  department: string;
-  baseSalary: number;
-  status: string;
-}
-
-interface Employee {
-  empId: string;
-  fullName: string;
-  position: string;
-  baseSalary?: number;
-}
+import { Observable, Subject, takeUntil } from 'rxjs';
+import { PayrollFirebaseFacade } from '../../facade/payroll.firebase-facade';
+import { PayrollFormData, Employee, PayrollRecord } from '../../api/payroll.firebase-api';
 
 @Component({
   selector: 'app-add-payroll-modal',
@@ -38,9 +12,9 @@ interface Employee {
   templateUrl: './add-payroll-modal.component.html',
   styleUrl: './add-payroll-modal.component.scss'
 })
-export class AddPayrollModalComponent implements OnInit {
+export class AddPayrollModalComponent implements OnInit, OnDestroy {
   @Output() cancel = new EventEmitter<void>();
-  @Output() save = new EventEmitter<PayrollFormData>();
+  @Output() save = new EventEmitter<PayrollRecord>();
 
   formData: PayrollFormData = {
     employeeName: '',
@@ -62,27 +36,83 @@ export class AddPayrollModalComponent implements OnInit {
   employeeIdError = '';
   employeeNameError = '';
   employees: Employee[] = [];
+  payrollRecords: PayrollRecord[] = [];
+  selectedEmployee: Employee | null = null;
 
-  // Mock data for demonstration
-  private mockEmployees: Employee[] = [
-    { empId: '001', fullName: 'John Doe', position: 'Software Engineer', baseSalary: 5000 },
-    { empId: '002', fullName: 'Jane Smith', position: 'HR Manager', baseSalary: 4500 },
-    { empId: '003', fullName: 'Mike Johnson', position: 'Sales Representative', baseSalary: 3500 }
-  ];
+  private destroy$ = new Subject<void>();
+
+  constructor(private readonly payrollFacade: PayrollFirebaseFacade) {}
 
   ngOnInit(): void {
-    this.loadExistingEmployeeIds();
-    this.loadEmployees();
+    this.loadExistingData();
   }
 
-  loadExistingEmployeeIds(): void {
-    // Mock existing employee IDs
-    this.existingEmployeeIds = ['001', '002'];
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  loadEmployees(): void {
-    // Use mock employees
-    this.employees = this.mockEmployees;
+  private loadExistingData(): void {
+    console.log('AddPayrollModal: Loading existing data');
+    
+    // Load employees from Firebase
+    this.payrollFacade.employees$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(employees => {
+      console.log('AddPayrollModal: Employees loaded:', employees);
+      this.employees = employees;
+    });
+
+    // Load existing payroll records for validation
+    this.payrollFacade.payrollRecords$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(records => {
+      console.log('AddPayrollModal: Payroll records loaded:', records);
+      this.payrollRecords = records;
+      this.existingEmployeeIds = records.map(record => record.employeeId);
+    });
+  }
+
+  // 🔥 Employee selection from dropdown
+  onEmployeeSelect(employeeId: string): void {
+    if (!employeeId) {
+      this.clearEmployeeData();
+      return;
+    }
+
+    const employee = this.employees.find(emp => emp.empId === employeeId);
+    if (employee) {
+      this.selectedEmployee = employee;
+      this.autoFillEmployeeData(employee);
+      this.validateEmployeeId();
+    }
+  }
+
+  private autoFillEmployeeData(employee: Employee): void {
+    this.formData.employeeName = employee.fullName;
+    this.formData.employeeId = employee.empId;
+    this.formData.department = employee.position;
+    this.formData.baseSalary = employee.baseSalary ? employee.baseSalary.toString() : '';
+    
+    // Trigger net salary calculation with the new base salary
+    this.formData.netSalary = `$${this.calculateNetSalary()}`;
+    
+    // Clear any validation errors since we're using a valid employee
+    this.employeeNameError = '';
+    this.employeeIdError = '';
+  }
+
+  private clearEmployeeData(): void {
+    this.selectedEmployee = null;
+    this.formData.employeeName = '';
+    this.formData.employeeId = '';
+    this.formData.department = '';
+    this.formData.baseSalary = '';
+    this.formData.netSalary = '0';
+    this.calculatedTax = '0.00';
+    this.calculatedPension = '0.00';
+    this.employeeNameError = '';
+    this.employeeIdError = '';
   }
 
   validateEmployeeId(): void {
@@ -93,21 +123,28 @@ export class AddPayrollModalComponent implements OnInit {
       return;
     }
 
+    // Check if employee ID already exists in payroll records
     if (this.existingEmployeeIds.includes(employeeId)) {
       this.employeeIdError = `Employee ID ${employeeId} already exists`;
       return;
     }
 
-    const employee = this.employees.find(emp => emp.empId === employeeId);
-    if (!employee) {
-      this.employeeIdError = `Employee ID ${employeeId} is not a valid employee`;
-    } else {
+    // If we have a selected employee, no need for additional validation
+    if (this.selectedEmployee && this.selectedEmployee.empId === employeeId) {
       this.employeeIdError = '';
-      this.formData.employeeName = employee.fullName;
-      this.formData.department = employee.position;
-      this.formData.baseSalary = employee.baseSalary ? employee.baseSalary.toString() : '';
-      this.formData.netSalary = `$${this.calculateNetSalary()}`;
+      return;
     }
+
+    // Check if employee ID exists in employee records
+    this.payrollFacade.getEmployeeById(employeeId).subscribe(employee => {
+      if (!employee) {
+        this.employeeIdError = `Employee ID ${employeeId} is not a valid employee`;
+      } else {
+        this.employeeIdError = '';
+        this.selectedEmployee = employee;
+        this.autoFillEmployeeData(employee);
+      }
+    });
   }
 
   positions = [
@@ -125,49 +162,34 @@ export class AddPayrollModalComponent implements OnInit {
     const base = parseFloat(this.formData.baseSalary) || 0;
     const monthlyBonus = parseFloat(this.formData.monthlyBonus) || 0;
     
-    const tax = this.calculateTaxBracket(base);
-    this.calculatedTax = tax.toFixed(2);
+    // Use facade for calculation
+    const calculation = this.payrollFacade.calculateNetSalary(base, monthlyBonus);
+    this.calculatedTax = calculation.tax.toFixed(2);
+    this.calculatedPension = calculation.pension.toFixed(2);
+    this.formData.deductions = calculation.deductions.toFixed(2);
     
-    const pension = base * 0.07;
-    this.calculatedPension = pension.toFixed(2);
-    
-    const totalDeductions = tax + pension;
-    this.formData.deductions = totalDeductions.toFixed(2);
-    
-    const totalIncome = base + monthlyBonus;
-    const net = totalIncome - totalDeductions;
-    return net >= 0 ? net.toFixed(2) : '0.00';
-  }
-
-  calculateTaxBracket(income: number): number {
-    if (income <= 600) {
-      return income * 0.00;
-    } else if (income <= 1650) {
-      return income * 0.10;
-    } else if (income <= 3200) {
-      return income * 0.15;
-    } else if (income <= 5250) {
-      return income * 0.20;
-    } else if (income <= 7800) {
-      return income * 0.25;
-    } else if (income <= 10900) {
-      return income * 0.30;
-    } else {
-      return income * 0.35;
-    }
+    return calculation.netSalary.toFixed(2);
   }
 
   onInputChange(): void {
     this.formData.netSalary = `$${this.calculateNetSalary()}`;
-    this.validateEmployeeId();
-    this.validateEmployeeName();
+    
+    // Only validate if we don't have a selected employee
+    if (!this.selectedEmployee) {
+      this.validateEmployeeId();
+      this.validateEmployeeName();
+    }
   }
 
   onEmployeeIdChange(): void {
+    // If user manually changes the ID, clear the selected employee
+    this.selectedEmployee = null;
     this.validateEmployeeId();
   }
 
   onEmployeeNameChange(): void {
+    // If user manually changes the name, clear the selected employee
+    this.selectedEmployee = null;
     this.validateEmployeeName();
   }
 
@@ -179,27 +201,36 @@ export class AddPayrollModalComponent implements OnInit {
       return;
     }
 
-    const employee = this.employees.find(emp => 
-      emp.fullName.toLowerCase() === employeeName.toLowerCase()
-    );
-    
-    if (!employee) {
-      this.employeeNameError = `'${employeeName}' is not a registered employee`;
-    } else {
+    // If we have a selected employee, no need for additional validation
+    if (this.selectedEmployee && this.selectedEmployee.fullName === employeeName) {
       this.employeeNameError = '';
-      this.formData.employeeId = employee.empId;
-      this.formData.department = employee.position;
-      this.formData.baseSalary = employee.baseSalary ? employee.baseSalary.toString() : '';
-      this.formData.netSalary = `$${this.calculateNetSalary()}`;
+      return;
+    }
+
+    // Use facade validation
+    const validation = this.payrollFacade.validateEmployeeName(employeeName, this.employees);
+    
+    if (!validation.isValid) {
+      this.employeeNameError = validation.error || '';
+    } else if (validation.employee) {
+      this.selectedEmployee = validation.employee;
+      this.autoFillEmployeeData(validation.employee);
     }
   }
 
+  // Helper methods for template
   isEmployeeFound(): boolean {
-    return !!(this.formData.employeeId && this.findEmployeeById());
+    return !!(this.selectedEmployee);
   }
 
   findEmployeeById(): Employee | undefined {
-    return this.employees.find(emp => emp.empId === this.formData.employeeId);
+    return this.selectedEmployee || this.employees.find(emp => emp.empId === this.formData.employeeId);
+  }
+
+  // Get available employees (exclude those already in payroll)
+  getAvailableEmployees(): Employee[] {
+    const usedEmployeeIds = this.existingEmployeeIds;
+    return this.employees.filter(emp => !usedEmployeeIds.includes(emp.empId));
   }
 
   onClose(): void {
@@ -208,12 +239,31 @@ export class AddPayrollModalComponent implements OnInit {
 
   onSave(): void {
     if (this.isFormValid()) {
-      this.save.emit({ ...this.formData });
+      // Convert form data to payroll record
+      const payrollRecord = {
+        employeeName: this.formData.employeeName,
+        employeeId: this.formData.employeeId,
+        department: this.formData.department,
+        baseSalary: parseFloat(this.formData.baseSalary) || 0,
+        weeklyBonus: parseFloat(this.formData.weeklyBonus) || 0,
+        monthlyBonus: parseFloat(this.formData.monthlyBonus) || 0,
+        jobDoneBonus: parseFloat(this.formData.jobDoneBonus) || 0,
+        deductions: parseFloat(this.formData.deductions) || 0,
+        netSalary: parseFloat(this.formData.netSalary.replace('$', '')) || 0,
+        status: this.formData.status as 'Pending' | 'Processed' | 'Paid'
+      };
+
+      this.save.emit(payrollRecord);
       this.resetForm();
+      
+      // Automatically close modal after successful save
+      setTimeout(() => {
+        this.onClose();
+      }, 300); // Small delay to ensure the save operation completes
     }
   }
 
-  private isFormValid(): boolean {
+  isFormValid(): boolean {
     return !!(
       this.formData.employeeName.trim() &&
       this.formData.employeeId.trim() &&
@@ -225,6 +275,7 @@ export class AddPayrollModalComponent implements OnInit {
   }
 
   private resetForm(): void {
+    this.selectedEmployee = null;
     this.formData = {
       employeeName: '',
       employeeId: '',

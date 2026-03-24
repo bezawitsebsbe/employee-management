@@ -153,13 +153,31 @@
     }
 
     &.create {
-      background: #f97316;
+      background: #1677ff;
       color: white;
-      border-color: #f97316;
-
-      &:hover {
-        background: #ea580c;
-        border-color: #ea580c;
+      border-color: #1677ff;
+      font-weight: 500;
+      
+      &:hover:not(.disabled) {
+        background: #4096ff;
+        border-color: #4096ff;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(22, 119, 255, 0.3);
+      }
+      
+      &.disabled {
+        background: #d9d9d9;
+        color: #8c8c8c;
+        border-color: #d9d9d9;
+        cursor: not-allowed;
+        opacity: 0.6;
+        
+        &:hover {
+          background: #d9d9d9;
+          border-color: #d9d9d9;
+          transform: none;
+          box-shadow: none;
+        }
       }
     }
   }

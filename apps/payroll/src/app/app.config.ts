@@ -5,6 +5,7 @@ import {
 import { provideRouter } from '@angular/router';
 import { appRoutes } from './app.routes';
 import { provideNzIcons } from 'ng-zorro-antd/icon';
+import { provideStore } from '@ngxs/store';
 import {
   UserOutline,
   DollarOutline,
@@ -16,6 +17,11 @@ import {
   ExportOutline,
   PlusOutline
 } from '@ant-design/icons-angular/icons';
+import { FirebaseService } from '@employee-payroll/firebase';
+import { PayrollFirebaseApi } from './features/payroll-managment/api/payroll.firebase-api';
+import { PayrollFirebaseStore } from './features/payroll-managment/store/payroll.firebase-store';
+import { PayrollFirebaseFacade } from './features/payroll-managment/facade/payroll.firebase-facade';
+import { AuthState, DashboardState } from '@employee-payroll/features';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -31,6 +37,13 @@ export const appConfig: ApplicationConfig = {
       SearchOutline,
       ExportOutline,
       PlusOutline
-    ])
+    ]),
+    // NGXS Store
+    provideStore([AuthState, DashboardState]),
+    // Firebase services
+    FirebaseService,
+    PayrollFirebaseApi,
+    PayrollFirebaseStore,
+    PayrollFirebaseFacade
   ],
 };

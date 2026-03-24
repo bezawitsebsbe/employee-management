@@ -31,31 +31,100 @@ export class DashboardApiService {
 
   // Get dashboard statistics from Firestore
   getDashboardStatsData(): Observable<DashboardStats> {
-    return from(getDoc(doc(this.firebaseService.database, this.statsCollection, 'main'))).pipe(
-      map(docSnapshot => {
-        if (docSnapshot.exists()) {
-          const data = docSnapshot.data();
-          return {
-            id: docSnapshot.id,
-            ...data,
-            // Convert Firestore timestamps to Date objects
-            timestamp: data['timestamp'] ? (data['timestamp'] as Timestamp).toDate() : new Date()
-          } as DashboardStats;
-        }
-        // Return default stats if none exist
-        return {
-          id: 'main',
-          totalEmployees: 0,
-          activeEmployees: 0,
-          totalPayroll: 0,
-          thisMonthPayroll: 0,
-          attendanceRate: 0,
-          pendingTasks: 0,
-          timestamp: new Date()
-        };
+    // First get employees collection to get actual employee count
+    return from(getDocs(
+      query(
+        collection(this.firebaseService.database, 'employees'),
+        orderBy('createdAt', 'desc')
+      )
+    )).pipe(
+      switchMap(employeesSnapshot => {
+        // Calculate actual employee count from employees collection
+        const actualEmployeeCount = employeesSnapshot.docs.length;
+        
+        // Also get payroll records for payroll calculations
+        return from(getDocs(
+          query(
+            collection(this.firebaseService.database, 'payrollRecords'),
+            orderBy('createdAt', 'desc')
+          )
+        )).pipe(
+          switchMap(payrollSnapshot => {
+            let totalPayroll = 0;
+            let thisMonthPayroll = 0;
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+
+            payrollSnapshot.docs.forEach(doc => {
+              const data = doc.data();
+              const netSalary = data['netSalary'] || 0;
+              totalPayroll += netSalary;
+              
+              // Calculate this month payroll
+              const createdAt = data['createdAt'];
+              if (createdAt) {
+                const recordDate = (createdAt as Timestamp).toDate();
+                if (recordDate.getMonth() === currentMonth && recordDate.getFullYear() === currentYear) {
+                  thisMonthPayroll += netSalary;
+                }
+              }
+            });
+
+            // Now get existing stats or create new ones with actual employee count
+            return from(getDoc(doc(this.firebaseService.database, this.statsCollection, 'main'))).pipe(
+              map(docSnapshot => {
+                if (docSnapshot.exists()) {
+                  const data = docSnapshot.data();
+                  return {
+                    id: docSnapshot.id,
+                    // Use actual employee count, overriding any existing value
+                    totalEmployees: actualEmployeeCount,
+                    activeEmployees: actualEmployeeCount, // Assume all employees are active
+                    totalPayroll: totalPayroll,
+                    thisMonthPayroll: thisMonthPayroll,
+                    // Keep other existing stats if they exist
+                    totalPayrollChange: data['totalPayrollChange'] || '+0',
+                    totalBonuses: data['totalBonuses'] || 0,
+                    totalBonusesChange: data['totalBonusesChange'] || '+0',
+                    deductions: data['deductions'] || 0,
+                    deductionsChange: data['deductionsChange'] || '+0',
+                    attendanceRate: data['attendanceRate'] || 95,
+                    pendingTasks: data['pendingTasks'] || 0,
+                    // Convert Firestore timestamps to Date objects
+                    timestamp: data['timestamp'] ? (data['timestamp'] as Timestamp).toDate() : new Date()
+                  } as DashboardStats;
+                }
+                // Return stats with actual employee count if none exist
+                return {
+                  id: 'main',
+                  totalEmployees: actualEmployeeCount,
+                  activeEmployees: actualEmployeeCount,
+                  totalPayroll: totalPayroll,
+                  thisMonthPayroll: thisMonthPayroll,
+                  attendanceRate: 95,
+                  pendingTasks: 0,
+                  timestamp: new Date()
+                };
+              }),
+              catchError(error => {
+                console.error('Error fetching dashboard stats:', error);
+                return of({
+                  id: 'main',
+                  totalEmployees: actualEmployeeCount,
+                  activeEmployees: actualEmployeeCount,
+                  totalPayroll: totalPayroll,
+                  thisMonthPayroll: thisMonthPayroll,
+                  attendanceRate: 95,
+                  pendingTasks: 0,
+                  timestamp: new Date()
+                });
+              })
+            );
+          })
+        );
       }),
       catchError(error => {
-        console.error('Error fetching dashboard stats:', error);
+        console.error('Error fetching employees for stats:', error);
         return of({
           id: 'main',
           totalEmployees: 0,

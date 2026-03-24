@@ -79,6 +79,59 @@
     }
   }
   
+  &.loading-card {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+
+    .loading-skeleton {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+
+      .skeleton-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+      }
+
+      .skeleton-content {
+        flex: 1;
+
+        .skeleton-value {
+          width: 80px;
+          height: 28px;
+          border-radius: 4px;
+          background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+          background-size: 200% 100%;
+          animation: loading 1.5s infinite;
+          margin-bottom: 0.5rem;
+        }
+
+        .skeleton-label {
+          width: 120px;
+          height: 16px;
+          border-radius: 4px;
+          background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+          background-size: 200% 100%;
+          animation: loading 1.5s infinite;
+          margin-bottom: 0.5rem;
+        }
+
+        .skeleton-change {
+          width: 60px;
+          height: 14px;
+          border-radius: 4px;
+          background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+          background-size: 200% 100%;
+          animation: loading 1.5s infinite;
+        }
+      }
+    }
+  }
+  
   .stat-icon {
     width: 56px;
     height: 56px;
@@ -122,6 +175,15 @@
         color: #ff4d4f;
       }
     }
+  }
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
   }
 }
 
