@@ -5,8 +5,8 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { Employee } from '../../models/employee.model';
 import { EmployeeSimpleFacade } from '../../facades/employee-simple.facade';
-import { Store } from '@ngxs/store';
-import { EmployeeState } from '../../store/state/employee.state';
+
+
 
 @Component({
   selector: 'app-employee-list',
@@ -16,13 +16,12 @@ import { EmployeeState } from '../../store/state/employee.state';
 })
 export class EmployeeListComponent implements OnChanges {
   private facade = inject(EmployeeSimpleFacade);
-  private store = inject(Store);
+  
 
   @Input() employees: Employee[] = [];
   selectedEmployee: Employee | null = null;
 
   constructor() {
-    // Subscribe to selected employee observable
     this.facade.selectedEmployee$.subscribe((employee: Employee | null) => {
       this.selectedEmployee = employee;
     });
@@ -33,7 +32,7 @@ export class EmployeeListComponent implements OnChanges {
   }
 
   select(emp: Employee): void {
-    console.log('CLICKED EMP:', emp); // 👈 ADD THIS
+    
     if (emp.id) {
       this.facade.loadEmployee(emp.id);
     }

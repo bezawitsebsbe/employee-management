@@ -145,6 +145,6 @@
     </div>
 
     <!-- Add Employee Modal -->
-    <app-add-employee-modal #addEmployeeModal></app-add-employee-modal>
+    <app-add-employee-modal #addEmployeeModal (employeeAdded)="handleAddEmployee($event)"></app-add-employee-modal>
   </main>
 </div>

@@ -356,7 +356,7 @@ export class AttendanceState {
 
           patchState({
             checkingIn: false,
-            attendanceData: [...current, createdRecord], // ✅ USE API RESULT
+            attendanceData: [...current, createdRecord],
           });
 
           this.notification.success(this.success, `Check-in successful`);
@@ -406,7 +406,7 @@ export class AttendanceState {
     const state = getState();
     const today = new Date().toISOString().split('T')[0];
     
-    // Create default attendance records for all existing employees
+
     const resetData = state.attendanceData.map((emp) => ({
       id: emp.id,
       employeeId: emp.employeeId,
@@ -438,7 +438,7 @@ export class AttendanceState {
     const start = new Date(checkIn).getTime();
     const end = new Date(checkOut).getTime();
 
-    if (isNaN(start) || isNaN(end)) return '0h 0m'; // ✅ safety
+    if (isNaN(start) || isNaN(end)) return '0h 0m'; 
 
     const diff = end - start;
 

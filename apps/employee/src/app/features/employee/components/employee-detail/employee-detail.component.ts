@@ -9,7 +9,6 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzTagModule } from 'ng-zorro-antd/tag';
-import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { Employee } from '../../models/employee.model';
 import { EmployeeSimpleFacade } from '../../facades/employee-simple.facade';
 

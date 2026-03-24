@@ -71,7 +71,7 @@ export class EmployeeState {
   constructor(
     private readonly employeeApi: EmployeeApiService,
     private readonly notification: NzNotificationService,
-    private readonly router: Router
+    
   ) {}
 
   @Action(LoadEmployees) loadEmployees({ patchState }: StateContext<EmployeeStateModel>): Observable<any> {
