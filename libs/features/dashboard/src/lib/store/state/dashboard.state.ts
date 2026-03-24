@@ -2,6 +2,7 @@ import { State, StateContext, Action, Selector } from '@ngxs/store';
 import { DashboardStats, ActivityItem } from '../../models/dashboard.model';
 import { tap, catchError } from 'rxjs/operators';
 import { of, Observable } from 'rxjs';
+import { DashboardApiService } from '../../api/dashboard.service';
 import {
   LoadDashboardStats,
   LoadDashboardStatsSuccess,
@@ -33,6 +34,8 @@ export interface DashboardStateModel {
 })
 export class DashboardState {
   
+  constructor() {}
+
   @Selector()
   static stats(state: DashboardStateModel): DashboardStats | null {
     return state.stats;
@@ -57,22 +60,25 @@ export class DashboardState {
   loadDashboardStats({ patchState, dispatch }: StateContext<DashboardStateModel>): Observable<any> {
     patchState({ loading: true, error: null });
     
-    // Simulate API call - replace with actual service call
+    console.log('🚀 Loading dashboard stats...');
+    
+    // ✅ Use mock data for now - API calls should be in facade
     return of({}).pipe(
       tap(() => {
         const mockStats: DashboardStats = {
-          id: '1',
-          totalEmployees: 150,
-          activeEmployees: 142,
-          totalPayroll: 500000,
-          thisMonthPayroll: 45000,
-          attendanceRate: 95.5,
-          pendingTasks: 8,
+          id: 'main',
+          totalEmployees: 0, // Will be updated by facade
+          activeEmployees: 0,
+          totalPayroll: 0,
+          thisMonthPayroll: 0,
+          attendanceRate: 0,
+          pendingTasks: 0,
           timestamp: new Date()
         };
         dispatch(new LoadDashboardStatsSuccess({ stats: mockStats }));
       }),
       catchError((error) => {
+        console.error('❌ Failed to load dashboard stats:', error);
         dispatch(new LoadDashboardStatsFailure({ error: error.message || 'Failed to load dashboard stats' }));
         return of();
       })
@@ -100,34 +106,18 @@ export class DashboardState {
   loadRecentActivities({ patchState, dispatch }: StateContext<DashboardStateModel>): Observable<any> {
     patchState({ loading: true, error: null });
     
-    // Simulate API call - replace with actual service call
+    console.log('🚀 Loading recent activities...');
+    
+    // ✅ Use mock data for now - API calls should be in facade
     return of({}).pipe(
       tap(() => {
-        const mockActivities: ActivityItem[] = [
-          {
-            id: '1',
-            type: 'employee',
-            title: 'New Employee Added',
-            description: 'John Doe joined the company',
-            timestamp: new Date(),
-            color: 'green',
-            icon: 'user-add'
-          },
-          {
-            id: '2',
-            type: 'payroll',
-            title: 'Payroll Processed',
-            description: 'Monthly payroll processed successfully',
-            timestamp: new Date(Date.now() - 3600000),
-            color: 'blue',
-            icon: 'dollar'
-          }
-        ];
+        const mockActivities: ActivityItem[] = [];
         dispatch(new LoadRecentActivitiesSuccess({ activities: mockActivities }));
       }),
       catchError((error) => {
+        console.error('❌ Failed to load recent activities:', error);
         dispatch(new LoadRecentActivitiesFailure({ error: error.message || 'Failed to load recent activities' }));
-        return of();
+        return of([]);
       })
     );
   }
@@ -150,15 +140,24 @@ export class DashboardState {
   }
 
   @Action(AddActivity)
-  addActivity({ patchState, getState }: StateContext<DashboardStateModel>, action: AddActivity) {
+  addActivity(
+    { patchState, getState }: StateContext<DashboardStateModel>,
+    action: AddActivity
+  ) {
+    if (!action.payload?.activity) return of();
+
+    console.log('🚀 Adding new activity:', action.payload.activity);
+    
+    // ✅ Simple state update - API calls should be in facade
     const currentActivities = getState().recentActivities;
-    const newActivity = action.payload?.activity;
-    if (newActivity) {
-      const updatedActivities = [newActivity, ...currentActivities].slice(0, 10); // Keep last 10
-      patchState({
-        recentActivities: updatedActivities
-      });
-    }
+    const newActivity = action.payload.activity;
+    const updatedActivities = [newActivity, ...currentActivities].slice(0, 10); // Keep last 10
+  
+    patchState({
+      recentActivities: updatedActivities
+    });
+  
+    return of();
   }
 
   @Action(ClearActivities)

@@ -20,6 +20,7 @@ export const appRoutes: Routes = [
   {
     path: 'dashboard',
     component: DashboardComponent,
+    data: { currentApp: 'employee' },
     canActivate: [AuthGuard]
   },
   {

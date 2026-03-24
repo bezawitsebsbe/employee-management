@@ -1,6 +1,6 @@
 <div class="dashboard-layout">
   <!-- Sidebar -->
-  <app-sidebar [items]="sidebarItems"></app-sidebar>
+  <app-sidebar [items]="sidebarItems" [currentApp]="currentApp"></app-sidebar>
 
   <!-- Main Content -->
   <main class="dashboard-main">
@@ -29,7 +29,11 @@
     <!-- Dashboard Content -->
     <div *ngIf="!(loading$ | async) && !(error$ | async)">
       <!-- Stats Cards -->
+<<<<<<< HEAD
       <div class="stats-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10" *ngIf="dashboardStats$ | async as stats">
+=======
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10" *ngIf="dashboardStats$ | async as stats">
+>>>>>>> origin
         <!-- Total Employees -->
         <div class="stat-card bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow transition-shadow">
           <div class="flex items-center justify-between mb-4">
@@ -37,12 +41,17 @@
               <nz-icon nzType="team" class="text-xl"></nz-icon>
             </div>
           </div>
+<<<<<<< HEAD
           <div class="stat-value text-3xl font-bold text-gray-900">{{ stats.totalEmployees || 0 }}</div>
           <div class="stat-label text-sm text-gray-500 mt-1">Total Employees</div>
           <div class="stat-change positive mt-3 text-sm text-green-600 flex items-center gap-1">
             <nz-icon nzType="arrow-up"></nz-icon>
             {{ stats.activeEmployees || 0 }} active
           </div>
+=======
+          <div class="text-3xl font-bold text-gray-900">{{ (totalEmployees$ | async) || 0 }}</div>
+          <div class="text-sm text-gray-500 mt-1">Total Employees</div>
+>>>>>>> origin
         </div>
 
         <!-- Total Payroll -->
@@ -55,11 +64,15 @@
           <div class="stat-value text-3xl font-bold text-gray-900">
             {{ stats.totalPayroll | currency:'USD':'symbol':'1.0-0' }}
           </div>
+<<<<<<< HEAD
           <div class="stat-label text-sm text-gray-500 mt-1">Total Payroll</div>
           <div class="stat-change positive mt-3 text-sm text-green-600 flex items-center gap-1">
             <nz-icon nzType="arrow-up"></nz-icon>
             {{ stats.thisMonthPayroll | currency:'USD':'symbol':'1.0-0' }} this month
           </div>
+=======
+          <div class="text-sm text-gray-500 mt-1">Total Payroll</div>
+>>>>>>> origin
         </div>
 
         <!-- Attendance Rate -->
@@ -69,12 +82,17 @@
               <nz-icon nzType="clock-circle" class="text-xl"></nz-icon>
             </div>
           </div>
+<<<<<<< HEAD
           <div class="stat-value text-3xl font-bold text-gray-900">{{ stats.attendanceRate || 0 }}%</div>
           <div class="stat-label text-sm text-gray-500 mt-1">Attendance Rate</div>
           <div class="stat-change positive mt-3 text-sm text-green-600 flex items-center gap-1">
             <nz-icon nzType="arrow-up"></nz-icon>
             Good performance
           </div>
+=======
+          <div class="text-3xl font-bold text-gray-900">{{ stats.attendanceRate || 0 }}%</div>
+          <div class="text-sm text-gray-500 mt-1">Attendance Rate</div>
+>>>>>>> origin
         </div>
       </div>
 
@@ -84,11 +102,11 @@
           <h2 class="text-xl font-semibold text-gray-900">Recent Activities</h2>
           <div class="section-actions flex gap-3 flex-wrap">
             <button nz-button nzSize="small" (click)="onRefresh()">
-              <nz-icon nzType="reload"></nz-icon>
+              <nz-icon nzType="sync"></nz-icon>
               Refresh
             </button>
             <button nz-button nzSize="small" nzType="default" (click)="onClearActivities()">
-              <nz-icon nzType="clear"></nz-icon>
+              <nz-icon nzType="delete"></nz-icon>
               Clear
             </button>
           </div>

@@ -1,16 +1,20 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngxs/store';
-import { Observable } from 'rxjs';
+import { Observable, map, of } from 'rxjs';
+import { tap, catchError } from 'rxjs/operators';
 import { DashboardApiService } from '../api/dashboard.service';
 import {
   LoadDashboardStats,
   LoadRecentActivities,
+  LoadRecentActivitiesSuccess,
+  LoadRecentActivitiesFailure,
   AddActivity,
   ClearActivities,
   UpdateStats
 } from '../store/action/dashboard.action';
 import { DashboardState } from '../store/state/dashboard.state';
 import { DashboardStats, ActivityItem } from '../models/dashboard.model';
+import { State } from '@ngxs/store';
 
 @Injectable({
   providedIn: 'root'
@@ -38,15 +42,64 @@ export class DashboardFacadeService {
     this.store.dispatch(new LoadDashboardStats());
   }
 
+  // Get total employees from employee state
+  getTotalEmployees(): Observable<number> {
+    return this.store.select((state: any) => state.employee?.employees || []).pipe(
+      map((employees: any[]) => {
+        console.log('🔍 Dashboard - Total Employees from state:', employees?.length || 0);
+        return employees ? employees.length : 0;
+      })
+    );
+  }
+
+  // Load employees for stats (ensure employee state is populated)
+  loadEmployeesForStats(): void {
+    console.log('🚀 Dashboard - Loading employees for stats');
+    // Dispatch employee load action - adjust action name if different
+    this.store.dispatch({ type: '[Employee] Load Employees' });
+  }
+
   // Load recent activities
   loadRecentActivities(): void {
-    this.store.dispatch(new LoadRecentActivities());
+    // ✅ Load real data from API
+    this.dashboardApi.getActivitiesData().pipe(
+      tap((activities) => {
+        console.log('✅ Loaded activities from API:', activities);
+        // Update state with real data
+        this.store.dispatch(new LoadRecentActivitiesSuccess({ activities }));
+      }),
+      catchError((error) => {
+        console.error('❌ Failed to load activities from API:', error);
+        // Dispatch failure action
+        this.store.dispatch(new LoadRecentActivitiesFailure({ error: error.message || 'Failed to load activities' }));
+        return of();
+      })
+    ).subscribe();
   }
 
   // Add new activity
   addActivity(activity: Omit<ActivityItem, 'id' | 'timestamp'>): void {
+<<<<<<< HEAD
     console.log('Adding activity to dashboard:', activity);
     this.store.dispatch(new AddActivity({ activity: { ...activity, id: Date.now().toString(), timestamp: new Date() } }));
+=======
+    const activityWithMeta = { ...activity, id: Date.now().toString(), timestamp: new Date() };
+    
+    // ✅ Call API first, then update state
+    this.dashboardApi.addActivityData(activityWithMeta).pipe(
+      tap(() => {
+        console.log('✅ Activity added to API, refreshing activities...');
+        // Refresh activities list to get latest data
+        this.loadRecentActivities();
+      }),
+      catchError((error) => {
+        console.error('❌ Failed to add activity to API, using local state only:', error);
+        // Still update local state even if API fails
+        this.store.dispatch(new AddActivity({ activity: activityWithMeta }));
+        return of();
+      })
+    ).subscribe();
+>>>>>>> origin
   }
 
   // Update dashboard stats

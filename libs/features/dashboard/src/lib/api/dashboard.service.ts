@@ -213,7 +213,7 @@ export class DashboardApiService {
         const deletePromises = querySnapshot.docs.map(doc => deleteDoc(doc.ref));
         return from(Promise.all(deletePromises));
       }),
-      map(() => {}),
+      map(() => undefined), // ✅ Fixed: return undefined instead of empty object
       catchError(error => {
         console.error('Error clearing activities:', error);
         throw error;

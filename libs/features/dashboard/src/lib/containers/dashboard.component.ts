@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { SidebarComponent } from '@employee-payroll/sidebar';
 import { 
   NzIconModule
@@ -40,38 +41,52 @@ import { CurrencyPipe } from '@angular/common';
   styleUrls: ['./dashboard.component.scss']
 })
 export class DashboardComponent implements OnInit, OnDestroy {
-  @Input() sidebarItems: { label: string; icon: string; path: string }[] = [
+  @Input() sidebarItems: { label: string; icon: string; path: string; apps?: string[] }[] = [
     { label: 'Dashboard', icon: '📊', path: '/dashboard' },
+<<<<<<< HEAD
     { label: 'Payroll', icon: '💰', path: '/payroll' },
+=======
+    { label: 'Employee', icon: '👥', path: '/employees' },
+    { label: 'Payroll', icon: '💰', path: '/payroll', apps: ['payroll'] }, // Only show in payroll app
+    { label: 'Attendance', icon: '🕒', path: '/attendance' },
+>>>>>>> origin
   ];
+   @Input() currentApp = 'employee';  // Default to employee app
 
   // Expose facade observables to template
   dashboardStats$: Observable<DashboardStats | null>;
   recentActivities$: Observable<ActivityItem[]>;
   loading$: Observable<boolean>;
   error$: Observable<string | null>;
+  totalEmployees$: Observable<number>;
 
   private destroy$ = new Subject<void>();
 
-  constructor(private dashboardFacade: DashboardFacadeService) {
+  constructor(
+    private dashboardFacade: DashboardFacadeService,
+    private route: ActivatedRoute
+  ) {
     this.dashboardStats$ = this.dashboardFacade.stats$;
     this.recentActivities$ = this.dashboardFacade.recentActivities$;
     this.loading$ = this.dashboardFacade.loading$;
     this.error$ = this.dashboardFacade.error$;
+    this.totalEmployees$ = this.dashboardFacade.getTotalEmployees();
+    
+    // Read currentApp from route data, fallback to default
+    this.currentApp = this.route.snapshot.data?.['currentApp'] || 'employee';
+    
+    // Subscribe to total employees for real-time updates
+    this.dashboardFacade.getTotalEmployees().subscribe(count => {
+      console.log('Total employees from facade:', count);
+    });
   }
 
   ngOnInit(): void {
-    console.log('DashboardComponent initialized');
     // Initialize dashboard data
     this.dashboardFacade.initializeDashboard();
-
-    // Subscribe to see what data we're getting
-    this.dashboardStats$.subscribe(stats => {
-      console.log('Dashboard stats received:', stats);
-    });
-    this.recentActivities$.subscribe(activities => {
-      console.log('Dashboard activities received:', activities);
-    });
+    
+    // Ensure Employee State is Loaded
+    this.dashboardFacade.loadEmployeesForStats();
   }
 
   ngOnDestroy(): void {
@@ -115,12 +130,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
   // Get activity icon based on type
   getActivityIcon(type: string): string {
     const iconMap: { [key: string]: string } = {
-      employee: 'user',
-      payroll: 'dollar',
-      attendance: 'clock-circle',
-      system: 'setting'
+      employee: 'user-o',
+      payroll: 'dollar-o',
+      attendance: 'clock-circle-o',
+      system: 'setting-o'
     };
-    return iconMap[type] || 'info';
+    return iconMap[type] || 'info-circle-o';
   }
 
   // Get activity tag color based on type

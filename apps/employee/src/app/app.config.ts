@@ -24,6 +24,20 @@ import {
   PhoneOutline,
 } from '@ant-design/icons-angular/icons';
 
+import {
+  ClearOutline,
+  ArrowUpOutline,
+  FileTextOutline,
+  MinusOutline,
+  UserOutline,
+} from '@ant-design/icons-angular/icons';
+
+import {
+  SyncOutline,
+  DeleteOutline as DeleteOutlineIcon,
+  SettingOutline,
+} from '@ant-design/icons-angular/icons';
+
 import { provideStore } from '@ngxs/store';
 import { AuthState } from '../../../../libs/features/auth/src/lib/store/state/auth.state';
 import { DashboardState } from '../../../../libs/features/dashboard/src/lib/store/state/dashboard.state';
@@ -31,13 +45,9 @@ import { EmployeeState } from './features/employee/store/state/employee.state';
 import { AttendanceState } from './features/attendance/store/state/attendance.state';
 import { appRoutes } from './app.routes';
 
-import { provideBrowserGlobalErrorListeners } from '@angular/core'; // if you really need it
-
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(appRoutes),
-    
-
     provideHttpClient(),
 
     provideAnimations(), // or provideNoopAnimations() if you don't need real animations
@@ -59,9 +69,16 @@ export const appConfig: ApplicationConfig = {
       FormOutline,
       ApartmentOutline,
       BankOutline,
+      ClearOutline,
+      ArrowUpOutline,
+      FileTextOutline,
+      MinusOutline,
+      UserOutline,
+      SyncOutline,
+      DeleteOutlineIcon,
+      SettingOutline,
     ]),
 
-    provideBrowserGlobalErrorListeners(), // keep if you need it
   ],
 };
 

@@ -36,3 +36,7 @@ export class CheckOut {
   static readonly type = '[AttendanceState] CheckOut';
   constructor(public readonly payload?: string) {}
 }
+
+export class ResetAttendance {
+  static readonly type = '[Attendance] Reset';
+}
