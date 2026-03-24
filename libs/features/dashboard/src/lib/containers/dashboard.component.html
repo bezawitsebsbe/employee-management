@@ -37,7 +37,7 @@
               <nz-icon nzType="team" class="text-xl"></nz-icon>
             </div>
           </div>
-          <div class="text-3xl font-bold text-gray-900">{{ (totalEmployees$ | async) || 0 }}</div>
+          <div class="text-3xl font-bold text-gray-900">{{ (totalEmployees$ | async) ||  0 }}</div>
           <div class="text-sm text-gray-500 mt-1">Total Employees</div>
         </div>
 
@@ -81,8 +81,7 @@
             </button>
           </div>
         </div>
-
-        <!-- Activities List -->
+  <!-- Activities List -->
         <div *ngIf="recentActivities$ | async as activities; else emptyActivities">
           <div class="space-y-4">
             <div class="flex items-start gap-4 p-4 rounded-lg hover:bg-gray-50 transition-colors" 
@@ -122,4 +121,4 @@
       </div>
     </div>
   </main>
-</div>
+</div>      
