@@ -43,9 +43,8 @@ import { CurrencyPipe } from '@angular/common';
 export class DashboardComponent implements OnInit, OnDestroy {
   @Input() sidebarItems: { label: string; icon: string; path: string; apps?: string[] }[] = [
     { label: 'Dashboard', icon: '📊', path: '/dashboard' },
-    { label: 'Employee', icon: '👥', path: '/employees' },
-    { label: 'Payroll', icon: '💰', path: '/payroll', apps: ['payroll'] }, // Only show in payroll app
-    { label: 'Attendance', icon: '🕒', path: '/attendance' },
+    { label: 'Payroll', icon: '💰', path: '/payroll' },
+
   ];
    @Input() currentApp = 'employee';  // Default to employee app
 
@@ -108,13 +107,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
   // Get activity color class
   getActivityColor(color: string): string {
     const colorMap: { [key: string]: string } = {
-      green: 'green',
-      blue: 'blue',
-      yellow: 'orange',
-      red: 'red',
-      purple: 'purple'
+      'blue': 'blue',
+      'green': 'green',
+      'orange': 'orange',
+      'purple': 'purple',
+      'red': 'red',
+      'yellow': 'yellow'
     };
-    return colorMap[color] || 'default';
+    return colorMap[color] || 'blue';
   }
 
   // Get activity icon class based on type

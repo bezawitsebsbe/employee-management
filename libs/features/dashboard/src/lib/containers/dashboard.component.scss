@@ -3,6 +3,18 @@
   width: 100%;
 }
 
+.dashboard-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.dashboard-main {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+}
+
 .dashboard-container {
   padding: 24px;
   background-color: #f5f5f5;
@@ -25,11 +37,58 @@
   }
 }
 
+.section-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.activities-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.activity-title {
+  font-weight: 500;
+  color: #262626;
+  margin-bottom: 4px;
+}
+
+.activity-description {
+  color: #8c8c8c;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.activity-time {
+  color: #bfbfbf;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 24px;
   margin-bottom: 32px;
+  
+  // For 3 cards layout, ensure they're properly spaced
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  @media (min-width: 768px) and (max-width: 1023px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .stat-card {
@@ -126,31 +185,15 @@
     font-size: 16px;
     flex-shrink: 0;
     
-    &.employee { background-color: #e6f7ff; color: #1890ff; }
-    &.payroll { background-color: #f6ffed; color: #52c41a; }
-    &.attendance { background-color: #fff7e6; color: #fa8c16; }
-    &.system { background-color: #f9f0ff; color: #722ed1; }
+    &.blue { background-color: #e6f7ff; color: #1890ff; }
+    &.green { background-color: #f6ffed; color: #52c41a; }
+    &.orange { background-color: #fff7e6; color: #fa8c16; }
+    &.purple { background-color: #f9f0ff; color: #722ed1; }
+    &.red { background-color: #fff2f0; color: #ff4d4f; }
   }
   
   .activity-content {
     flex: 1;
-    
-    .activity-title {
-      font-weight: 500;
-      color: #262626;
-      margin-bottom: 4px;
-    }
-    
-    .activity-description {
-      color: #8c8c8c;
-      font-size: 14px;
-      margin-bottom: 4px;
-    }
-    
-    .activity-time {
-      color: #bfbfbf;
-      font-size: 12px;
-    }
   }
   
   .activity-tag {
@@ -194,6 +237,10 @@
 // Responsive design
 @media (max-width: 768px) {
   .dashboard-container {
+    padding: 16px;
+  }
+  
+  .dashboard-main {
     padding: 16px;
   }
   

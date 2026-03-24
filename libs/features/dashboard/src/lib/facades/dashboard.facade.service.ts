@@ -110,6 +110,10 @@ export class DashboardFacadeService {
 
   // Add new activity
   addActivity(activity: Omit<ActivityItem, 'id' | 'timestamp'>): void {
+<<<<<<< HEAD
+    console.log('Adding activity to dashboard:', activity);
+    this.store.dispatch(new AddActivity({ activity: { ...activity, id: Date.now().toString(), timestamp: new Date() } }));
+=======
     const activityWithMeta = { ...activity, id: Date.now().toString(), timestamp: new Date() };
     
     console.log(' Dashboard: Adding activity:', activityWithMeta);
@@ -128,6 +132,7 @@ export class DashboardFacadeService {
         return of();
       })
     ).subscribe();
+>>>>>>> origin
   }
 
   // Update dashboard stats
@@ -152,6 +157,7 @@ export class DashboardFacadeService {
   }
 
   trackPayrollActivity(description: string, amount?: number): void {
+    console.log('Tracking payroll activity:', description, amount);
     this.addActivity({
       type: 'payroll',
       title: 'Payroll Processed',
@@ -159,6 +165,33 @@ export class DashboardFacadeService {
       color: 'green',
       icon: 'dollar'
     });
+  }
+
+  trackPayrollDeletion(description: string, amount?: number): void {
+    console.log('Tracking payroll deletion:', description, amount);
+    this.addActivity({
+      type: 'payroll',
+      title: 'Payroll Deleted',
+      description,
+      color: 'red',
+      icon: 'delete'
+    });
+    
+    // Update statistics to reflect deletion
+    this.updateStatsForPayrollDeletion(amount || 0);
+  }
+
+  updateStatsForPayrollDeletion(deletedAmount: number): void {
+    // Get current stats and update them
+    this.stats$.subscribe(currentStats => {
+      if (currentStats) {
+        const updatedStats = {
+          totalPayroll: Math.max(0, (currentStats.totalPayroll || 0) - deletedAmount),
+          thisMonthPayroll: Math.max(0, (currentStats.thisMonthPayroll || 0) - deletedAmount)
+        };
+        this.updateStats(updatedStats);
+      }
+    }).unsubscribe();
   }
 
   trackAttendanceCheckIn(employeeName: string, employeeId: string): void {
