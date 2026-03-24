@@ -12,7 +12,6 @@ import { AuthApiService } from './auth.service';
 export class AuthGuard implements CanActivate {
   constructor(
     private store: Store,
-    private authApi: AuthApiService,
     private router: Router
   ) {}
 

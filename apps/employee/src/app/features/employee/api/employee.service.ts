@@ -30,7 +30,7 @@ export class EmployeeApiService {
 
           return {
             ...data,
-            id: doc.id, // ✅ FORCE overwrite ALWAYS
+            id: doc.id,
             createdAt: data['createdAt']?.toDate() || new Date(),
             updatedAt: data['updatedAt']?.toDate() || new Date()
           } as Employee;
@@ -52,7 +52,7 @@ export class EmployeeApiService {
           const data = docSnapshot.data();
           return {
             ...data,
-            id: docSnapshot.id, // ✅ FORCE overwrite ALWAYS
+            id: docSnapshot.id,
             createdAt: data['createdAt']?.toDate() || new Date(),
             updatedAt: data['updatedAt']?.toDate() || new Date()
           } as Employee;

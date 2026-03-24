@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
 import { RxwebValidators } from '@rxweb/reactive-form-validators';
@@ -50,38 +50,54 @@ export class AddEmployeeModalComponent {
 
   isVisible = false;
 
+  @Output() employeeAdded = new EventEmitter<Employee>();
+
   departments = ['Sales', 'Marketing', 'HR', 'Finance', 'IT', 'Operations'];
 
   addForm = this.fb.group({
-    fullName: ['', [
-      RxwebValidators.required(),
-      RxwebValidators.minLength({ value: 2 }),
-      RxwebValidators.maxLength({ value: 50 })
-    ]],
-    email: ['', [
-      RxwebValidators.required(),
-      RxwebValidators.email()
-    ]],
-    phone: ['', [
-      RxwebValidators.pattern({ expression: { phone: /^[+]?[\d\s\-\(\)]+$/ }, message: 'Invalid phone number format' })
-    ]],
-    department: ['', [
-      RxwebValidators.required()
-    ]],
-    position: ['', [
-      RxwebValidators.maxLength({ value: 100 })
-    ]],
-    joinDate: ['', [
-      RxwebValidators.required()
-    ]],
-    status: ['Active', [
-      RxwebValidators.required()
-    ]],
-    baseSalary: [0, [
-      RxwebValidators.required(),
-      RxwebValidators.minNumber({ value: 0 }),
-      RxwebValidators.maxNumber({ value: 1000000 })
-    ]]
+    fullName: [
+      '',
+      [
+        RxwebValidators.required(),
+        RxwebValidators.minLength({ value: 2 }),
+        RxwebValidators.maxLength({ value: 50 }),
+      ],
+    ],
+    email: ['', [RxwebValidators.required(), RxwebValidators.email()]],
+    phone: [
+      '',
+      [
+        RxwebValidators.pattern({
+          expression: {
+            phone: /^\+?[1-9]\d{7,14}$/,
+          },
+          message: 'Enter a valid phone number (8–15 digits, optional +)',
+        }),
+      ],
+    ],
+    department: ['', [RxwebValidators.required()]],
+    position: ['', [RxwebValidators.maxLength({ value: 100 })]],
+    joinDate: [
+      '',
+      [
+        RxwebValidators.required(),
+        RxwebValidators.pattern({
+          expression: {
+            date: /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/,
+          },
+          message: 'Date must be in format dd/mm/yyyy',
+        }),
+      ],
+    ],
+    status: ['Active', [RxwebValidators.required()]],
+    baseSalary: [
+      0,
+      [
+        RxwebValidators.required(),
+        RxwebValidators.minNumber({ value: 0 }),
+        RxwebValidators.maxNumber({ value: 1000000 }),
+      ],
+    ],
   });
 
   show(): void {
@@ -115,11 +131,12 @@ export class AddEmployeeModalComponent {
         avatarColor: this.getRandomColor(),
       };
 
-      this.facade.addEmployee(newEmployee);
+      console.log('🚀 Modal: Emitting employeeAdded event:', newEmployee);
+      this.employeeAdded.emit(newEmployee);
       this.isVisible = false;
       this.addForm.reset();
     } else {
-      Object.values(this.addForm.controls).forEach(control => {
+      Object.values(this.addForm.controls).forEach((control) => {
         if (control.invalid) {
           control.markAsDirty();
           control.updateValueAndValidity({ onlySelf: true });
@@ -144,13 +161,20 @@ export class AddEmployeeModalComponent {
   private getInitials(fullName: string): string {
     return fullName
       .split(' ')
-      .map(name => name.charAt(0).toUpperCase())
+      .map((name) => name.charAt(0).toUpperCase())
       .join('')
       .substring(0, 2);
   }
 
   private getRandomColor(): string {
-    const colors = ['#fadb14', '#52c41a', '#1890ff', '#722ed1', '#eb2f96', '#fa541c'];
+    const colors = [
+      '#fadb14',
+      '#52c41a',
+      '#1890ff',
+      '#722ed1',
+      '#eb2f96',
+      '#fa541c',
+    ];
     return colors[Math.floor(Math.random() * colors.length)];
   }
 }

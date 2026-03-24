@@ -47,7 +47,7 @@
           </nz-form-item>
 
           <!-- Phone -->
-          <nz-form-item>
+          <nz-form-item nzErrorTip="Enter a valid phone number (8–15 digits, optional +)">
             <nz-form-label>Phone</nz-form-label>
             <nz-form-control>
               <input nz-input formControlName="phone" placeholder="+1 (555) 123-4567" />
@@ -88,7 +88,7 @@
           <!-- Join Date -->
           <nz-form-item>
             <nz-form-label>Join Date *</nz-form-label>
-            <nz-form-control>
+            <nz-form-control nzErrorTip="Date must be in format dd/mm/yyyy">
               <input nz-input formControlName="joinDate" placeholder="05/03/2023" />
               <div class="ant-form-item-explain" *ngIf="addForm.get('joinDate')?.errors">
                 <div role="alert" *ngIf="addForm.get('joinDate')?.errors?.['required']">Join date is required</div>

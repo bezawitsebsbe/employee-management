@@ -9,15 +9,13 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
-import { Observable, BehaviorSubject, map, combineLatest } from 'rxjs';
-import { Store } from '@ngxs/store';
 import { Employee } from '../../models/employee.model';
 import { EmployeeSimpleFacade } from '../../facades/employee-simple.facade';
-import { EmployeeState } from '../../store/state/employee.state';
 import { EmployeeListComponent } from '../../components/employee-list/employee-list.component';
 import { EmployeeDetailComponent } from '../../components/employee-detail/employee-detail.component';
 import { AddEmployeeModalComponent } from '../../components/add-employee-modal/add-employee-modal.component';
 import { SidebarComponent } from '@employee-payroll/sidebar';
+import { DashboardFacadeService } from '@employee-payroll/features';
 import * as _ from 'lodash';
 
 @Component({
@@ -64,8 +62,8 @@ export class EmployeePageComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef);
 
   constructor(
-    private readonly store: Store,
-    private readonly facade: EmployeeSimpleFacade
+    private readonly facade: EmployeeSimpleFacade,
+    private readonly dashboardService: DashboardFacadeService
   ) {}
 
   ngOnInit(): void {
@@ -173,15 +171,33 @@ export class EmployeePageComponent implements OnInit {
   }
 
   handleAddEmployee(employee: any) {
+    console.log(' Adding employee:', employee);
     this.facade.createEmployee(employee);
+    
+    //  Track new employee addition in dashboard
+    console.log('Tracking employee addition:', employee.fullName, employee.id);
+    this.dashboardService.trackEmployeeAdded(employee.fullName, employee.id);
   }
 
   handleUpdateEmployee(id: string, changes: any) {
     this.facade.updateEmployee(id, changes);
+    
+    //  Track employee update in dashboard
+    const employee = this.employees.find(emp => emp.id === id);
+    if (employee && employee.id) {
+      this.dashboardService.trackEmployeeUpdated(employee.fullName, employee.id);
+    }
   }
 
   handleDeleteEmployee(id: string) {
+    const employee = this.employees.find(emp => emp.id === id);
+    
     this.facade.deleteEmployee(id);
+    
+    //  Track employee deletion in dashboard
+    if (employee && employee.id) {
+      this.dashboardService.trackEmployeeDeleted(employee.fullName, employee.id);
+    }
   }
 
   // Export functionality
