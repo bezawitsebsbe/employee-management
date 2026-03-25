@@ -35,7 +35,6 @@ import { PayrollRecord } from '../../api/payroll.firebase-api';
 })
 export class PayrollManagementPageComponent implements OnInit, OnDestroy {
   @ViewChild(AddPayrollModalComponent) addPayrollModal!: AddPayrollModalComponent;
-  @ViewChild(PayrollTableComponent) payrollTable!: PayrollTableComponent;
   
   searchTerm: string = '';
   selectedDepartment: string = 'all';
@@ -118,9 +117,7 @@ export class PayrollManagementPageComponent implements OnInit, OnDestroy {
         // Manually trigger table refresh to ensure it updates
         setTimeout(() => {
           console.log('PayrollManagementPage: Triggering manual table refresh');
-          if (this.payrollTable) {
-            this.payrollTable.refreshData();
-          }
+          // Table refresh will be handled by observable updates
         }, 500);
       },
       error: (error) => {
