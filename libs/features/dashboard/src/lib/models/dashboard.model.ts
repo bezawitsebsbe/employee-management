@@ -4,6 +4,7 @@ export interface DashboardStats {
   activeEmployees: number;
   totalPayroll: number;
   thisMonthPayroll: number;
+  totalDeductions: number;
   attendanceRate: number;
   pendingTasks: number;
   timestamp?: Date;

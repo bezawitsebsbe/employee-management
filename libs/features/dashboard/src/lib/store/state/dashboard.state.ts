@@ -33,8 +33,6 @@ export interface DashboardStateModel {
   }
 })
 export class DashboardState {
-  
-  constructor() {}
 
   @Selector()
   static stats(state: DashboardStateModel): DashboardStats | null {
@@ -71,6 +69,7 @@ export class DashboardState {
           activeEmployees: 0,
           totalPayroll: 0,
           thisMonthPayroll: 0,
+          totalDeductions: 0,
           attendanceRate: 0,
           pendingTasks: 0,
           timestamp: new Date()

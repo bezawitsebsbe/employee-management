@@ -49,13 +49,16 @@ export class DashboardApiService {
           switchMap(payrollSnapshot => {
             let totalPayroll = 0;
             let thisMonthPayroll = 0;
+            let totalDeductions = 0;
             const currentMonth = new Date().getMonth();
             const currentYear = new Date().getFullYear();
 
             payrollSnapshot.docs.forEach(doc => {
               const data = doc.data();
               const netSalary = data['netSalary'] || 0;
+              const deductions = data['deductions'] || 0;
               totalPayroll += netSalary;
+              totalDeductions += deductions;
               
               // Calculate this month payroll
               const createdAt = data['createdAt'];
@@ -79,6 +82,7 @@ export class DashboardApiService {
                     activeEmployees: actualEmployeeCount, // Assume all employees are active
                     totalPayroll: totalPayroll,
                     thisMonthPayroll: thisMonthPayroll,
+                    totalDeductions: totalDeductions,
                     // Keep other existing stats if they exist
                     totalPayrollChange: data['totalPayrollChange'] || '+0',
                     totalBonuses: data['totalBonuses'] || 0,
@@ -98,10 +102,11 @@ export class DashboardApiService {
                   activeEmployees: actualEmployeeCount,
                   totalPayroll: totalPayroll,
                   thisMonthPayroll: thisMonthPayroll,
+                  totalDeductions: totalDeductions,
                   attendanceRate: 95,
                   pendingTasks: 0,
                   timestamp: new Date()
-                };
+                } as DashboardStats;
               }),
               catchError(error => {
                 console.error('Error fetching dashboard stats:', error);
@@ -111,10 +116,11 @@ export class DashboardApiService {
                   activeEmployees: actualEmployeeCount,
                   totalPayroll: totalPayroll,
                   thisMonthPayroll: thisMonthPayroll,
+                  totalDeductions: totalDeductions,
                   attendanceRate: 95,
                   pendingTasks: 0,
                   timestamp: new Date()
-                });
+                } as DashboardStats);
               })
             );
           })
@@ -128,10 +134,11 @@ export class DashboardApiService {
           activeEmployees: 0,
           totalPayroll: 0,
           thisMonthPayroll: 0,
+          totalDeductions: 0,
           attendanceRate: 0,
           pendingTasks: 0,
           timestamp: new Date()
-        });
+        } as DashboardStats);
       })
     );
   }

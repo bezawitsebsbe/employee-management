@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngxs/store';
-import { Observable, map, of } from 'rxjs';
+import { Observable, map, of, combineLatest, switchMap } from 'rxjs';
 import { tap, catchError, take } from 'rxjs/operators';
 import { DashboardApiService } from '../api/dashboard.service';
 import {
@@ -38,33 +38,58 @@ export class DashboardFacadeService {
 
   // Initialize dashboard (load all required data)
   initializeDashboard(): void {
-    console.log(' Initializing dashboard...');
+    console.log('🚀 Initializing dashboard with payroll data...');
+    
     // Load employees first, then stats
     this.loadEmployeesForStats();
+    
+    // Trigger payroll data loading through dashboard API (this loads payroll records)
+    this.dashboardApi.getDashboardStatsData().pipe(
+      take(1)
+    ).subscribe({
+      next: (stats) => {
+        console.log('📊 Dashboard API loaded initial stats:', stats);
+        // Now load the dashboard stats with real data
+        this.loadDashboardStats();
+      },
+      error: (error) => {
+        console.log('📊 Dashboard API failed, loading stats with defaults:', error);
+        // Still load stats even if API fails
+        this.loadDashboardStats();
+      }
+    });
+    
     // Load activities
     this.loadRecentActivities();
-    // Load stats (will use employee count)
-    this.loadDashboardStats();
   }
 
   // Load dashboard statistics
   loadDashboardStats(): void {
-    console.log('📊 Loading dashboard stats...');
+    console.log('📊 Loading dashboard stats with real data...');
     
-    // Provide fallback data if employee state is not available
-    this.getTotalEmployees().pipe(
+    // Combine data from all facades
+    combineLatest([
+      this.getTotalEmployees(),
+      this.getTotalPayroll(),
+      this.getTotalDeductions()
+    ]).pipe(
       take(1)
     ).subscribe({
-      next: (totalEmployees: number) => {
-        console.log('📊 Dashboard stats loaded with employee count:', totalEmployees);
+      next: ([totalEmployees, totalPayroll, totalDeductions]) => {
+        console.log('📊 Dashboard stats loaded with real data:', {
+          totalEmployees,
+          totalPayroll,
+          totalDeductions
+        });
         
         const realStats: DashboardStats = {
           id: 'main',
           totalEmployees: totalEmployees || 0,
           activeEmployees: totalEmployees || 0,
-          totalPayroll: 45000, // Default values for demo
-          thisMonthPayroll: 8000,
-          attendanceRate: 95,
+          totalPayroll: totalPayroll || 0,
+          thisMonthPayroll: totalPayroll || 0, // Using total as this month for now
+          totalDeductions: totalDeductions || 0,
+          attendanceRate: 95, // Default value for demo
           pendingTasks: 0,
           timestamp: new Date()
         };
@@ -73,15 +98,16 @@ export class DashboardFacadeService {
         this.store.dispatch(new LoadDashboardStatsSuccess({ stats: realStats }));
       },
       error: (error) => {
-        console.error('📊 Error loading employee count, using defaults:', error);
+        console.error('📊 Error loading dashboard stats, using defaults:', error);
         
-        // Fallback stats if employee state fails
+        // Fallback stats if facades fail
         const fallbackStats: DashboardStats = {
           id: 'main',
-          totalEmployees: 25, // Default fallback
-          activeEmployees: 25,
-          totalPayroll: 45000,
-          thisMonthPayroll: 8000,
+          totalEmployees: 0,
+          activeEmployees: 0,
+          totalPayroll: 0,
+          thisMonthPayroll: 0,
+          totalDeductions: 0,
           attendanceRate: 95,
           pendingTasks: 0,
           timestamp: new Date()
@@ -92,25 +118,53 @@ export class DashboardFacadeService {
     });
   }
 
-  // Get total employees from employee state with fallback
+  // Get total employees from employee state
   getTotalEmployees(): Observable<number> {
     return this.store.select((state: any) => state.EmployeeState?.employees || []).pipe(
       map((employees: any[]) => {
-        const count = employees ? employees.length : 25; // Fallback to 25
-        console.log('📊 Dashboard - Total Employees:', count);
+        const count = employees ? employees.length : 0;
+        console.log('📊 Dashboard - Total Employees from EmployeeState:', count);
         return count;
       }),
       catchError((error) => {
         console.log('📊 Employee state not available, using fallback:', error);
-        return of(25); // Return fallback value
+        return of(0);
+      })
+    );
+  }
+
+  // Get total payroll from dashboard API (which already calculates from payroll records)
+  getTotalPayroll(): Observable<number> {
+    return this.dashboardApi.getDashboardStatsData().pipe(
+      map((stats) => {
+        console.log('📊 Dashboard - Total Payroll from API:', stats.totalPayroll);
+        return stats.totalPayroll || 0;
+      }),
+      catchError((error) => {
+        console.log('📊 Dashboard API not available for payroll, using fallback:', error);
+        return of(0);
+      })
+    );
+  }
+
+  // Get total deductions from dashboard API
+  getTotalDeductions(): Observable<number> {
+    return this.dashboardApi.getDashboardStatsData().pipe(
+      map((stats) => {
+        console.log('📊 Dashboard - Total Deductions from API:', stats.totalDeductions);
+        return stats.totalDeductions || 0;
+      }),
+      catchError((error) => {
+        console.log('📊 Dashboard API not available for deductions, using fallback:', error);
+        return of(0);
       })
     );
   }
 
   // Load employees for stats (ensure employee state is populated)
   loadEmployeesForStats(): void {
-    console.log('📊 Dashboard - Loading employees for stats');
-    // Try to load employees but don't fail if it doesn't work
+    console.log('📊 Dashboard - Loading employees for stats via store dispatch');
+    // Load employees using store dispatch
     try {
       this.store.dispatch({ type: '[EmployeeState] LoadEmployees' });
     } catch (error) {
