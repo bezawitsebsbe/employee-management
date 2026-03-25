@@ -1,128 +1,88 @@
 <div class="payroll-table-container">
-  <!-- Table Header -->
-  <div class="table-header">
-    <div class="table-title">
-      <h3>Payroll Records</h3>
-      <p class="table-subtitle">Manage employee payroll information</p>
-    </div>
-    <div class="table-actions">
-      <div class="search-filter">
-        <input 
-          nz-input 
-          placeholder="Search employees..."
-          [(ngModel)]="searchTerm"
-          (ngModelChange)="updateSearchTerm($event)"
-          class="search-input"
-        >
-          <span nz-icon nzType="search" nzSuffix></span>
-      </div>
-      <div class="filter-actions">
-        <nz-select 
-          [(ngModel)]="selectedDepartment"
-          (ngModelChange)="updateDepartment($event)"
-          nzPlaceHolder="All Positions"
-          class="department-filter"
-        >
-          <nz-option nzValue="all" nzLabel="All Positions"></nz-option>
-          <nz-option *ngFor="let dept of getDepartmentOptions()" [nzValue]="dept" [nzLabel]="dept"></nz-option>
-        </nz-select>
-      </div>
-    </div>
-  </div>
-
   <!-- Loading State -->
-  <div class="loading-container" *ngIf="loading$ | async">
-    <div class="loading-spinner">
-      <span nz-icon nzType="loading" nzSpin></span>
-      <p>Loading payroll records...</p>
-    </div>
+  <div *ngIf="loading$ | async" class="text-center py-12">
+    <nz-spin nzSize="large"></nz-spin>
+    <p class="mt-4 text-gray-500">Loading payroll records...</p>
   </div>
 
-  <!-- Data Table -->
-  <div class="table-wrapper" *ngIf="payrollRecords$ | async as records; else emptyState">
-    <table class="payroll-table">
+  <!-- Error State -->
+  <div *ngIf="error$ | async" class="text-center py-12">
+    <nz-icon nzType="exclamation-circle" class="text-5xl text-red-500 mb-4"></nz-icon>
+    <h3 class="text-lg font-medium text-red-600">Error Loading Data</h3>
+    <p class="mt-2 text-gray-600">{{ error$ | async }}</p>
+  </div>
+
+  <!-- Table Content -->
+  <div *ngIf="!(loading$ | async) && !(error$ | async)">
+    <nz-table
+      #basicTable
+      [nzData]="(payrollRecords$ | async) || []"
+      [nzFrontPagination]="true"
+      [nzPageSize]="10"
+      [nzShowSizeChanger]="true"
+      [nzShowQuickJumper]="true"
+      class="w-full"
+    >
       <thead>
         <tr>
-          <th>Employee Name</th>
-          <th>Position</th>
-          <th>Base Salary</th>
-          <th>Monthly Bonus</th>
-          <th>Deductions</th>
-          <th>Net Salary</th>
-          <th>Status</th>
-          <th>Actions</th>
+          <th nzCustomThWidth="15%">Employee Name</th>
+          <th nzCustomThWidth="10%">Employee ID</th>
+          <th nzCustomThWidth="12%">Department</th>
+          <th nzCustomThWidth="10%">Base Salary</th>
+          <th nzCustomThWidth="10%">Monthly Bonus</th>
+          <th nzCustomThWidth="10%">Deductions</th>
+          <th nzCustomThWidth="12%">Net Salary</th>
+          <th nzCustomThWidth="8%">Status</th>
+          <th nzCustomThWidth="13%">Actions</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let record of records">
+        <tr *ngFor="let record of basicTable.data">
           <td>
-            <div class="employee-info">
-              <div class="employee-name">{{ record.employeeName }}</div>
-              <div class="employee-id">{{ record.employeeId }}</div>
+            <div class="flex items-center">
+              <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium mr-3">
+                {{ record.employeeName.charAt(0).toUpperCase() }}
+              </div>
+              <span class="font-medium">{{ record.employeeName }}</span>
             </div>
           </td>
-          <td>{{ record.department }}</td>
-          <td>{{ formatCurrency(record.baseSalary) }}</td>
-          <td>{{ formatCurrency(record.monthlyBonus) }}</td>
-          <td>{{ formatCurrency(record.deductions) }}</td>
-          <td class="net-salary">{{ formatCurrency(record.netSalary) }}</td>
           <td>
-            <span class="status-badge" [ngClass]="getStatusClass(record.status)">
-              {{ record.status }}
-            </span>
+            <span class="text-gray-600 text-sm">{{ record.employeeId }}</span>
           </td>
           <td>
-            <div class="action-buttons">
-              <!-- TEST: Simple delete button without popconfirm -->
-              <button 
-                nz-button 
-                nzDanger
-                nzSize="small"
-                (click)="onDeleteRecord(record)"
-                class="action-btn delete-btn"
-                style="background: red !important; color: white !important; border: 2px solid red !important;"
-              >
-                <span nz-icon nzType="delete"></span>
-                DELETE
+            <nz-tag [nzColor]="'blue'">{{ record.department }}</nz-tag>
+          </td>
+          <td>
+            <span class="font-medium text-gray-900">{{ formatCurrency(record.baseSalary) }}</span>
+          </td>
+          <td>
+            <span class="text-green-600 font-medium">+{{ formatCurrency(record.monthlyBonus) }}</span>
+          </td>
+          <td>
+            <span class="text-red-600 font-medium">-{{ formatCurrency(record.deductions) }}</span>
+          </td>
+          <td>
+            <span class="font-bold text-gray-900">{{ formatCurrency(record.netSalary) }}</span>
+          </td>
+          <td>
+            <nz-tag [nzColor]="getStatusColor(record.status)">{{ record.status }}</nz-tag>
+          </td>
+          <td>
+            <div class="flex gap-2">
+              <button nz-button nzType="default" nzSize="small" (click)="onEdit(record)">
+                <span nz-icon nzType="edit"></span>
               </button>
-              
-              <!-- Original popconfirm version (commented out for testing) -->
-              <!--
-              <nz-popconfirm
-                title="Are you sure you want to delete this payroll record for {{ record.employeeName }}?"
-                okText="Delete"
-                cancelText="Cancel"
-                (nzOnConfirm)="onDeleteRecord(record)"
-                okType="danger"
-              >
-                <button 
-                  nz-button 
-                  nzDanger
-                  nzSize="small"
-                  class="action-btn delete-btn"
-                >
-                  <span nz-icon nzType="delete"></span>
-                  Delete
-                </button>
-              </nz-popconfirm>
-              -->
             </div>
           </td>
         </tr>
       </tbody>
-    </table>
-  </div>
+    </nz-table>
 
-  <!-- Empty State -->
-  <ng-template #emptyState>
-    <div class="empty-state">
-      <div class="empty-icon">
-        <span nz-icon nzType="inbox" nzTheme="outline"></span>
-      </div>
-      <div class="empty-content">
-        <h3>No payroll records found</h3>
-        <p>Start by adding your first payroll record using the "Add Payroll" button above.</p>
-      </div>
+    <!-- Empty State -->
+    <div *ngIf="(payrollRecords$ | async)?.length === 0 || (payrollRecords$ | async) === null" class="text-center py-12">
+      <nz-icon nzType="inbox" class="text-5xl mb-4 opacity-40"></nz-icon>
+      <h3 class="text-lg font-medium text-gray-900">No Payroll Records</h3>
+      <p class="mt-2 text-gray-600">No payroll records found. Add your first payroll record to get started.</p>
     </div>
-  </ng-template>
+  </div>
 </div>

@@ -1,17 +1,17 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
-import { NzTypographyModule } from 'ng-zorro-antd/typography';
+import { NzTableModule } from 'ng-zorro-antd/table';
+import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
-import { Observable, Subject, takeUntil } from 'rxjs';
-import { PayrollFirebaseFacade } from '../../facade/payroll.firebase-facade';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { Observable, Subject, takeUntil, of } from 'rxjs';
 import { PayrollRecord } from '../../api/payroll.firebase-api';
+import { PayrollFirebaseFacade } from '../../facade/payroll.firebase-facade';
 
 @Component({
   selector: 'app-payroll-table',
@@ -19,34 +19,38 @@ import { PayrollRecord } from '../../api/payroll.firebase-api';
   imports: [
     CommonModule,
     FormsModule,
-    NzTableModule,
     NzButtonModule,
     NzIconModule,
-    NzTagModule,
     NzInputModule,
     NzSelectModule,
-    NzTypographyModule,
-    NzPopconfirmModule
+    NzTableModule,
+    NzTagModule,
+    NzPopconfirmModule,
+    NzSpinModule
   ],
-  templateUrl: './payroll-table.component.html',
-  styleUrls: ['./payroll-table.component.scss']
+  templateUrl: './payroll-table.component.html'
 })
-export class PayrollTableComponent implements OnInit, OnDestroy, OnChanges {
+export class PayrollTableComponent implements OnInit, OnDestroy {
   @Input() searchTerm: string = '';
   @Input() selectedDepartment: string = 'all';
-  
   @Output() editRecord = new EventEmitter<PayrollRecord>();
-  @Output() deleteRecord = new EventEmitter<PayrollRecord>();
 
-  payrollRecords$: Observable<PayrollRecord[]> = new Observable();
-  loading$: Observable<boolean> = new Observable();
-  
+  payrollRecords$: Observable<PayrollRecord[]>;
+  loading$: Observable<boolean>;
+  error$: Observable<string | null>;
+
   private destroy$ = new Subject<void>();
 
-  constructor(private readonly payrollFacade: PayrollFirebaseFacade) {}
+  constructor(private payrollFacade: PayrollFirebaseFacade) {
+    // Initialize with Firebase facade observables
+    this.payrollRecords$ = this.payrollFacade.filteredPayrollRecords$;
+    this.loading$ = this.payrollFacade.loading$;
+    this.error$ = this.payrollFacade.error$;
+  }
 
   ngOnInit(): void {
-    this.initializeData();
+    // Initialize data loading through facade
+    this.payrollFacade.refreshPayrollRecords();
   }
 
   ngOnDestroy(): void {
@@ -54,130 +58,35 @@ export class PayrollTableComponent implements OnInit, OnDestroy, OnChanges {
     this.destroy$.complete();
   }
 
-  private initializeData(): void {
-    console.log('PayrollTable: Initializing data');
-    
-    // Get filtered payroll records from Firebase (with search and department filters applied)
-    this.payrollRecords$ = this.payrollFacade.filteredPayrollRecords$;
-    this.loading$ = this.payrollFacade.loading$;
-
-    // Debug: Subscribe to see data changes
-    const subscription = this.payrollRecords$.subscribe(records => {
-      console.log('PayrollTable: Records updated', records);
-      console.log('PayrollTable: Records length:', records.length);
-    });
-
-    // Clean up subscription on destroy
-    this.destroy$.subscribe(() => {
-      subscription.unsubscribe();
-    });
-
-    // Update search and department filters when they change
-    this.payrollFacade.setSearchTerm(this.searchTerm);
-    this.payrollFacade.setSelectedDepartment(this.selectedDepartment);
+  onEdit(record: PayrollRecord): void {
+    // TODO: Implement edit functionality
+    // You could open an edit modal with the record data
+    // For now, just emit the record
+    this.editRecord.emit(record);
   }
 
-  // Update search and department filters when they change
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['searchTerm'] && this.searchTerm !== undefined) {
-      this.payrollFacade.setSearchTerm(this.searchTerm);
-    }
-    if (changes['selectedDepartment'] && this.selectedDepartment !== undefined) {
-      this.payrollFacade.setSelectedDepartment(this.selectedDepartment);
-    }
-  }
-
-  // Update search term method for ngModelChange
-  updateSearchTerm(term: string): void {
-    this.searchTerm = term;
-    this.payrollFacade.setSearchTerm(term);
-  }
-
-  // Update department method for ngModelChange
-  updateDepartment(department: string): void {
-    this.selectedDepartment = department;
-    this.payrollFacade.setSelectedDepartment(department);
+  refreshData(): void {
+    // Refresh data through facade
+    this.payrollFacade.refreshPayrollRecords();
   }
 
   getStatusColor(status: string): string {
     switch (status) {
-      case 'Processed':
-        return 'success';
       case 'Paid':
-        return 'default';
+        return 'green';
       case 'Pending':
-        return 'warning';
+        return 'orange';
+      case 'Processed':
+        return 'blue';
       default:
         return 'default';
     }
   }
 
-  getStatusClass(status: string): string {
-    switch (status) {
-      case 'Paid':
-        return 'status-paid';
-      case 'Processed':
-        return 'status-processed';
-      case 'Pending':
-        return 'status-pending';
-      default:
-        return '';
-    }
-  }
-
-  onEditRecord(record: PayrollRecord): void {
-    this.editRecord.emit(record);
-  }
-
-  onDeleteRecord(record: PayrollRecord): void {
-    // Show confirmation dialog before deleting
-    if (confirm(`Are you sure you want to delete payroll record for ${record.employeeName}?`)) {
-      this.deleteRecord.emit(record);
-    }
-  }
-
-  // Add output for refresh trigger
-  @Output() refresh = new EventEmitter<void>();
-
-  // Manual refresh method
-  refreshData(): void {
-    console.log('PayrollTable: Manual refresh triggered');
-    this.payrollFacade.refreshPayrollRecords();
-  }
-
-  // Get total net salary for summary
-  getTotalNetSalary(records: PayrollRecord[]): number {
-    return records.reduce((sum: number, record: PayrollRecord) => sum + record.netSalary, 0);
-  }
-
-  // Format currency
   formatCurrency(amount: number): string {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
+      currency: 'USD'
     }).format(amount);
-  }
-
-  // Format date
-  formatDate(date: Date | string | undefined): string {
-    if (!date) return 'N/A';
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    return dateObj.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  }
-
-  // Get department options
-  getDepartmentOptions(): string[] {
-    return ['all', 'Backend Developer', 'Frontend Developer', 'Marketer', 'Accountant', 'Sales'];
-  }
-
-  // Get status options
-  getStatusOptions(): string[] {
-    return ['all', 'Pending', 'Processed', 'Paid'];
   }
 }
