@@ -2,7 +2,6 @@ import { State, StateContext, Action, Selector } from '@ngxs/store';
 import { DashboardStats, ActivityItem } from '../../models/dashboard.model';
 import { tap, catchError } from 'rxjs/operators';
 import { of, Observable } from 'rxjs';
-import { DashboardApiService } from '../../api/dashboard.service';
 import {
   LoadDashboardStats,
   LoadDashboardStatsSuccess,
@@ -58,9 +57,9 @@ export class DashboardState {
   loadDashboardStats({ patchState, dispatch }: StateContext<DashboardStateModel>): Observable<any> {
     patchState({ loading: true, error: null });
     
-    console.log('🚀 Loading dashboard stats...');
+    console.log(' Loading dashboard stats...');
     
-    // ✅ Use mock data for now - API calls should be in facade
+    //  Use mock data for now - API calls should be in facade
     return of({}).pipe(
       tap(() => {
         const mockStats: DashboardStats = {
@@ -77,7 +76,7 @@ export class DashboardState {
         dispatch(new LoadDashboardStatsSuccess({ stats: mockStats }));
       }),
       catchError((error) => {
-        console.error('❌ Failed to load dashboard stats:', error);
+        console.error(' Failed to load dashboard stats:', error);
         dispatch(new LoadDashboardStatsFailure({ error: error.message || 'Failed to load dashboard stats' }));
         return of();
       })
@@ -105,16 +104,16 @@ export class DashboardState {
   loadRecentActivities({ patchState, dispatch }: StateContext<DashboardStateModel>): Observable<any> {
     patchState({ loading: true, error: null });
     
-    console.log('🚀 Loading recent activities...');
+    console.log(' Loading recent activities...');
     
-    // ✅ Use mock data for now - API calls should be in facade
+    //  Use mock data for now - API calls should be in facade
     return of({}).pipe(
       tap(() => {
         const mockActivities: ActivityItem[] = [];
         dispatch(new LoadRecentActivitiesSuccess({ activities: mockActivities }));
       }),
       catchError((error) => {
-        console.error('❌ Failed to load recent activities:', error);
+        console.error(' Failed to load recent activities:', error);
         dispatch(new LoadRecentActivitiesFailure({ error: error.message || 'Failed to load recent activities' }));
         return of([]);
       })
@@ -145,9 +144,9 @@ export class DashboardState {
   ) {
     if (!action.payload?.activity) return of();
 
-    console.log('🚀 Adding new activity:', action.payload.activity);
+    console.log(' Adding new activity:', action.payload.activity);
     
-    // ✅ Simple state update - API calls should be in facade
+    //  Simple state update - API calls should be in facade
     const currentActivities = getState().recentActivities;
     const newActivity = action.payload.activity;
     const updatedActivities = [newActivity, ...currentActivities].slice(0, 10); // Keep last 10
