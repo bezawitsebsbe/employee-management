@@ -41,22 +41,13 @@ import { CurrencyPipe } from '@angular/common';
   styleUrls: ['./dashboard.component.scss'],
 })
 export class DashboardComponent implements OnInit, OnDestroy {
-<<<<<<< HEAD
- @Input() sidebarItems: { label: string; icon: string; path: string; apps?: string[] }[] = [
-=======
   @Input() sidebarItems: {
     label: string;
     icon: string;
     path: string;
     apps?: string[];
-  }[] = [
->>>>>>> origin
-    { label: 'Dashboard', icon: '📊', path: '/dashboard' },
-    { label: 'Employee', icon: '👥', path: '/employees' },
-    { label: 'Payroll', icon: '💰', path: '/payroll', apps: ['payroll'] }, // Only show in payroll app
-    { label: 'Attendance', icon: '🕒', path: '/attendance' },
-  ];
-  @Input() currentApp = 'employee'; // Default to employee app
+  }[] = [];
+  @Input() currentApp = 'payroll'; // Will be set by route data
 
   // Expose facade observables to template
   dashboardStats$: Observable<DashboardStats | null>;
@@ -76,22 +67,46 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.loading$ = this.dashboardFacade.loading$;
     this.error$ = this.dashboardFacade.error$;
     this.totalEmployees$ = this.dashboardFacade.getTotalEmployees();
-
-    // Read currentApp from route data, fallback to default
-    this.currentApp = this.route.snapshot.data?.['currentApp'] || 'employee';
-
-    // Subscribe to total employees for real-time updates
-    this.dashboardFacade.getTotalEmployees().subscribe((count) => {
-      console.log('Total employees from facade:', count);
-    });
   }
 
   ngOnInit(): void {
+    // Read currentApp from route data, fallback to default
+    this.currentApp = this.route.snapshot.data?.['currentApp'] || 'employee';
+    
+    // Subscribe to route data changes
+    this.route.data.subscribe(data => {
+      this.currentApp = data?.['currentApp'] || 'employee';
+      this.updateSidebarItems();
+    });
+
     // Initialize dashboard data
     this.dashboardFacade.initializeDashboard();
 
     // Ensure Employee State is Loaded
     this.dashboardFacade.loadEmployeesForStats();
+
+    // Subscribe to total employees for real-time updates
+    this.dashboardFacade.getTotalEmployees().subscribe((count) => {
+      // Total employees from facade: count
+    });
+  }
+
+  private updateSidebarItems(): void {
+    if (this.currentApp === 'payroll') {
+      // Payroll app sidebar items
+      this.sidebarItems = [
+        { label: 'Dashboard', icon: '📊', path: '/dashboard' },
+        { label: 'Payroll', icon: '💰', path: '/payroll' }
+      ];
+    } else {
+      // Employee app sidebar items
+      this.sidebarItems = [
+        { label: 'Dashboard', icon: '📊', path: '/dashboard' },
+        { label: 'Employee', icon: '👥', path: '/employees' },
+        { label: 'Attendance', icon: '🕒', path: '/attendance' }
+      ];
+    }
+    // Sidebar items set for app: sidebarItems
   }
 
   ngOnDestroy(): void {
@@ -167,7 +182,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   // Handle quick action button click
   onQuickAction(): void {
-    console.log('Quick action clicked');
     this.dashboardFacade.trackSystemAction(
       'Quick Action',
       'User clicked quick action button',
@@ -176,7 +190,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   // Handle filter button click
   onFilter(): void {
-    console.log('Filter clicked');
     this.dashboardFacade.trackSystemAction(
       'Filter',
       'User clicked filter button',
@@ -185,7 +198,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   // Handle export button click
   onExport(): void {
-    console.log('Export clicked');
     this.dashboardFacade.trackSystemAction(
       'Export',
       'User exported dashboard data',

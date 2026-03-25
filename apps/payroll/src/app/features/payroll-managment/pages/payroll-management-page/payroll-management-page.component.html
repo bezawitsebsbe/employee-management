@@ -1,6 +1,6 @@
 <div class="payroll-management-container">
   <!-- Sidebar -->
-  <app-sidebar [items]="navItems"></app-sidebar>
+  <app-sidebar [items]="navItems" [currentApp]="'payroll'"></app-sidebar>
   
   <!-- Main Content -->
   <div class="container">
@@ -33,7 +33,6 @@
       <app-payroll-table 
         [searchTerm]="searchTerm"
         [selectedDepartment]="selectedDepartment"
-        (editRecord)="onEditRecord($event)"
         (deleteRecord)="onDeleteRecord($event)"
       ></app-payroll-table>
     </div>
@@ -45,12 +44,4 @@
     (cancel)="onModalCancel()"
     (save)="onModalSave($event)"
   ></app-add-payroll-modal>
-
-  <!-- Edit Payroll Modal -->
-  <app-edit-payroll-modal 
-    [isVisible]="isEditModalVisible"
-    [payrollRecord]="editingRecord"
-    (cancel)="onEditModalCancel()"
-    (save)="onEditModalSave($event)"
-  ></app-edit-payroll-modal>
 </div>

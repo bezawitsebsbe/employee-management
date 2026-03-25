@@ -9,7 +9,7 @@ import { Observable, Subject, takeUntil } from 'rxjs';
 import { PayrollStatisticsCardsComponent } from '../../components/payroll-statistics-cards/payroll-statistics-cards.component';
 import { PayrollTableComponent } from '../../components/payroll-table/payroll-table.component';
 import { AddPayrollModalComponent } from '../../components/add-payroll-modal/add-payroll-modal.component';
-import { EditPayrollModalComponent } from '../../components/edit-payroll-modal/edit-payroll-modal.component';
+
 import { SidebarComponent } from '@employee-payroll/sidebar';
 import { PayrollFirebaseFacade } from '../../facade/payroll.firebase-facade';
 import { PayrollRecord } from '../../api/payroll.firebase-api';
@@ -27,15 +27,14 @@ import { PayrollRecord } from '../../api/payroll.firebase-api';
     PayrollStatisticsCardsComponent,
     PayrollTableComponent,
     AddPayrollModalComponent,
-    EditPayrollModalComponent,
-    SidebarComponent
+   
+   SidebarComponent
   ],
   templateUrl: './payroll-management-page.component.html',
   styleUrls: ['./payroll-management-page.component.scss']
 })
 export class PayrollManagementPageComponent implements OnInit, OnDestroy {
   @ViewChild(AddPayrollModalComponent) addPayrollModal!: AddPayrollModalComponent;
-  @ViewChild(EditPayrollModalComponent) editPayrollModal!: EditPayrollModalComponent;
   @ViewChild(PayrollTableComponent) payrollTable!: PayrollTableComponent;
   
   searchTerm: string = '';
@@ -47,8 +46,6 @@ export class PayrollManagementPageComponent implements OnInit, OnDestroy {
     { label: 'Payroll', icon: '💰', path: '/payroll' }
   ];
   isModalVisible: boolean = false;
-  isEditModalVisible: boolean = false;
-  editingRecord: PayrollRecord | null = null;
 
   // Firebase data observables
   public payrollRecords$!: Observable<PayrollRecord[]>;
@@ -107,40 +104,6 @@ export class PayrollManagementPageComponent implements OnInit, OnDestroy {
     this.isModalVisible = false;
   }
 
-  onEditModalCancel(): void {
-    this.isEditModalVisible = false;
-    this.editingRecord = null;
-  }
-
-  onEditModalSave(updatedRecord: PayrollRecord): void {
-    console.log('PayrollManagementPage: Saving updated payroll record:', updatedRecord);
-    
-    if (updatedRecord.id) {
-      // Update payroll record through Firebase facade
-      this.payrollFacade.updatePayrollRecord(updatedRecord.id, updatedRecord).pipe(
-        takeUntil(this.destroy$)
-      ).subscribe({
-        next: () => {
-          console.log('PayrollManagementPage: Payroll record updated successfully');
-          this.isEditModalVisible = false;
-          this.editingRecord = null;
-          
-          // Manually trigger table refresh to ensure it updates
-          setTimeout(() => {
-            console.log('PayrollManagementPage: Triggering manual table refresh after edit');
-            if (this.payrollTable) {
-              this.payrollTable.refreshData();
-            }
-          }, 500);
-        },
-        error: (error) => {
-          console.error('PayrollManagementPage: Error updating payroll record:', error);
-          // You could show a notification here
-        }
-      });
-    }
-  }
-
   onModalSave(payrollData: any): void {
     console.log('PayrollManagementPage: Saving payroll data:', payrollData);
     
@@ -165,12 +128,6 @@ export class PayrollManagementPageComponent implements OnInit, OnDestroy {
         // You could show a notification here
       }
     });
-  }
-
-  onEditRecord(record: PayrollRecord): void {
-    console.log('Edit record:', record);
-    this.editingRecord = record;
-    this.isEditModalVisible = true;
   }
 
   onDeleteRecord(record: PayrollRecord): void {
