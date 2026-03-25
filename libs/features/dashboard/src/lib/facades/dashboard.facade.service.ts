@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngxs/store';
-import { Observable, map, of, combineLatest, switchMap } from 'rxjs';
+import { Observable, map, of, combineLatest } from 'rxjs';
 import { tap, catchError, take } from 'rxjs/operators';
 import { DashboardApiService } from '../api/dashboard.service';
 import {
   LoadDashboardStatsSuccess,
   LoadRecentActivitiesSuccess,
   LoadRecentActivitiesFailure,
-  AddActivity,
+  AddActivity,  
   ClearActivities,
   UpdateStats
 } from '../store/action/dashboard.action';
@@ -38,7 +38,7 @@ export class DashboardFacadeService {
 
   // Initialize dashboard (load all required data)
   initializeDashboard(): void {
-    console.log('🚀 Initializing dashboard with payroll data...');
+    console.log(' Initializing dashboard with payroll data...');
     
     // Load employees first, then stats
     this.loadEmployeesForStats();
@@ -48,12 +48,12 @@ export class DashboardFacadeService {
       take(1)
     ).subscribe({
       next: (stats) => {
-        console.log('📊 Dashboard API loaded initial stats:', stats);
+        console.log(' Dashboard API loaded initial stats:', stats);
         // Now load the dashboard stats with real data
         this.loadDashboardStats();
       },
       error: (error) => {
-        console.log('📊 Dashboard API failed, loading stats with defaults:', error);
+        console.log('  Dashboard API failed, loading stats with defaults:', error);
         // Still load stats even if API fails
         this.loadDashboardStats();
       }
@@ -65,7 +65,7 @@ export class DashboardFacadeService {
 
   // Load dashboard statistics
   loadDashboardStats(): void {
-    console.log('📊 Loading dashboard stats with real data...');
+    console.log(' Loading dashboard stats with real data...');
     
     // Combine data from all facades
     combineLatest([
@@ -76,7 +76,7 @@ export class DashboardFacadeService {
       take(1)
     ).subscribe({
       next: ([totalEmployees, totalPayroll, totalDeductions]) => {
-        console.log('📊 Dashboard stats loaded with real data:', {
+        console.log(' Dashboard stats loaded with real data:', {
           totalEmployees,
           totalPayroll,
           totalDeductions
@@ -98,7 +98,7 @@ export class DashboardFacadeService {
         this.store.dispatch(new LoadDashboardStatsSuccess({ stats: realStats }));
       },
       error: (error) => {
-        console.error('📊 Error loading dashboard stats, using defaults:', error);
+        console.error(' Error loading dashboard stats, using defaults:', error);
         
         // Fallback stats if facades fail
         const fallbackStats: DashboardStats = {
@@ -137,11 +137,11 @@ export class DashboardFacadeService {
   getTotalPayroll(): Observable<number> {
     return this.dashboardApi.getDashboardStatsData().pipe(
       map((stats) => {
-        console.log('📊 Dashboard - Total Payroll from API:', stats.totalPayroll);
+        console.log(' Dashboard - Total Payroll from API:', stats.totalPayroll);
         return stats.totalPayroll || 0;
       }),
       catchError((error) => {
-        console.log('📊 Dashboard API not available for payroll, using fallback:', error);
+        console.log(' Dashboard API not available for payroll, using fallback:', error);
         return of(0);
       })
     );
@@ -151,11 +151,11 @@ export class DashboardFacadeService {
   getTotalDeductions(): Observable<number> {
     return this.dashboardApi.getDashboardStatsData().pipe(
       map((stats) => {
-        console.log('📊 Dashboard - Total Deductions from API:', stats.totalDeductions);
+        console.log(' Dashboard - Total Deductions from API:', stats.totalDeductions);
         return stats.totalDeductions || 0;
       }),
       catchError((error) => {
-        console.log('📊 Dashboard API not available for deductions, using fallback:', error);
+        console.log(' Dashboard API not available for deductions, using fallback:', error);
         return of(0);
       })
     );
@@ -163,27 +163,27 @@ export class DashboardFacadeService {
 
   // Load employees for stats (ensure employee state is populated)
   loadEmployeesForStats(): void {
-    console.log('📊 Dashboard - Loading employees for stats via store dispatch');
+    console.log(' Dashboard - Loading employees for stats via store dispatch');
     // Load employees using store dispatch
     try {
       this.store.dispatch({ type: '[EmployeeState] LoadEmployees' });
     } catch (error) {
-      console.log('📊 Employee state loading failed, using defaults');
+      console.log(' Employee state loading failed, using defaults');
     }
   }
 
   // Load recent activities
   loadRecentActivities(): void {
-    console.log('📊 Dashboard: Loading recent activities...');
+    console.log(' Dashboard: Loading recent activities...');
     // Load real data from API with fallback
     this.dashboardApi.getActivitiesData().pipe(
       tap((activities) => {
-        console.log('📊 Loaded activities from API:', activities);
+        console.log(' Loaded activities from API:', activities);
         // Update state with real data
         this.store.dispatch(new LoadRecentActivitiesSuccess({ activities }));
       }),
       catchError((error) => {
-        console.error('📊 Failed to load activities from API, using empty list:', error);
+        console.error(' Failed to load activities from API, using empty list:', error);
         // Dispatch failure action with empty activities
         this.store.dispatch(new LoadRecentActivitiesFailure({ error: 'Failed to load activities' }));
         return of([]);
@@ -195,9 +195,9 @@ export class DashboardFacadeService {
  addActivity(activity: Omit<ActivityItem, 'id' | 'timestamp'>): void {
     const activityWithMeta = { ...activity, id: Date.now().toString(), timestamp: new Date() };
     
-    console.log('🚀 Dashboard: Adding activity:', activityWithMeta);
+    console.log(' Dashboard: Adding activity:', activityWithMeta);
     
-    // ✅ Call API first, then update state
+    //  Call API first, then update state
     this.dashboardApi.addActivityData(activityWithMeta).pipe(
       tap(() => {
         console.log(' Activity added to API, refreshing activities...');
@@ -293,7 +293,7 @@ export class DashboardFacadeService {
   }
 
   trackEmployeeAdded(employeeName: string, employeeId: string): void {
-    console.log('📊 Dashboard: Tracking employee added:', employeeName, employeeId);
+    console.log(' Dashboard: Tracking employee added:', employeeName, employeeId);
     this.addActivity({
       type: 'employee',
       title: 'New Employee Added',
