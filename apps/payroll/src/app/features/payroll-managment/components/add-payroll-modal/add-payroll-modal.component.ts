@@ -1,8 +1,8 @@
-import { Component, EventEmitter, Output, OnInit, OnDestroy } from '@angular/core';
+import { Component, EventEmitter, Output, Input, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Observable, Subject, takeUntil } from 'rxjs';
-import { PayrollFirebaseFacade } from '../../facade/payroll.firebase-facade';
+import { PayrollFirebaseFacade } from '../../facade/payroll.facade';
 import { PayrollFormData, Employee, PayrollRecord } from '../../api/payroll.firebase-api';
 
 @Component({
@@ -13,6 +13,7 @@ import { PayrollFormData, Employee, PayrollRecord } from '../../api/payroll.fire
   styleUrl: './add-payroll-modal.component.scss'
 })
 export class AddPayrollModalComponent implements OnInit, OnDestroy {
+  @Input() editingRecord: PayrollRecord | null = null;
   @Output() cancel = new EventEmitter<void>();
   @Output() save = new EventEmitter<PayrollRecord>();
 
@@ -45,6 +46,28 @@ export class AddPayrollModalComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadExistingData();
+    
+    // If editingRecord is provided, populate the form
+    if (this.editingRecord) {
+      this.populateFormWithRecord();
+    }
+  }
+
+  private populateFormWithRecord(): void {
+    if (this.editingRecord) {
+      this.formData = {
+        employeeName: this.editingRecord.employeeName,
+        employeeId: this.editingRecord.employeeId,
+        department: this.editingRecord.department,
+        baseSalary: this.editingRecord.baseSalary.toString(),
+        weeklyBonus: this.editingRecord.weeklyBonus.toString(),
+        monthlyBonus: this.editingRecord.monthlyBonus.toString(),
+        jobDoneBonus: this.editingRecord.jobDoneBonus.toString(),
+        deductions: this.editingRecord.deductions.toString(),
+        netSalary: this.editingRecord.netSalary.toString(),
+        status: this.editingRecord.status
+      };
+    }
   }
 
   ngOnDestroy(): void {

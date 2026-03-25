@@ -11,7 +11,7 @@ import { PayrollTableComponent } from '../../components/payroll-table/payroll-ta
 import { AddPayrollModalComponent } from '../../components/add-payroll-modal/add-payroll-modal.component';
 
 import { SidebarComponent } from '@employee-payroll/sidebar';
-import { PayrollFirebaseFacade } from '../../facade/payroll.firebase-facade';
+import { PayrollFirebaseFacade } from '../../facade/payroll.facade';
 import { PayrollRecord } from '../../api/payroll.firebase-api';
 
 @Component({
@@ -45,6 +45,7 @@ export class PayrollManagementPageComponent implements OnInit, OnDestroy {
     { label: 'Payroll', icon: '💰', path: '/payroll' }
   ];
   isModalVisible: boolean = false;
+  editingRecord: PayrollRecord | null = null;
 
   // Firebase data observables
   public payrollRecords$!: Observable<PayrollRecord[]>;
@@ -96,35 +97,52 @@ export class PayrollManagementPageComponent implements OnInit, OnDestroy {
   }
 
   onAddPayroll(): void {
+    this.editingRecord = null;
     this.isModalVisible = true;
   }
 
   onModalCancel(): void {
     this.isModalVisible = false;
+    this.editingRecord = null;
+  }
+
+  onEditRecord(record: PayrollRecord): void {
+    console.log('Edit record:', record);
+    this.editingRecord = record;
+    this.isModalVisible = true;
   }
 
   onModalSave(payrollData: any): void {
     console.log('PayrollManagementPage: Saving payroll data:', payrollData);
     
-    // Create payroll record through Firebase facade
-    this.payrollFacade.createPayrollRecord(payrollData).pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: (id) => {
-        console.log('PayrollManagementPage: Payroll record created successfully with ID:', id);
-        this.isModalVisible = false;
-        
-        // Manually trigger table refresh to ensure it updates
-        setTimeout(() => {
-          console.log('PayrollManagementPage: Triggering manual table refresh');
-          // Table refresh will be handled by observable updates
-        }, 500);
-      },
-      error: (error) => {
-        console.error('PayrollManagementPage: Error creating payroll record:', error);
-        // You could show a notification here
-      }
-    });
+    if (this.editingRecord && this.editingRecord.id) {
+      // Update existing record
+      this.payrollFacade.updatePayrollRecord(this.editingRecord.id, payrollData).pipe(
+        takeUntil(this.destroy$)
+      ).subscribe({
+        next: () => {
+          console.log('PayrollManagementPage: Payroll record updated successfully');
+          this.isModalVisible = false;
+          this.editingRecord = null;
+        },
+        error: (error) => {
+          console.error('PayrollManagementPage: Error updating payroll record:', error);
+        }
+      });
+    } else {
+      // Create new record
+      this.payrollFacade.createPayrollRecord(payrollData).pipe(
+        takeUntil(this.destroy$)
+      ).subscribe({
+        next: (id) => {
+          console.log('PayrollManagementPage: Payroll record created successfully with ID:', id);
+          this.isModalVisible = false;
+        },
+        error: (error) => {
+          console.error('PayrollManagementPage: Error creating payroll record:', error);
+        }
+      });
+    }
   }
 
   onDeleteRecord(record: PayrollRecord): void {

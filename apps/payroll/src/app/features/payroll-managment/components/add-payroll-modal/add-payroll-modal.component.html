@@ -1,6 +1,6 @@
 <div class="modal-overlay" (click)="onBackdropClick($event)">
   <div class="modal-container">
-    <h2>Add Payroll Record</h2>
+    <h2>{{ editingRecord ? 'Edit Payroll Record' : 'Add Payroll Record' }}</h2>
 
     <div class="form-grid">
       <div class="form-group">

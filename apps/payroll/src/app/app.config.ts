@@ -20,7 +20,7 @@ import {
 import { FirebaseService } from '@employee-payroll/firebase';
 import { PayrollFirebaseApi } from './features/payroll-managment/api/payroll.firebase-api';
 import { PayrollFirebaseStore } from './features/payroll-managment/store/payroll.firebase-store';
-import { PayrollFirebaseFacade } from './features/payroll-managment/facade/payroll.firebase-facade';
+import { PayrollFirebaseFacade } from './features/payroll-managment/facade/payroll.facade';
 import { AuthState, DashboardState } from '@employee-payroll/features';
 
 export const appConfig: ApplicationConfig = {

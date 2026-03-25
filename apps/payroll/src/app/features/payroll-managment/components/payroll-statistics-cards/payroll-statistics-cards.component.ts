@@ -5,7 +5,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { PayrollFirebaseFacade } from '../../facade/payroll.firebase-facade';
+import { PayrollFirebaseFacade } from '../../facade/payroll.facade';
 
 export interface PayrollStatistics {
   totalPayroll: number;
