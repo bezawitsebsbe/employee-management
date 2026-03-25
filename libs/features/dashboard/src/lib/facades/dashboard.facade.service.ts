@@ -118,16 +118,15 @@ export class DashboardFacadeService {
     });
   }
 
-  // Get total employees from employee state
+  // Get total employees from dashboard API (which already calculates from employee records)
   getTotalEmployees(): Observable<number> {
-    return this.store.select((state: any) => state.EmployeeState?.employees || []).pipe(
-      map((employees: any[]) => {
-        const count = employees ? employees.length : 0;
-        console.log('📊 Dashboard - Total Employees from EmployeeState:', count);
-        return count;
+    return this.dashboardApi.getDashboardStatsData().pipe(
+      map((stats) => {
+        console.log('📊 Dashboard - Total Employees from API:', stats.totalEmployees);
+        return stats.totalEmployees || 0;
       }),
       catchError((error) => {
-        console.log('📊 Employee state not available, using fallback:', error);
+        console.log('📊 Dashboard API not available for employees, using fallback:', error);
         return of(0);
       })
     );
