@@ -11,7 +11,7 @@ import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { Observable, Subject, takeUntil, of } from 'rxjs';
 import { PayrollRecord } from '../../api/payroll.firebase-api';
-import { PayrollFirebaseFacade } from '../../facade/payroll.firebase-facade';
+import { PayrollFirebaseFacade } from '../../facade/payroll.facade';
 
 @Component({
   selector: 'app-payroll-table',

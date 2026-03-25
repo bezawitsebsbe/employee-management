@@ -33,7 +33,7 @@
       <app-payroll-table 
         [searchTerm]="searchTerm"
         [selectedDepartment]="selectedDepartment"
-        (deleteRecord)="onDeleteRecord($event)"
+        (editRecord)="onEditRecord($event)"
       ></app-payroll-table>
     </div>
   </div>
@@ -41,6 +41,7 @@
   <!-- Add Payroll Modal -->
   <app-add-payroll-modal 
     *ngIf="isModalVisible"
+    [editingRecord]="editingRecord"
     (cancel)="onModalCancel()"
     (save)="onModalSave($event)"
   ></app-add-payroll-modal>
