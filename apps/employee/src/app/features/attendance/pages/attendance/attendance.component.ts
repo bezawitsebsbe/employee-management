@@ -10,7 +10,6 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { CommonModule } from '@angular/common';
-import { SidebarComponent } from '@employee-payroll/sidebar';
 import { AttendanceFacadeService } from '../../facades/attendance.facade.service';
 import { EmployeeSimpleFacade } from '../../../employee/facades/employee-simple.facade';
 
@@ -29,7 +28,7 @@ import { EmployeeSimpleFacade } from '../../../employee/facades/employee-simple.
     NzTagModule,
     NzCardModule,
     NzIconModule,
-    SidebarComponent,
+    
   ],
   providers: [AttendanceFacadeService],
 })
@@ -39,12 +38,7 @@ export class AttendanceComponent {
   employeeFacade = inject(EmployeeSimpleFacade);
 
   cdr = inject(ChangeDetectorRef);
-  sidebarItems = [
-    { label: 'Dashboard', icon: '📊', path: '/dashboard' },
-    { label: 'Employee', icon: '👥', path: '/employees' },
-    { label: 'Payroll', icon: '💰', path: '/payroll', apps: ['payroll'] }, // Only show in payroll app
-    { label: 'Attendance', icon: '🕒', path: '/attendance' },
-  ];
+  
   // NGXS as single source of truth - use store directly
   // Loading guard signals
   checkingIn = signal(false);

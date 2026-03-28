@@ -1,9 +1,5 @@
-<div class="flex h-screen bg-gray-100">
-  <!-- Sidebar -->
-  <app-sidebar [items]="sidebarItems" [currentApp]="'employee'"></app-sidebar>
-
-  <!-- Main Content -->
-  <main class="flex-1 p-6 md:p-8 overflow-y-auto">
+ <!-- Main Content -->
+  <main class="flex-1 p-6 md:p-8 overflow-y-auto bg-gray-50">
     <!-- Header -->
     <div
       class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8"
@@ -147,4 +143,3 @@
     <!-- Add Employee Modal -->
     <app-add-employee-modal #addEmployeeModal (employeeAdded)="handleAddEmployee($event)"></app-add-employee-modal>
   </main>
-</div>

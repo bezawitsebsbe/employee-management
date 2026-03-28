@@ -11,8 +11,9 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { AuthFacadeService } from '../../facades/auth.facade.service';
+import { AuthFacade } from '../../facades/auth.facade.service';
 import { LoginCredentials } from '../../models/auth.model';
+
 
 @Component({
   selector: 'app-signin',
@@ -42,7 +43,7 @@ export class SigninComponent implements OnInit {
   errorMessage$: Observable<string | null>;
 
   constructor(
-    private authFacade: AuthFacadeService,
+    private authFacade: AuthFacade,
     private router: Router,
     private fb: FormBuilder
   ) {
@@ -74,11 +75,11 @@ export class SigninComponent implements OnInit {
     console.log('Login form submitted:', formValues);
     
     this.authFacade.login(formValues).subscribe({
-      next: (response) => {
+      next: (response: any) => {
         console.log('Login successful:', response);
         this.router.navigate(['/dashboard']);
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Login failed:', error);
         // Error is handled by the facade and stored in state
       }
