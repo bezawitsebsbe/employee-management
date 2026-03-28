@@ -10,8 +10,9 @@ import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { Observable } from 'rxjs';
-import { AuthFacadeService } from '../../facades/auth.facade.service';
+import { AuthFacade } from '../../facades/auth.facade.service';
 import { SignupCredentials } from '../../models/auth.model';
+import { AuthApiService } from '../../api/auth.service';
 
 @Component({
   selector: 'app-signup',
@@ -43,7 +44,7 @@ export class SignupComponent implements OnInit {
   };
 
   constructor(
-    private authFacade: AuthFacadeService,
+    private authFacade: AuthFacade,
     private router: Router,
     private fb: FormBuilder
   ) {
@@ -92,12 +93,12 @@ export class SignupComponent implements OnInit {
     console.log('Signup form submitted:', credentials);
     
     this.authFacade.signup(credentials).subscribe({
-      next: (response) => {
+      next: (response: any) => {
         console.log('Signup successful:', response);
         this.isLoading = false;
         this.router.navigate(['/dashboard']);
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Signup failed:', error);
         // Error is handled by the facade and stored in NGXS state
         this.isLoading = false;

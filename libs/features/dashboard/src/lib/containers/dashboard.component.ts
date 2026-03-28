@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
-import { SidebarComponent } from '@employee-payroll/sidebar';
+
 import { 
   NzIconModule
 } from 'ng-zorro-antd/icon';
@@ -28,7 +28,6 @@ import { CurrencyPipe } from '@angular/common';
   standalone: true,
   imports: [
     CommonModule,
-    SidebarComponent,
     NzIconModule,
     NzTagModule,
     NzButtonModule,

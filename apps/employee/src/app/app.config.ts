@@ -40,6 +40,7 @@ import {
 
 import { provideStore } from '@ngxs/store';
 import { AuthState } from '../../../../libs/features/auth/src/lib/store/state/auth.state';
+import { AuthApiService } from '../../../../libs/features/auth/src/lib/api/auth.service';
 import { DashboardState } from '../../../../libs/features/dashboard/src/lib/store/state/dashboard.state';
 import { EmployeeState } from './features/employee/store/state/employee.state';
 import { AttendanceState } from './features/attendance/store/state/attendance.state';
@@ -53,6 +54,9 @@ export const appConfig: ApplicationConfig = {
     provideAnimations(), // or provideNoopAnimations() if you don't need real animations
 
     provideStore([AuthState, DashboardState, EmployeeState, AttendanceState]),
+    
+    // ✅ ADD AuthApiService to providers
+    AuthApiService,
 
     provideNzIcons([
       DollarOutline,

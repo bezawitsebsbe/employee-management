@@ -14,7 +14,6 @@ import { EmployeeSimpleFacade } from '../../facades/employee-simple.facade';
 import { EmployeeListComponent } from '../../components/employee-list/employee-list.component';
 import { EmployeeDetailComponent } from '../../components/employee-detail/employee-detail.component';
 import { AddEmployeeModalComponent } from '../../components/add-employee-modal/add-employee-modal.component';
-import { SidebarComponent } from '@employee-payroll/sidebar';
 import { DashboardFacadeService } from '@employee-payroll/features';
 import * as _ from 'lodash';
 
@@ -32,7 +31,7 @@ import * as _ from 'lodash';
     NzButtonModule,
     NzTagModule,
     NzTabsModule,
-    SidebarComponent,
+
     EmployeeListComponent,
     EmployeeDetailComponent,
     AddEmployeeModalComponent,
@@ -41,12 +40,7 @@ import * as _ from 'lodash';
   styleUrls: ['./employee-page.component.scss'],
 })
 export class EmployeePageComponent implements OnInit {
-  sidebarItems = [
-    { label: 'Dashboard', icon: '📊', path: '/dashboard' },
-    { label: 'Employee', icon: '👥', path: '/employees' },
-    { label: 'Payroll', icon: '💰', path: '/payroll', apps: ['payroll'] }, // Only show in payroll app
-    { label: 'Attendance', icon: '🕒', path: '/attendance' },
-  ];
+  
   
   @ViewChild('addEmployeeModal') addEmployeeModal!: AddEmployeeModalComponent;
 
