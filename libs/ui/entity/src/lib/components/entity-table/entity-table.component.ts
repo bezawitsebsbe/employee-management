@@ -9,6 +9,8 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzTagModule } from 'ng-zorro-antd/tag';
+import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { Subject } from 'rxjs';
 
 import {
@@ -36,7 +38,9 @@ import {
     NzIconModule,
     NzDropDownModule,
     NzTooltipModule,
-    NzInputModule
+    NzInputModule,
+    NzTagModule,
+    NzAvatarModule
   ],
   templateUrl: './entity-table.component.html',
   styleUrls: ['./entity-table.component.scss']
@@ -53,6 +57,10 @@ export class EntityTableComponent implements OnInit, OnDestroy {
   @Output() groupChange = new EventEmitter<GroupEvent>();
   @Output() checkAllChange = new EventEmitter<boolean>();
   @Output() itemCheckChange = new EventEmitter<{ id: string; checked: boolean }>();
+  @Output() action = new EventEmitter<{ action: string; data: any }>();
+  @Output() filtersChange = new EventEmitter<any>();
+
+  @Input() loading = false;
 
   @ViewChild('row') table: any;
 
@@ -96,16 +104,21 @@ export class EntityTableComponent implements OnInit, OnDestroy {
   }
 
   // Table events
-  sort(event: SortEvent): void {
-    this.sortChange.emit(event);
+  sort(event: Event): void {
+    // Extract SortEvent properties from the Event
+    const sortEvent = {
+      key: (event as any).key || (event as any).columnKey,
+      value: (event as any).value
+    } as SortEvent;
+    this.sortChange.emit(sortEvent);
   }
 
   onPaginationChange(event: PaginationEvent): void {
     this.paginationChange.emit(event);
   }
 
-  handleCurrentPageDataChange(data: any[]): void {
-    this.currentPageDataChange.emit(data);
+  handleCurrentPageDataChange(data: readonly any[]): void {
+    this.currentPageDataChange.emit(data as any[]);
   }
 
   // Checkbox handling
@@ -151,6 +164,10 @@ export class EntityTableComponent implements OnInit, OnDestroy {
   }
 
   // Action handling
+  onEntityAction(actionKey: string, data: any): void {
+    this.action.emit({ action: actionKey, data });
+  }
+
   onItemClick(item: any, event: Event): void {
     if (this.setting?.onItemClick) {
       this.setting.onItemClick(item, event);
@@ -211,7 +228,9 @@ export class EntityTableComponent implements OnInit, OnDestroy {
   // Search handling
   onSearchChange(searchTerm: string): void {
     this.searchTerm = searchTerm;
-    // Emit search event or filter data
+    this.filtersChange.emit({
+      search: searchTerm
+    });
     this.cdr.detectChanges();
   }
 

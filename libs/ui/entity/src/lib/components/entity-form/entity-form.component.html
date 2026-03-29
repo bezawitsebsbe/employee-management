@@ -99,7 +99,7 @@
               [formControlName]="field.key"
               [nzSize]="'large'"
               [nzPlaceHolder]="getFieldPlaceholder(field)"
-              [nzStyle]="{ width: '100%' }"
+              style="width: 100%;"
             ></nz-date-picker>
             <div *ngIf="hasError(field, 'required')" class="error-message">
               {{ getErrorMessage(field) }}

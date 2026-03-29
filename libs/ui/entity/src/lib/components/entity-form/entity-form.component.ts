@@ -11,6 +11,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { Subject, takeUntil } from 'rxjs';
+import { NzSelectOptionInterface } from 'ng-zorro-antd/select';
 
 import {
   EntityColumn,
@@ -181,12 +182,19 @@ export class EntityFormComponent implements OnInit, OnDestroy {
     return field.placeholder || `Enter ${field.name}`;
   }
 
-  getFieldOptions(field: EntityColumn): string[] {
-    return field.options || [];
+  getFieldOptions(field: EntityColumn): NzSelectOptionInterface[] {
+    return (field.options || []).map(option => ({
+      label: option,
+      value: option
+    }));
   }
 
   isFieldRequired(field: EntityColumn): boolean {
     return field.required || false;
+  }
+
+  trackByField(index: number, field: EntityColumn): string {
+    return field.key;
   }
 
   // Form validation helpers

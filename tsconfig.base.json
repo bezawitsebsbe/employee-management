@@ -20,7 +20,7 @@
       "@employee-payroll/core": ["libs/core/src/index.ts"],
       "@employee-payroll/sidebar": ["libs/ui/sidebar/src/index.ts"],
       "@employee-payroll/firebase": ["libs/data-access/firebase/src/index.ts"],
-      "@employee-payroll/entity": ["ui/src/index.ts"]
+      "@employee-payroll/entity": ["libs/ui/entity/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
