@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideHttpClient } from '@angular/common/http';
 import { provideNzIcons } from 'ng-zorro-antd/icon';
+import { provideNzI18n, en_US } from 'ng-zorro-antd/i18n';
 import {
   DollarOutline,
   TeamOutline,
@@ -57,6 +58,9 @@ export const appConfig: ApplicationConfig = {
     
     // ✅ ADD AuthApiService to providers
     AuthApiService,
+
+    // ✅ ADD English i18n for ng-zorro
+    provideNzI18n(en_US),
 
     provideNzIcons([
       DollarOutline,

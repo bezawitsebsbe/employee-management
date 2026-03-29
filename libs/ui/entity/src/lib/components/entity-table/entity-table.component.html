@@ -27,12 +27,12 @@
       <div class="mr-1" *ngIf="setting?.favorite">
         <button nz-button nzTrigger="click" nz-dropdown [nzDropdownMenu]="menu">
           <i nz-icon nzType="star" nzTheme="outline"></i>
-          <ng-container *ngIf="viewMode.mode === 'list'"> {{ 'ENTITY.Favorite' | translate }} <i nz-icon nzType="down"></i> </ng-container>
+          <ng-container *ngIf="viewMode.mode === 'list'"> Favorite <i nz-icon nzType="down"></i> </ng-container>
         </button>
       </div>
 
       <!-- View Toggle -->
-      <div *ngIf="config?.otherView">
+      <div *ngIf="config.otherView">
         <button
           nz-button
           *ngIf="!treeView"
@@ -42,7 +42,7 @@
           nzTrigger="click"
         >
           <i nz-icon nzType="table" nzTheme="outline"></i>
-          <ng-container *ngIf="viewMode.mode === 'list'"> {{ 'ENTITY.Tree View' | translate }} </ng-container>
+          <ng-container *ngIf="viewMode.mode === 'list'"> Tree View </ng-container>
         </button>
         <button 
           nz-button 
@@ -53,13 +53,13 @@
           nzTrigger="click"
         >
           <i nz-icon nzType="partition" nzTheme="outline"></i>
-          <ng-container *ngIf="viewMode.mode === 'list'"> {{ 'ENTITY.Table View' | translate }} </ng-container>
+          <ng-container *ngIf="viewMode.mode === 'list'"> Table View </ng-container>
         </button>
       </div>
     </div>
 
     <!-- Search -->
-    <div *ngIf="config?.searchable" class="flex items-center">
+    <div *ngIf="config.searchable" class="flex items-center">
       <nz-input-group [nzSuffix]="suffixIconSearch">
         <input 
           type="text" 
@@ -82,12 +82,15 @@
       *ngIf="!treeView"
       nzTableLayout="fixed"
       nzSize="small"
-      [nzShowSizeChanger]="config?.showSizeChanger"
-      [nzFrontPagination]="config?.frontPagination"
+      [nzShowSizeChanger]="true"
+      [nzPageSizeOptions]="[10, 20, 30]"
+      [nzFrontPagination]="config.frontPagination"
       [nzData]="data.items"
       [nzLoading]="itemsLoading"
-      [nzPageSize]="data.pageSize || config?.pageSize"
-      [nzTotal]="data.totalItems"
+      [nzPageSize]="data.pageSize || 10"
+      [nzNoResult]="noDataTpl"
+      [nzShowTotal]="totalTpl"
+      [nzTotal]="data.totalItems || 0"
       [nzPageIndex]="data.currentPage || 1"
       (nzCurrentPageDataChange)="handleCurrentPageDataChange($event)"
       (nzPageIndexChange)="onPageIndexChange($event)"
@@ -101,7 +104,7 @@
             <th
               scope="col"
               style="width: 50px;"
-              *ngIf="setting?.actions?.length > 0"
+              *ngIf="setting && setting.actions && setting.actions.length > 0"
               nzShowCheckbox
               [nzIndeterminate]="isIndeterminate"
               [(nzChecked)]="allChecked"
@@ -115,24 +118,33 @@
                 *ngFor="let item of visibleColumns; trackBy: trackByColumn"
                 [nzShowSort]="!item.hideSort"
                 [nzColumnKey]="item.key"
-                [nzWidth]="item?.thWidth"
+                [nzWidth]="item.thWidth || ''"
               >
-                {{ item.name | translate }}
+                {{ item.label || item.name }}
               </th>
             </ng-container>
 
             <!-- Detail Column -->
             <th *ngIf="setting?.showDetail" scope="col" style="width: 50px;"></th>
+            
+            <!-- Actions Column -->
+            <th 
+              *ngIf="config.actions && config.actions.length" 
+              scope="col" 
+              style="width: 120px;"
+            >
+              Actions
+            </th>
           </ng-container>
 
           <!-- Detail View Header -->
           <ng-container *ngIf="viewMode.mode === 'detail'">
             <th 
               scope="col" 
-              [nzShowSort]="!setting?.primaryColumn?.hideSort" 
-              [nzColumnKey]="setting?.primaryColumn?.key"
+              [nzShowSort]="!setting!.primaryColumn.hideSort"
+              [nzColumnKey]="setting!.primaryColumn.key"
             >
-              {{ setting?.primaryColumn?.name | translate }}
+              {{ setting!.primaryColumn.name }}
             </th>
           </ng-container>
         </tr>
@@ -145,7 +157,7 @@
             <!-- Checkbox Cell -->
             <td
               nzShowCheckbox
-              *ngIf="setting?.actions?.length > 0"
+              *ngIf="setting && setting.actions && setting.actions.length > 0"
               [(nzChecked)]="mapOfCheckedId[data[setting!.identity]]"
               (nzCheckedChange)="onItemCheckChange(data[setting!.identity], $event)"
             ></td>
@@ -207,29 +219,47 @@
                 <i nz-icon nzType="right" nzTheme="outline"></i>
               </a>
             </td>
+            
+            <!-- Actions Cell -->
+            <td *ngIf="config.actions && config.actions.length">
+              <ng-container *ngFor="let action of config.actions">
+                <button
+                  *ngIf="!action.visible || action.visible(data)"
+                  nz-button
+                  [nzType]="action.type === 'primary' ? 'primary' : 'default'"
+                  [nzSize]="'small'"
+                  [disabled]="isActionDisabled(action, data)"
+                  (click)="onEntityAction(action.key, data)"
+                  style="margin-right: 8px;"
+                >
+                  <i *ngIf="action.icon" nz-icon [nzType]="action.icon"></i>
+                  {{ action.label }}
+                </button>
+              </ng-container>
+            </td>
           </ng-container>
 
           <!-- Detail View Cells -->
           <ng-container *ngIf="viewMode.mode === 'detail'">
             <td
-              *ngIf="!setting.detailTemplate"
+              *ngIf="!setting!.detailTemplate"
               class="list"
               [routerLinkActive]="'active'"
               [routerLinkActiveOptions]="{ exact: true }"
-              [ngClass]="setting.primaryColumn.tdClass"
+              [ngClass]="setting!.primaryColumn.tdClass"
             >
               <ng-container *ngIf="!config.useClickHandler">
-                <ng-container *ngIf="setting?.detailUrl === 'detail'">
+                <ng-container *ngIf="setting!.detailUrl === 'detail'">
                   <a [routerLink]="['detail', data[setting!.identity]]">
                     <ng-container
-                      *ngTemplateOutlet="setting.primaryColumn.onChild ? childViewCellTemplate : defaultCellTemplate; context: { itemSetting: setting.primaryColumn }"
+                      *ngTemplateOutlet="setting!.primaryColumn.onChild ? childViewCellTemplate : defaultCellTemplate; context: { itemSetting: setting!.primaryColumn }"
                     ></ng-container>
                   </a>
                 </ng-container>
-                <ng-container *ngIf="setting?.detailUrl !== 'detail'">
-                  <a [routerLink]="[setting.detailUrl, data[setting!.identity]]">
+                <ng-container *ngIf="setting!.detailUrl !== 'detail'">
+                  <a [routerLink]="[setting!.detailUrl, data[setting!.identity]]">
                     <ng-container
-                      *ngTemplateOutlet="setting.primaryColumn.onChild ? childViewCellTemplate : defaultCellTemplate; context: { itemSetting: setting.primaryColumn }"
+                      *ngTemplateOutlet="setting!.primaryColumn.onChild ? childViewCellTemplate : defaultCellTemplate; context: { itemSetting: setting!.primaryColumn }"
                     ></ng-container>
                   </a>
                 </ng-container>
@@ -237,70 +267,86 @@
               <ng-container *ngIf="config.useClickHandler">
                 <a (click)="onItemClick(data, $event)" class="cursor-pointer">
                   <ng-container
-                    *ngTemplateOutlet="setting.primaryColumn.onChild ? childViewCellTemplate : defaultCellTemplate; context: { itemSetting: setting.primaryColumn }"
+                    *ngTemplateOutlet="setting!.primaryColumn.onChild ? childViewCellTemplate : defaultCellTemplate; context: { itemSetting: setting!.primaryColumn }"
                   ></ng-container>
                 </a>
               </ng-container>
             </td>
             <td
-              *ngIf="setting.detailTemplate"
+              *ngIf="setting!.detailTemplate"
               class="list"
-              [routerLinkActiveOptions]="{ exact: true }"
-              [routerLinkActive]="config.useClickHandler ? null : 'active'"
-              [ngClass]="setting.primaryColumn.tdClass"
+              [ngClass]="setting!.primaryColumn.tdClass"
             >
-              <a *ngIf="!config.useClickHandler && setting.detailUrl === 'detail'" [routerLink]="['detail', data[setting!.identity]]">
-                <ng-container *ngTemplateOutlet="setting.detailTemplate; context: { row: data }"></ng-container>
-              </a>
-              <a *ngIf="!config.useClickHandler && setting.detailUrl !== 'detail'" [routerLink]="[config.detailUrl, data[setting!.identity]]">
-                <ng-container *ngTemplateOutlet="setting.detailTemplate; context: { row: data }"></ng-container>
-              </a>
-              <a *ngIf="config.useClickHandler" (click)="onItemClick(data, $event)" class="cursor-pointer">
-                <ng-container *ngTemplateOutlet="setting.detailTemplate; context: { row: data }"></ng-container>
-              </a>
+              <ng-container
+                *ngTemplateOutlet="setting!.detailTemplate; context: { row: data }"
+              ></ng-container>
             </td>
           </ng-container>
 
           <!-- Cell Templates -->
           <ng-template #childViewCellTemplate let-itemSetting="itemSetting">
-            <span
-              [innerHTML]="
-                itemSetting.hasLocale
-                  ? (data | childView: itemSetting?.key | locale)
-                  : itemSetting?.hasTranslate
-                  ? (data | childView: itemSetting?.key | translate)
-                  : itemSetting?.isDate
-                  ? (data | childView: itemSetting?.key | localeDate: 'MMM dd, yyyy')
-                  : itemSetting?.isNumber
-                  ? (data | childView: itemSetting?.key | number: (itemSetting?.precision ? itemSetting?.precision : '1.0-0'))
-                  : itemSetting?.isBoolean && itemSetting?.booleanValue && (data | childView: itemSetting?.key) === true
-                  ? (itemSetting?.booleanValue?.true | translate)
-                  : itemSetting?.isBoolean && itemSetting?.booleanValue && (data | childView: itemSetting?.key) !== true
-                  ? (itemSetting?.booleanValue?.false | translate)
-                  : (data | childView: itemSetting?.key | safe: 'html')
-              "
-            ></span>
+            <span>{{ getDisplayValue(data, itemSetting) }}</span>
           </ng-template>
 
           <ng-template #defaultCellTemplate let-itemSetting="itemSetting">
-            <span
-              [innerHTML]="
-                itemSetting.hasLocale
-                  ? (data[itemSetting?.key] | locale)
-                  : itemSetting.hasTranslate
-                  ? (data[itemSetting?.key] | translate)
-                  : itemSetting.isDate
-                  ? (data[itemSetting?.key] | localeDate: 'MMM dd, yyyy')
-                  : itemSetting.isNumber
-                  ? (data[itemSetting?.key] | number: (itemSetting?.precision ? itemSetting?.precision : '1.0-0'))
-                  : itemSetting.isBoolean && itemSetting.booleanValue && data[itemSetting?.key] === true
-                  ? (itemSetting.booleanValue?.true | translate)
-                  : itemSetting.isBoolean && itemSetting.booleanValue && data[itemSetting?.key] !== true
-                  ? (itemSetting.booleanValue?.false | translate)
-                  : (data[itemSetting?.key] | safe: 'html')
-              "
-            ></span>
-          </ng-template>
+  <ng-container [ngSwitch]="itemSetting.key">
+
+    <!-- ✅ CHECK-IN COLUMN -->
+    <ng-container *ngSwitchCase="'checkin'">
+      <ng-container *ngIf="!data.checkin || data.checkin === '-'; else showCheckinTime">
+        <button
+          nz-button
+          nzType="primary"
+          nzSize="small"
+          (click)="onEntityAction('checkin', data)"
+        >
+          Check In
+        </button>
+      </ng-container>
+
+      <ng-template #showCheckinTime>
+        <span>{{ data.checkin }}</span>
+      </ng-template>
+    </ng-container>
+
+    <!-- ✅ CHECK-OUT COLUMN -->
+    <ng-container *ngSwitchCase="'checkout'">
+      <ng-container *ngIf="data.checkin && data.checkin !== '-' && (!data.checkout || data.checkout === '-'); else showCheckoutTime">
+        <button
+          nz-button
+          nzDanger
+          nzSize="small"
+          (click)="onEntityAction('checkout', data)"
+        >
+          Check Out
+        </button>
+      </ng-container>
+
+      <ng-template #showCheckoutTime>
+        <span>{{ data.checkout }}</span>
+      </ng-template>
+    </ng-container>
+
+    <!-- ✅ TAG -->
+    <nz-tag *ngSwitchCase="'status'" [nzColor]="itemSetting.tagColors?.[data.status]">
+      {{ data.status }}
+    </nz-tag>
+
+    <!-- ✅ AVATAR -->
+    <nz-avatar *ngSwitchCase="'avatar'"
+      nzShape="circle"
+      [nzSize]="36"
+      [nzText]="data.fullName?.charAt(0)?.toUpperCase()"
+      class="bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 text-white font-semibold shadow-lg ring-2 ring-orange-200"
+    ></nz-avatar>
+
+    <!-- ✅ DEFAULT -->
+    <span *ngSwitchDefault>
+      {{ getDisplayValue(data, itemSetting) }}
+    </span>
+
+  </ng-container>
+</ng-template>
         </tr>
       </tbody>
     </nz-table>
@@ -310,4 +356,16 @@
 <!-- Content Templates -->
 <ng-template #cellTemplate let-itemSetting="itemSetting">
   <span>{{ getDisplayValue(data, itemSetting) }}</span>
+</ng-template>
+
+<!-- No Data Template -->
+<ng-template #noDataTpl>
+  <div class="text-gray-500 py-6 text-center">
+    No employee found
+  </div>
+</ng-template>
+
+<!-- Total Template -->
+<ng-template #totalTpl let-total let-range="range">
+  {{ range[0] }}-{{ range[1] }} of {{ total }} employees
 </ng-template>

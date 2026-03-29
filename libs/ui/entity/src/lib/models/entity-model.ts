@@ -1,6 +1,10 @@
 export interface EntityColumn {
   key: string;
   name: string;
+  label: string;
+  type: 'text' | 'avatar' | 'tag' | 'date' | 'number' | 'boolean' | 'select' | 'email';
+  width?: string;
+  sortable?: boolean;
   thWidth?: string;
   tdClass?: string;
   hideSort?: boolean;
@@ -18,6 +22,10 @@ export interface EntityColumn {
     false: string;
   };
   precision?: string;
+  tagColors?: Record<string, string>;
+  options?: string[];
+  placeholder?: string;
+  required?: boolean;
 }
 
 export interface EntityColumnPrefix {
@@ -51,12 +59,14 @@ export interface EntityColumnSuffix {
 }
 
 export interface EntityAction {
+  key: string;
   label: string;
   icon?: string;
-  type: 'view' | 'edit' | 'delete' | 'custom';
+  type: 'view' | 'edit' | 'delete' | 'custom' | 'primary' | 'danger';
   callback?: (entity: any) => void;
   disabled?: (entity: any) => boolean;
   routerLink?: (entity: any) => string[];
+  visible?: (entity: any) => boolean;
 }
 
 export interface EntitySetting {
@@ -85,6 +95,15 @@ export interface EntityConfig {
   otherView?: boolean;
   useClickHandler?: boolean;
   detailUrl?: string;
+  columns?: EntityColumn[];
+  actions?: EntityAction[];
+  settings?: {
+    showSearch?: boolean;
+    showPagination?: boolean;
+    showSizeChanger?: boolean;
+    pageSize?: number;
+    frontPagination?: boolean;
+  };
 }
 
 export interface ViewMode {
