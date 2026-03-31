@@ -1,6 +1,6 @@
-import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectorRef, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -9,9 +9,13 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
-
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { EntityTableComponent, EntityColumn, EntityAction, EntityTableData, EntityConfig, EntitySetting } from '@employee-payroll/entity';
 import { Employee } from '../../models/employee.model';
-import { EntityTableComponent, EntityColumn, EntityAction, EntityTableData } from '@employee-payroll/entity';
+import { EmployeeSimpleFacade } from '../../facades/employee-simple.facade';
+import { take, filter } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-employee-table',
@@ -32,7 +36,7 @@ import { EntityTableComponent, EntityColumn, EntityAction, EntityTableData } fro
   templateUrl: './employee-table.component.html',
   styleUrls: ['./employee-table.component.scss']
 })
-export class EmployeeTableComponent implements OnInit {
+export class EmployeeTableComponent implements OnInit, OnDestroy {
   @Input() employees: Employee[] = [];
   @Input() loading = false;
   
@@ -40,6 +44,13 @@ export class EmployeeTableComponent implements OnInit {
   @Output() editEmployee = new EventEmitter<Employee>();
   @Output() deleteEmployee = new EventEmitter<Employee>();
   @Output() filtersChange = new EventEmitter<any>();
+
+  private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
+  private facade = inject(EmployeeSimpleFacade);
+  private message = inject(NzMessageService);
+  
+  private destroy$ = new Subject<void>();
 
   // Table data
   tableData: EntityTableData = {
@@ -53,24 +64,22 @@ export class EmployeeTableComponent implements OnInit {
   tableActions: EntityAction[] = [
     {
       key: 'view',
-      label: 'View',
+      label: 'Detail',
       icon: 'eye',
       type: 'view',
-      routerLink: (employee: Employee) => ['../detail', employee.id || '']
-    },
-    {
-      key: 'edit',
-      label: 'Edit',
-      icon: 'edit',
-      type: 'edit',
-      routerLink: (employee: Employee) => ['../edit', employee.id || '']
+      routerLink: (employee: Employee) => {
+      console.log('RouterLink called for employee:', employee.id);
+      const route = ['/employee/detail', employee.id || ''];
+      console.log('Generated route:', route);
+      return route;
+    }
     },
     {
       key: 'delete',
       label: 'Delete',
       icon: 'delete',
       type: 'delete',
-      callback: (employee: Employee) => this.deleteEmployee.emit(employee)
+      callback: (employee: Employee) => this.confirmDelete(employee)
     }
   ];
 
@@ -83,7 +92,7 @@ export class EmployeeTableComponent implements OnInit {
     frontPagination: true,
     useClickHandler: true,
     detailUrl: '../detail',
-    selectable: true,
+    selectable: false,  // ✅ Remove checkbox column
     actions: this.tableActions
   };
 
@@ -169,10 +178,23 @@ export class EmployeeTableComponent implements OnInit {
     showSearch: true
   };
 
-  constructor(private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
-    this.updateTableData();
+    // Subscribe to employees from facade for automatic updates
+    this.facade.employees$.pipe(takeUntil(this.destroy$)).subscribe(employees => {
+      this.employees = employees;
+      this.updateTableData();
+    });
+    
+    // Initial load if no employees
+    if (this.employees.length === 0) {
+      this.facade.loadEmployees();
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   ngOnChanges(): void {
@@ -200,6 +222,15 @@ export class EmployeeTableComponent implements OnInit {
       case 'delete':
         this.deleteEmployee.emit(event.data);
         break;
+      case 'detail':
+        // Navigate to employee detail page
+        console.log('Detail action triggered for employee:', event.data.id);
+        const route = ['/employee/detail', event.data.id];
+        console.log('Navigating to route:', route);
+        this.router.navigate(route).then(navResult => {
+          console.log('Navigation result:', navResult);
+        });
+        break;
       default:
         console.log('Unknown action:', event.action, event.data);
     }
@@ -215,5 +246,18 @@ export class EmployeeTableComponent implements OnInit {
 
   onPaginationChange(pagination: any): void {
     console.log('Pagination changed:', pagination);
+  }
+
+  confirmDelete(employee: Employee): void {
+    if (confirm(`Are you sure you want to delete employee "${employee.fullName}"?`)) {
+      this.facade.deleteEmployee(employee.id || '');
+      this.message.success('Employee deleted successfully');
+      
+      // Refresh the employee list after a short delay
+      setTimeout(() => {
+        this.facade.loadEmployees();
+        this.updateTableData();
+      }, 1000);
+    }
   }
 }

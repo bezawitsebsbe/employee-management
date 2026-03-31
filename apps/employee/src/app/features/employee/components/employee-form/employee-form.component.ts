@@ -32,14 +32,6 @@ export class EmployeeFormComponent implements OnInit {
 
   formFields: EntityColumn[] = [
     {
-      key: 'empId',
-      name: 'Employee ID',
-      label: 'Employee ID',
-      type: 'text',
-      required: true,
-      placeholder: 'e.g., EMP001'
-    },
-    {
       key: 'fullName',
       name: 'Full Name',
       label: 'Full Name',
@@ -104,14 +96,6 @@ export class EmployeeFormComponent implements OnInit {
       type: 'number',
       required: false,
       placeholder: 'e.g., 50000'
-    },
-    {
-      key: 'performance',
-      name: 'Performance Score',
-      label: 'Performance Score',
-      type: 'number',
-      required: false,
-      placeholder: '0-100'
     }
   ];
 
@@ -136,11 +120,13 @@ export class EmployeeFormComponent implements OnInit {
     // Generate initials from full name
     const fullName = formData['fullName'] as string;
     const initials = fullName
-      .split(' ')
-      .map(word => word.charAt(0))
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+      ? fullName
+          .split(' ')
+          .map(word => word.charAt(0))
+          .join('')
+          .toUpperCase()
+          .slice(0, 2)
+      : '';
 
     // Generate avatar color based on initials
     const colors = ['#f56a00', '#7265e6', '#ffbf00', '#00a2ae', '#87d068'];
@@ -163,8 +149,7 @@ export class EmployeeFormComponent implements OnInit {
   }
 
   onFormCancel(): void {
+    console.log('Employee form cancel clicked');
     this.cancel.emit();
-    // Navigate back or close form
-    window.history.back();
   }
 }

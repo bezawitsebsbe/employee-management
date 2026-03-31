@@ -200,17 +200,6 @@
         <tr>
           <!-- List View Header -->
           <ng-container *ngIf="viewMode.mode === 'list'">
-            <!-- Checkbox Column -->
-            <th
-              scope="col"
-              style="width: 50px;"
-              *ngIf="setting && setting.actions && setting.actions.length > 0"
-              nzShowCheckbox
-              [nzIndeterminate]="isIndeterminate"
-              [(nzChecked)]="allChecked"
-              (nzCheckedChange)="checkAll($event)"
-            ></th>
-            
             <!-- Data Columns -->
             <ng-container>
               <th
@@ -229,7 +218,7 @@
             
             <!-- Actions Column -->
             <th 
-              *ngIf="config.actions && config.actions.length" 
+              *ngIf="config.actions && config.actions.length > 0" 
               scope="col" 
               style="width: 120px;"
             >
@@ -239,13 +228,15 @@
 
           <!-- Detail View Header -->
           <ng-container *ngIf="setting.primaryColumn as primary">
-            <th 
-              scope="col" 
-              [nzShowSort]="!primary.hideSort"
-              [nzColumnKey]="primary.key"
-            >
-              {{ primary.name }}
-            </th>
+            <ng-container *ngIf="viewMode.mode === 'detail'">
+              <th 
+                scope="col" 
+                [nzShowSort]="!primary.hideSort"
+                [nzColumnKey]="primary.key"
+              >
+                {{ primary.name }}
+              </th>
+            </ng-container>
           </ng-container>
         </tr>
       </thead>
@@ -254,15 +245,6 @@
         <tr class="group" *ngFor="let data of row.data; trackBy: trackBy" (click)="onRowClick(data)">
           <!-- List View Cells -->
           <ng-container *ngIf="viewMode.mode === 'list'">
-            <!-- Checkbox Cell -->
-            <td *ngIf="config.selectable" class="text-center">
-              <input
-                type="checkbox"
-                [checked]="mapOfCheckedId[data[idKey]]"
-                (change)="onItemCheckChange(data[idKey], $event.target.checked)"
-              />
-            </td>
-            
             <!-- Data Cells -->
             <ng-container *ngFor="let item of visibleColumns; trackBy: trackByColumn">
               <td [ngClass]="item.tdClass">
@@ -321,88 +303,91 @@
               </a>
             </td>
             
-            <!-- Actions Cell -->
-            <td *ngIf="config.actions && config.actions.length">
-              <ng-container *ngFor="let action of config.actions">
-                <button
-                  *ngIf="!action.visible || action.visible(data)"
-                  nz-button
-                  [nzType]="action.type === 'primary' ? 'primary' : 'default'"
-                  [nzSize]="'small'"
-                  [disabled]="isActionDisabled(action, data)"
-                  (click)="onEntityAction(action.key, data)"
-                  style="margin-right: 8px;"
-                >
-                  <i *ngIf="action.icon" nz-icon [nzType]="action.icon"></i>
-                  {{ action.label }}
-                </button>
-              </ng-container>
+            <!-- Actions Cell for Custom Actions (Kebab Menu) -->
+            <td *ngIf="config.actions && config.actions.length > 0">
+              <!-- Kebab Menu for Actions -->
+              <nz-dropdown-menu #actionMenu="nzDropdownMenu">
+                <ul nz-menu>
+                  <ng-container *ngFor="let action of config.actions">
+                    <li 
+                      *ngIf="!action.visible || action.visible(data)"
+                      nz-menu-item
+                      [nzDisabled]="isActionDisabled(action, data)"
+                      (click)="onEntityAction(action.key, data)"
+                    >
+                      <i *ngIf="action.icon" nz-icon [nzType]="action.icon"></i>
+                      {{ action.label }}
+                    </li>
+                  </ng-container>
+                </ul>
+              </nz-dropdown-menu>
               
-              <!-- Default Edit/Delete buttons if no custom actions -->
-              <ng-container *ngIf="!config.actions || config.actions.length === 0">
-                <button
-                  nz-button
-                  nzType="default"
-                  nzSize="small"
-                  (click)="onEdit(data)"
-                  style="margin-right: 8px;"
-                >
-                  Edit
-                </button>
-                <button
-                  nz-button
-                  nzDanger
-                  nzSize="small"
-                  (click)="onDelete(data)"
-                >
-                  Delete
-                </button>
-              </ng-container>
+              <button
+                nz-button
+                nzType="default"
+                nzSize="small"
+                nz-dropdown
+                [nzDropdownMenu]="actionMenu"
+                nzTrigger="click"
+              >
+                <i nz-icon nzType="ellipsis" nzTheme="outline"></i>
+              </button>
             </td>
           </ng-container>
 
           <!-- Detail View Cells -->
           <ng-container *ngIf="setting.primaryColumn as primary">
-            <td
-              *ngIf="!config.detailTemplate"
-              class="list"
-              [routerLinkActive]="'active'"
-              [routerLinkActiveOptions]="{ exact: true }"
-              [ngClass]="primary.tdClass"
-            >
-              <ng-container *ngIf="!config.useClickHandler">
-                <ng-container *ngIf="config.detailUrl === 'detail'">
-                  <a [routerLink]="['detail', data[idKey]]">
-                    <ng-container
-                      *ngTemplateOutlet="primary.onChild ? childViewCellTemplate : defaultCellTemplate; context: { itemSetting: primary }"
-                    ></ng-container>
-                  </a>
+            <ng-container *ngIf="viewMode.mode === 'detail'">
+              <td
+                *ngIf="!config.detailTemplate"
+                class="list"
+                [routerLinkActive]="'active'"
+                [routerLinkActiveOptions]="{ exact: true }"
+                [ngClass]="primary.tdClass"
+              >
+                <ng-container *ngIf="!config.useClickHandler">
+                  <ng-container *ngIf="config.detailUrl === 'detail'">
+                    <a [routerLink]="['detail', data[idKey]]">
+                      <ng-container
+                        *ngTemplateOutlet="primary.onChild ? childViewCellTemplate : defaultCellTemplate; context: { itemSetting: primary }"
+                      ></ng-container>
+                    </a>
+                  </ng-container>
+                  <ng-container *ngIf="config.detailUrl !== 'detail'">
+                    <a [routerLink]="[config.detailUrl, data[idKey]]">
+                      <ng-container
+                        *ngTemplateOutlet="primary.onChild ? childViewCellTemplate : defaultCellTemplate; context: { itemSetting: primary }"
+                      ></ng-container>
+                    </a>
+                  </ng-container>
                 </ng-container>
-                <ng-container *ngIf="config.detailUrl !== 'detail'">
-                  <a [routerLink]="[config.detailUrl, data[idKey]]">
-                    <ng-container
-                      *ngTemplateOutlet="primary.onChild ? childViewCellTemplate : defaultCellTemplate; context: { itemSetting: primary }"
-                    ></ng-container>
-                  </a>
+                <ng-container *ngIf="config.useClickHandler">
+                  <ng-container *ngIf="config.detailUrl === 'detail'">
+                    <a (click)="onItemClick(data, $event)">
+                      <ng-container
+                        *ngTemplateOutlet="primary.onChild ? childViewCellTemplate : defaultCellTemplate; context: { itemSetting: primary }"
+                      ></ng-container>
+                    </a>
+                  </ng-container>
+                  <ng-container *ngIf="config.detailUrl !== 'detail'">
+                    <a (click)="onItemClick(data, $event)">
+                      <ng-container
+                        *ngTemplateOutlet="primary.onChild ? childViewCellTemplate : defaultCellTemplate; context: { itemSetting: primary }"
+                      ></ng-container>
+                    </a>
+                  </ng-container>
                 </ng-container>
-              </ng-container>
-              <ng-container *ngIf="config.useClickHandler">
-                <a (click)="onItemClick(data, $event)" class="cursor-pointer">
-                  <ng-container
-                    *ngTemplateOutlet="primary.onChild ? childViewCellTemplate : defaultCellTemplate; context: { itemSetting: primary }"
-                  ></ng-container>
-                </a>
-              </ng-container>
-            </td>
-            <td
-              *ngIf="config.detailTemplate"
-              class="list"
-              [ngClass]="primary.tdClass"
-            >
-              <ng-container
-                *ngTemplateOutlet="config.detailTemplate; context: { row: data }"
-              ></ng-container>
-            </td>
+              </td>
+              <td
+                *ngIf="config.detailTemplate && viewMode.mode === 'detail'"
+                class="list"
+                [ngClass]="primary.tdClass"
+              >
+                <ng-container
+                  *ngTemplateOutlet="config.detailTemplate; context: { row: data }"
+                ></ng-container>
+              </td>
+            </ng-container>
           </ng-container>
 
           <!-- Cell Templates -->
@@ -413,6 +398,7 @@
           <ng-template #defaultCellTemplate let-itemSetting="itemSetting">
   <ng-container [ngSwitch]="itemSetting.key">
 
+    <!-- CHECK-IN COLUMN -->
     <!-- ✅ CHECK-IN COLUMN -->
     <ng-container *ngSwitchCase="'checkin'">
       <ng-container *ngIf="!data.checkin || data.checkin === '-'; else showCheckinTime">

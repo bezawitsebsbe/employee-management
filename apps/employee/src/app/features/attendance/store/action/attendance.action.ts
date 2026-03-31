@@ -1,3 +1,5 @@
+import { EmployeeAttendance } from '../../models/attendance.model';
+
 export class LoadAttendanceData {
   static readonly type = '[AttendanceState] LoadAttendanceData';
 }
@@ -14,7 +16,7 @@ export class LoadAttendanceByEmployeeId {
 
 export class CreateAttendanceRecord {
   static readonly type = '[AttendanceState] CreateAttendanceRecord';
-  constructor(public readonly payload?: Omit<any, 'id'>) {}
+  constructor(public readonly payload?: Omit<EmployeeAttendance, 'id'>) {}
 }
 
 export class UpdateAttendanceRecord {

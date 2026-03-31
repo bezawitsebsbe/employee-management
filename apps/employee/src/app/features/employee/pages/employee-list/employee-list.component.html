@@ -1,7 +1,7 @@
 <div class="employee-list-container">
   <!-- Employee Table Component with built-in filters -->
   <app-employee-table
-    [employees]="allEmployees"
+    [employees]="(employees$ | async) || []"
     [loading]="loading"
     (viewEmployee)="onViewEmployee($event)"
     (editEmployee)="onEditEmployee($event)"

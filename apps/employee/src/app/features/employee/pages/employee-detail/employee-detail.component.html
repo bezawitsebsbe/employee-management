@@ -96,22 +96,8 @@
     </nz-card>
 
     <!-- Additional Information Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <!-- Performance Card -->
-      <nz-card nzTitle="Performance Metrics">
-        <div class="space-y-4">
-          <div class="flex justify-between items-center">
-            <span class="text-gray-600">Performance Score</span>
-            <span class="font-semibold">{{ employee.performance || 0 }}%</span>
-          </div>
-          <div class="w-full bg-gray-200 rounded-full h-2">
-            <div
-              class="bg-blue-600 h-2 rounded-full"
-              [style.width.%]="employee.performance || 0"
-            ></div>
-          </div>
-        </div>
-      </nz-card>
+    <div class="grid  gap-6">
+     
 
       <!-- Salary Card -->
       <nz-card nzTitle="Compensation">

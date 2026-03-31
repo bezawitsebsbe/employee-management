@@ -57,22 +57,7 @@ export const attendanceTableConfig: EntityConfig = {
       }
     }
   ] as EntityColumn[],
-  actions: [
-    {
-      key: 'checkin',
-      label: 'Check In',
-      icon: '✓',
-      type: 'primary',
-      visible: (data: any) => !data.checkin || data.checkin === '-'
-    },
-    {
-      key: 'checkout',
-      label: 'Check Out',
-      icon: '✓',
-      type: 'danger',
-      visible: (data: any) => data.checkin && data.checkin !== '-'
-    }
-  ] as EntityAction[],
+  actions: [],
   settings: {
     showSearch: false,  // ✅ Disable duplicate search
     showPagination: true,

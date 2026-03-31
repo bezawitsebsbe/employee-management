@@ -1,6 +1,6 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ViewChild, TemplateRef, ChangeDetectorRef, ContentChild } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ViewChild, TemplateRef, ChangeDetectorRef, ContentChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -106,7 +106,10 @@ export class EntityTableComponent implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
 
-  constructor(private cdr: ChangeDetectorRef) {}
+  private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
+
+  // constructor() {}
 
   // Helper methods for filter changes
   onGroupChange(value: string | null): void {
@@ -182,6 +185,7 @@ export class EntityTableComponent implements OnInit, OnDestroy {
       detailUrl: this.config.detailUrl || 'detail',
       showDetail: this.config.showDetail || false,
       detailTemplate: this.config.detailTemplate || null,
+      actions: this.config.actions || [],  // ✅ Add actions property
       primaryColumn: this.config.primaryColumn || {
         key: 'id',
         name: 'ID',
@@ -208,6 +212,7 @@ export class EntityTableComponent implements OnInit, OnDestroy {
       showTabs: this.setting.showTabs !== false,  // ✅ Preserve showTabs setting
       showFilters: this.setting.showFilters !== false,  // ✅ Preserve showFilters setting
       tabType: this.setting.tabType || 'employee',  // ✅ Preserve tabType setting
+      actions: this.setting.actions || [],  // ✅ Preserve actions setting
       primaryColumn: this.setting.primaryColumn || {
         key: 'id',
         name: 'ID',
@@ -282,6 +287,25 @@ export class EntityTableComponent implements OnInit, OnDestroy {
 
   // Action handling
   onEntityAction(actionKey: string, data: any): void {
+    // Find the action configuration
+    const action = this.config.actions?.find(a => a.key === actionKey);
+    
+    // Handle router navigation if routerLink is defined
+    if (action?.routerLink) {
+      const route = action.routerLink(data);
+      if (route) {
+        this.router.navigate(route);
+        return;
+      }
+    }
+    
+    // Handle callback if defined
+    if (action?.callback) {
+      action.callback(data);
+      return;
+    }
+    
+    // Emit action event for other handling
     this.action.emit({ action: actionKey, data });
   }
 
@@ -308,11 +332,25 @@ export class EntityTableComponent implements OnInit, OnDestroy {
   getDisplayValue(item: any, column: EntityColumn): string {
     const value = item[column.key];
     
+    // Debug logging for empId column
+    if (column.key === 'empId') {
+      console.log('Displaying empId for item:', item);
+      console.log('empId value:', value);
+      console.log('Available keys:', Object.keys(item));
+    }
+    
     if (value === null || value === undefined) {
       return '';
     }
 
-    if (column.isDate) {
+    // Handle date formatting for both type: 'date' and isDate: true
+    if (column.type === 'date' || column.isDate) {
+      // Handle Firestore Timestamp objects
+      if (value && typeof value === 'object' && value.seconds !== undefined) {
+        const date = new Date(value.seconds * 1000);
+        return date.toLocaleDateString();
+      }
+      // Handle regular date objects or timestamps
       return new Date(value).toLocaleDateString();
     }
 

@@ -12,9 +12,9 @@ export const EMPLOYEE_ROUTES: Routes = [
     title: 'Employee Management'
   },
   {
-    path: 'list',
-    component: EmployeeListComponent,
-    title: 'Employee List'
+    path: 'add',
+    component: AddEmployeeComponent,
+    title: 'Add Employee'
   },
   {
     path: 'detail/:id',
@@ -22,18 +22,8 @@ export const EMPLOYEE_ROUTES: Routes = [
     title: 'Employee Details'
   },
   {
-    path: 'add',
-    component: AddEmployeeComponent,
-    title: 'Add Employee'
-  },
-  {
     path: 'edit/:id',
     component: EditEmployeeComponent,
     title: 'Edit Employee'
-  },
-  {
-    path: '**',
-    redirectTo: '',
-    pathMatch: 'full'
   }
 ];
