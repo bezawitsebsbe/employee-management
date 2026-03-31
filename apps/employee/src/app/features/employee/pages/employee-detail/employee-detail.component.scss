@@ -1,0 +1,40 @@
+.employee-detail-container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.employee-profile-card {
+  .ant-card-head-title {
+    font-size: 18px;
+    font-weight: 600;
+  }
+}
+
+.ant-descriptions {
+  .ant-descriptions-item-label {
+    font-weight: 500;
+    color: #666;
+  }
+  
+  .ant-descriptions-item-content {
+    font-weight: 400;
+  }
+}
+
+.ant-avatar {
+  border: 3px solid #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+  .employee-detail-container {
+    padding: 16px;
+  }
+  
+  .ant-descriptions {
+    .ant-descriptions-item {
+      padding-bottom: 12px;
+    }
+  }
+}

@@ -55,7 +55,7 @@ export class AttendanceComponent {
   tableSetting: EntitySetting = {
     identity: 'employeeId',
     showDetail: false,
-    visibleColumn: attendanceTableConfig.columns || [],
+    visibleColumns: attendanceTableConfig.columns || [],
     primaryColumn: {
       key: 'fullName',
       name: 'Employee',
@@ -68,7 +68,10 @@ export class AttendanceComponent {
       onChild: false
     },
     actions: [],
-    group: []
+    group: [],
+    showTabs: true,  // ✅ Enable tabs
+    showFilters: true,  // ✅ Enable filters
+    tabType: 'attendance'  // ✅ Custom tab type for attendance
   };
   attendanceSearchTerm = signal('');
   attendanceDepartmentFilter = signal<string | null>(null);

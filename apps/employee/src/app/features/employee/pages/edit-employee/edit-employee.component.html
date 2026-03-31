@@ -1,0 +1,14 @@
+<div class="edit-employee-container">
+  <app-employee-form
+    *ngIf="employeeData"
+    mode="edit"
+    [employee]="employeeData"
+    (submit)="onFormSubmit($event)"
+    (cancel)="onFormCancel()"
+  ></app-employee-form>
+  
+  <!-- Loading State -->
+  <div *ngIf="!employeeData" class="flex justify-center items-center min-h-96">
+    <nz-spin nzSize="large"></nz-spin>
+  </div>
+</div>

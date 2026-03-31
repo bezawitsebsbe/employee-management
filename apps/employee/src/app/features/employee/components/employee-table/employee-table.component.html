@@ -1,0 +1,12 @@
+<div class="employee-table-container">
+  <app-entity-table
+    [data]="tableData"
+    [config]="tableConfig"
+    [setting]="tableSetting"
+    [loading]="loading"
+    (action)="onTableAction($event)"
+    (filtersChange)="onFiltersChange($event)"
+    (sortChange)="onSortChange($event)"
+    (paginationChange)="onPaginationChange($event)"
+  ></app-entity-table>
+</div>

@@ -30,10 +30,38 @@ export const appRoutes: Routes = [
     },
     {
       path: 'employee',
-      loadComponent: () =>
-        import(
-          './features/employee/pages/employee-page/employee-page.component'
-        ).then((m) => m.EmployeePageComponent),
+      children: [
+        {
+          path: '',
+          loadComponent: () =>
+            import('./features/employee/pages/employee-page/employee-page.component')
+              .then(m => m.EmployeePageComponent)
+        },
+        {
+          path: 'list',
+          loadComponent: () =>
+            import('./features/employee/pages/employee-page/employee-page.component')
+              .then(m => m.EmployeePageComponent)
+        },
+        {
+          path: 'add',
+          loadComponent: () =>
+            import('./features/employee/pages/add-employee/add-employee.component')
+              .then(m => m.AddEmployeeComponent)
+        },
+        {
+          path: 'detail/:id',
+          loadComponent: () =>
+            import('./features/employee/pages/employee-detail/employee-detail.component')
+              .then(m => m.EmployeeDetailComponent)
+        },
+        {
+          path: 'edit/:id',
+          loadComponent: () =>
+            import('./features/employee/pages/edit-employee/edit-employee.component')
+              .then(m => m.EditEmployeeComponent)
+        }
+      ]
     },
     {
       path: 'attendance',

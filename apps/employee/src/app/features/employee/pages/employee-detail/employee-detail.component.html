@@ -1,0 +1,141 @@
+<div class="employee-detail-container">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="flex justify-center items-center min-h-96">
+    <nz-spin nzSize="large"></nz-spin>
+  </div>
+
+  <!-- Employee Details -->
+  <div *ngIf="!loading && employee" class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <div class="flex items-center space-x-4">
+        <button
+          nz-button
+          nzType="default"
+          (click)="onBack()"
+          class="flex items-center gap-2"
+        >
+          <span nz-icon nzType="arrow-left"></span>
+          Back to List
+        </button>
+        <h1 class="text-2xl font-bold text-gray-900">Employee Details</h1>
+      </div>
+      
+      <div class="flex gap-3">
+        <button
+          nz-button
+          nzType="primary"
+          (click)="onEdit()"
+          class="flex items-center gap-2"
+        >
+          <span nz-icon nzType="edit"></span>
+          Edit Employee
+        </button>
+        <button
+          nz-button
+          nzType="default"
+          nzDanger
+          (click)="onDelete()"
+          class="flex items-center gap-2"
+        >
+          <span nz-icon nzType="delete"></span>
+          Delete
+        </button>
+      </div>
+    </div>
+
+    <!-- Employee Profile Card -->
+    <nz-card
+      class="employee-profile-card"
+      nzTitle="Employee Information"
+      [nzExtra]="extraTemplate"
+    >
+      <ng-template #extraTemplate>
+        <nz-tag [nzColor]="getStatusColor(employee.status!)">
+          {{ employee.status }}
+        </nz-tag>
+      </ng-template>
+
+      <!-- Avatar and Basic Info -->
+      <div class="flex flex-col md:flex-row gap-6 mb-6">
+        <div class="flex flex-col items-center">
+          <nz-avatar
+            [nzSize]="120"
+            [nzText]="getInitials(employee.fullName)"
+            [style]="{ backgroundColor: employee.avatarColor || '#1890ff', fontSize: '48px' }"
+          ></nz-avatar>
+          <h2 class="text-xl font-semibold mt-4 text-center">{{ employee.fullName }}</h2>
+          <p class="text-gray-600 text-center">{{ employee.position }}</p>
+        </div>
+
+        <div class="flex-1">
+          <nz-descriptions [nzColumn]="2">
+            <nz-descriptions-item nzTitle="Employee ID">{{ employee.empId }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="Email">{{ employee.email }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="Phone">{{ employee.phone || 'N/A' }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="Department">
+              <nz-tag [nzColor]="getDepartmentColor(employee.department)">
+                {{ employee.department }}
+              </nz-tag>
+            </nz-descriptions-item>
+            <nz-descriptions-item nzTitle="Position">{{ employee.position }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="Join Date">{{ employee.joinDate }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="Status">
+              <nz-tag [nzColor]="getStatusColor(employee.status!)">
+                {{ employee.status }}
+              </nz-tag>
+            </nz-descriptions-item>
+            <nz-descriptions-item nzTitle="Performance">{{ employee.performance || 'N/A' }}%</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="Base Salary">${{ employee.baseSalary || 0 }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="Created At">
+              {{ formatDate(employee.createdAt) }}
+            </nz-descriptions-item>
+          </nz-descriptions>
+        </div>
+      </div>
+    </nz-card>
+
+    <!-- Additional Information Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Performance Card -->
+      <nz-card nzTitle="Performance Metrics">
+        <div class="space-y-4">
+          <div class="flex justify-between items-center">
+            <span class="text-gray-600">Performance Score</span>
+            <span class="font-semibold">{{ employee.performance || 0 }}%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2">
+            <div
+              class="bg-blue-600 h-2 rounded-full"
+              [style.width.%]="employee.performance || 0"
+            ></div>
+          </div>
+        </div>
+      </nz-card>
+
+      <!-- Salary Card -->
+      <nz-card nzTitle="Compensation">
+        <div class="space-y-4">
+          <div class="flex justify-between items-center">
+            <span class="text-gray-600">Base Salary</span>
+            <span class="font-semibold text-lg">${{ employee.baseSalary || 0 }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-gray-600">Annual Income</span>
+            <span class="font-semibold">${{ (employee.baseSalary || 0) * 12 }}</span>
+          </div>
+        </div>
+      </nz-card>
+    </div>
+  </div>
+
+  <!-- No Employee Found -->
+  <div *ngIf="!loading && !employee" class="text-center py-12">
+    <div class="text-gray-500 mb-4">
+      <span nz-icon nzType="user" nzTheme="outline" style="font-size: 48px;"></span>
+    </div>
+    <h3 class="text-lg font-medium text-gray-900 mb-2">Employee Not Found</h3>
+    <p class="text-gray-600 mb-4">The employee you're looking for doesn't exist or has been removed.</p>
+    <button nz-button nzType="primary" (click)="onBack()">Back to Employee List</button>
+  </div>
+</div>
