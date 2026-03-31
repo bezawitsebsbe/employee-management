@@ -12,115 +12,120 @@
   [nzCentered]="true"
 >
   <ng-template #modalContent>
-    <form #formElement [formGroup]="entityForm" class="entity-form p-6">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+    <form #formElement [formGroup]="entityForm" class="entity-form p-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-7">
         <ng-container *ngFor="let field of fields; trackBy: trackByField">
-          
-          <!-- Text Input -->
-          <div *ngIf="getFieldType(field) === 'text'" class="form-field">
-            <label class="form-label">
-              {{ field.name }}
-              <span *ngIf="isFieldRequired(field)" class="required-mark">*</span>
-            </label>
-            <input
-              nz-input
-              [formControlName]="field.key"
-              [placeholder]="getFieldPlaceholder(field)"
-              [nzSize]="'large'"
-            />
-            <div *ngIf="hasError(field, 'required') || hasError(field, 'email')" class="error-message">
-              {{ getErrorMessage(field) }}
-            </div>
-          </div>
 
-          <!-- Number Input -->
-          <div *ngIf="getFieldType(field) === 'number'" class="form-field">
-            <label class="form-label">
-              {{ field.name }}
-              <span *ngIf="isFieldRequired(field)" class="required-mark">*</span>
-            </label>
-            <input
-              nz-input
-              type="number"
-              [formControlName]="field.key"
-              [placeholder]="getFieldPlaceholder(field)"
-              [nzSize]="'large'"
-            />
-            <div *ngIf="hasError(field, 'required')" class="error-message">
-              {{ getErrorMessage(field) }}
-            </div>
-          </div>
+          <!-- Skip Employee ID and Performance Score fields -->
+          <ng-container *ngIf="field.key !== 'empId' && field.key !== 'performanceScore'">
 
-          <!-- Email Input -->
-          <div *ngIf="getFieldType(field) === 'email'" class="form-field">
-            <label class="form-label">
-              {{ field.name }}
-              <span *ngIf="isFieldRequired(field)" class="required-mark">*</span>
-            </label>
-            <input
-              nz-input
-              type="email"
-              [formControlName]="field.key"
-              [placeholder]="getFieldPlaceholder(field)"
-              [nzSize]="'large'"
-            />
-            <div *ngIf="hasError(field, 'required') || hasError(field, 'email')" class="error-message">
-              {{ getErrorMessage(field) }}
+            <!-- Text Input -->
+            <div *ngIf="getFieldType(field) === 'text'" class="form-field">
+              <label class="form-label">
+                {{ field.name }}
+                <span *ngIf="isFieldRequired(field)" class="required-mark">*</span>
+              </label>
+              <input
+                nz-input
+                [formControlName]="field.key"
+                [placeholder]="getFieldPlaceholder(field)"
+                [nzSize]="'large'"
+              />
+              <div *ngIf="hasError(field, 'required') || hasError(field, 'email')" class="error-message">
+                {{ getErrorMessage(field) }}
+              </div>
             </div>
-          </div>
 
-          <!-- Select Input -->
-          <div *ngIf="getFieldType(field) === 'select'" class="form-field">
-            <label class="form-label">
-              {{ field.name }}
-              <span *ngIf="isFieldRequired(field)" class="required-mark">*</span>
-            </label>
-            <nz-select
-              [formControlName]="field.key"
-              [nzPlaceHolder]="getFieldPlaceholder(field)"
-              [nzSize]="'large'"
-              style="width: 100%"
-            >
-              <nz-option
-                *ngFor="let option of getFieldOptions(field)"
-                [nzValue]="option.value"
-                [nzLabel]="option.label"
-              ></nz-option>
-            </nz-select>
-            <div *ngIf="hasError(field, 'required')" class="error-message">
-              {{ getErrorMessage(field) }}
+            <!-- Number Input (for any other number fields if they exist) -->
+            <div *ngIf="getFieldType(field) === 'number'" class="form-field">
+              <label class="form-label">
+                {{ field.name }}
+                <span *ngIf="isFieldRequired(field)" class="required-mark">*</span>
+              </label>
+              <input
+                nz-input
+                type="number"
+                [formControlName]="field.key"
+                [placeholder]="getFieldPlaceholder(field)"
+                [nzSize]="'large'"
+              />
+              <div *ngIf="hasError(field, 'required')" class="error-message">
+                {{ getErrorMessage(field) }}
+              </div>
             </div>
-          </div>
 
-          <!-- Date Input -->
-          <div *ngIf="getFieldType(field) === 'date'" class="form-field">
-            <label class="form-label">
-              {{ field.name }}
-              <span *ngIf="isFieldRequired(field)" class="required-mark">*</span>
-            </label>
-            <nz-date-picker
-              [formControlName]="field.key"
-              [nzSize]="'large'"
-              style="width: 100%"
-              [nzPlaceHolder]="getFieldPlaceholder(field)"
-            ></nz-date-picker>
-            <div *ngIf="hasError(field, 'required')" class="error-message">
-              {{ getErrorMessage(field) }}
+            <!-- Email Input -->
+            <div *ngIf="getFieldType(field) === 'email'" class="form-field">
+              <label class="form-label">
+                {{ field.name }}
+                <span *ngIf="isFieldRequired(field)" class="required-mark">*</span>
+              </label>
+              <input
+                nz-input
+                type="email"
+                [formControlName]="field.key"
+                [placeholder]="getFieldPlaceholder(field)"
+                [nzSize]="'large'"
+              />
+              <div *ngIf="hasError(field, 'required') || hasError(field, 'email')" class="error-message">
+                {{ getErrorMessage(field) }}
+              </div>
             </div>
-          </div>
 
-          <!-- Boolean Input -->
-          <div *ngIf="getFieldType(field) === 'boolean'" class="form-field">
-            <label class="form-label">
-              {{ field.name }}
-            </label>
-            <nz-checkbox [formControlName]="field.key" class="mt-1">
-              {{ field.placeholder || 'Enable' }}
-            </nz-checkbox>
-            <div *ngIf="hasError(field, 'required')" class="error-message">
-              {{ getErrorMessage(field) }}
+            <!-- Select Input -->
+            <div *ngIf="getFieldType(field) === 'select'" class="form-field">
+              <label class="form-label">
+                {{ field.name }}
+                <span *ngIf="isFieldRequired(field)" class="required-mark">*</span>
+              </label>
+              <nz-select
+                [formControlName]="field.key"
+                [nzPlaceHolder]="getFieldPlaceholder(field)"
+                [nzSize]="'large'"
+                style="width: 100%"
+              >
+                <nz-option
+                  *ngFor="let option of getFieldOptions(field)"
+                  [nzValue]="option.value"
+                  [nzLabel]="option.label"
+                ></nz-option>
+              </nz-select>
+              <div *ngIf="hasError(field, 'required')" class="error-message">
+                {{ getErrorMessage(field) }}
+              </div>
             </div>
-          </div>
+
+            <!-- Date Input -->
+            <div *ngIf="getFieldType(field) === 'date'" class="form-field">
+              <label class="form-label">
+                {{ field.name }}
+                <span *ngIf="isFieldRequired(field)" class="required-mark">*</span>
+              </label>
+              <nz-date-picker
+                [formControlName]="field.key"
+                [nzSize]="'large'"
+                style="width: 100%"
+                [nzPlaceHolder]="getFieldPlaceholder(field)"
+              ></nz-date-picker>
+              <div *ngIf="hasError(field, 'required')" class="error-message">
+                {{ getErrorMessage(field) }}
+              </div>
+            </div>
+
+            <!-- Boolean Input -->
+            <div *ngIf="getFieldType(field) === 'boolean'" class="form-field">
+              <label class="form-label">
+                {{ field.name }}
+              </label>
+              <nz-checkbox [formControlName]="field.key" class="mt-1 block">
+                {{ field.placeholder || 'Enable' }}
+              </nz-checkbox>
+              <div *ngIf="hasError(field, 'required')" class="error-message">
+                {{ getErrorMessage(field) }}
+              </div>
+            </div>
+
+          </ng-container>
         </ng-container>
       </div>
     </form>
@@ -165,112 +170,117 @@
     <form #formElement [formGroup]="entityForm" class="entity-form">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-7">
         <ng-container *ngFor="let field of fields; trackBy: trackByField">
-          
-          <!-- Text Input -->
-          <div *ngIf="getFieldType(field) === 'text'" class="form-field">
-            <label class="form-label">
-              {{ field.name }}
-              <span *ngIf="isFieldRequired(field)" class="required-mark">*</span>
-            </label>
-            <input
-              nz-input
-              [formControlName]="field.key"
-              [placeholder]="getFieldPlaceholder(field)"
-              [nzSize]="'large'"
-            />
-            <div *ngIf="hasError(field, 'required') || hasError(field, 'email')" class="error-message">
-              {{ getErrorMessage(field) }}
-            </div>
-          </div>
 
-          <!-- Number Input (Employee ID & Performance Score stay here) -->
-          <div *ngIf="getFieldType(field) === 'number'" class="form-field">
-            <label class="form-label">
-              {{ field.name }}
-              <span *ngIf="isFieldRequired(field)" class="required-mark">*</span>
-            </label>
-            <input
-              nz-input
-              type="number"
-              [formControlName]="field.key"
-              [placeholder]="getFieldPlaceholder(field)"
-              [nzSize]="'large'"
-            />
-            <div *ngIf="hasError(field, 'required')" class="error-message">
-              {{ getErrorMessage(field) }}
-            </div>
-          </div>
+          <!-- Skip Employee ID and Performance Score fields -->
+          <ng-container *ngIf="field.key !== 'empId' && field.key !== 'performanceScore'">
 
-          <!-- Email Input -->
-          <div *ngIf="getFieldType(field) === 'email'" class="form-field">
-            <label class="form-label">
-              {{ field.name }}
-              <span *ngIf="isFieldRequired(field)" class="required-mark">*</span>
-            </label>
-            <input
-              nz-input
-              type="email"
-              [formControlName]="field.key"
-              [placeholder]="getFieldPlaceholder(field)"
-              [nzSize]="'large'"
-            />
-            <div *ngIf="hasError(field, 'required') || hasError(field, 'email')" class="error-message">
-              {{ getErrorMessage(field) }}
+            <!-- Text Input -->
+            <div *ngIf="getFieldType(field) === 'text'" class="form-field">
+              <label class="form-label">
+                {{ field.name }}
+                <span *ngIf="isFieldRequired(field)" class="required-mark">*</span>
+              </label>
+              <input
+                nz-input
+                [formControlName]="field.key"
+                [placeholder]="getFieldPlaceholder(field)"
+                [nzSize]="'large'"
+              />
+              <div *ngIf="hasError(field, 'required') || hasError(field, 'email')" class="error-message">
+                {{ getErrorMessage(field) }}
+              </div>
             </div>
-          </div>
 
-          <!-- Select Input -->
-          <div *ngIf="getFieldType(field) === 'select'" class="form-field">
-            <label class="form-label">
-              {{ field.name }}
-              <span *ngIf="isFieldRequired(field)" class="required-mark">*</span>
-            </label>
-            <nz-select
-              [formControlName]="field.key"
-              [nzPlaceHolder]="getFieldPlaceholder(field)"
-              [nzSize]="'large'"
-              style="width: 100%"
-            >
-              <nz-option
-                *ngFor="let option of getFieldOptions(field)"
-                [nzValue]="option.value"
-                [nzLabel]="option.label"
-              ></nz-option>
-            </nz-select>
-            <div *ngIf="hasError(field, 'required')" class="error-message">
-              {{ getErrorMessage(field) }}
+            <!-- Number Input -->
+            <div *ngIf="getFieldType(field) === 'number'" class="form-field">
+              <label class="form-label">
+                {{ field.name }}
+                <span *ngIf="isFieldRequired(field)" class="required-mark">*</span>
+              </label>
+              <input
+                nz-input
+                type="number"
+                [formControlName]="field.key"
+                [placeholder]="getFieldPlaceholder(field)"
+                [nzSize]="'large'"
+              />
+              <div *ngIf="hasError(field, 'required')" class="error-message">
+                {{ getErrorMessage(field) }}
+              </div>
             </div>
-          </div>
 
-          <!-- Date Input -->
-          <div *ngIf="getFieldType(field) === 'date'" class="form-field">
-            <label class="form-label">
-              {{ field.name }}
-              <span *ngIf="isFieldRequired(field)" class="required-mark">*</span>
-            </label>
-            <nz-date-picker
-              [formControlName]="field.key"
-              [nzSize]="'large'"
-              style="width: 100%"
-              [nzPlaceHolder]="getFieldPlaceholder(field)"
-            ></nz-date-picker>
-            <div *ngIf="hasError(field, 'required')" class="error-message">
-              {{ getErrorMessage(field) }}
+            <!-- Email Input -->
+            <div *ngIf="getFieldType(field) === 'email'" class="form-field">
+              <label class="form-label">
+                {{ field.name }}
+                <span *ngIf="isFieldRequired(field)" class="required-mark">*</span>
+              </label>
+              <input
+                nz-input
+                type="email"
+                [formControlName]="field.key"
+                [placeholder]="getFieldPlaceholder(field)"
+                [nzSize]="'large'"
+              />
+              <div *ngIf="hasError(field, 'required') || hasError(field, 'email')" class="error-message">
+                {{ getErrorMessage(field) }}
+              </div>
             </div>
-          </div>
 
-          <!-- Boolean Input -->
-          <div *ngIf="getFieldType(field) === 'boolean'" class="form-field">
-            <label class="form-label">
-              {{ field.name }}
-            </label>
-            <nz-checkbox [formControlName]="field.key" class="mt-1 block">
-              {{ field.placeholder || 'Enable' }}
-            </nz-checkbox>
-            <div *ngIf="hasError(field, 'required')" class="error-message">
-              {{ getErrorMessage(field) }}
+            <!-- Select Input -->
+            <div *ngIf="getFieldType(field) === 'select'" class="form-field">
+              <label class="form-label">
+                {{ field.name }}
+                <span *ngIf="isFieldRequired(field)" class="required-mark">*</span>
+              </label>
+              <nz-select
+                [formControlName]="field.key"
+                [nzPlaceHolder]="getFieldPlaceholder(field)"
+                [nzSize]="'large'"
+                style="width: 100%"
+              >
+                <nz-option
+                  *ngFor="let option of getFieldOptions(field)"
+                  [nzValue]="option.value"
+                  [nzLabel]="option.label"
+                ></nz-option>
+              </nz-select>
+              <div *ngIf="hasError(field, 'required')" class="error-message">
+                {{ getErrorMessage(field) }}
+              </div>
             </div>
-          </div>
+
+            <!-- Date Input -->
+            <div *ngIf="getFieldType(field) === 'date'" class="form-field">
+              <label class="form-label">
+                {{ field.name }}
+                <span *ngIf="isFieldRequired(field)" class="required-mark">*</span>
+              </label>
+              <nz-date-picker
+                [formControlName]="field.key"
+                [nzSize]="'large'"
+                style="width: 100%"
+                [nzPlaceHolder]="getFieldPlaceholder(field)"
+              ></nz-date-picker>
+              <div *ngIf="hasError(field, 'required')" class="error-message">
+                {{ getErrorMessage(field) }}
+              </div>
+            </div>
+
+            <!-- Boolean Input -->
+            <div *ngIf="getFieldType(field) === 'boolean'" class="form-field">
+              <label class="form-label">
+                {{ field.name }}
+              </label>
+              <nz-checkbox [formControlName]="field.key" class="mt-1 block">
+                {{ field.placeholder || 'Enable' }}
+              </nz-checkbox>
+              <div *ngIf="hasError(field, 'required')" class="error-message">
+                {{ getErrorMessage(field) }}
+              </div>
+            </div>
+
+          </ng-container>
         </ng-container>
       </div>
 
@@ -279,9 +289,10 @@
         <button 
           nz-button 
           nzType="default" 
-          (click)="onCancelForm()" 
+          (click)="onCancelForm(); $event.preventDefault()" 
           [disabled]="loading"
           class="min-w-[120px]"
+          type="button"
         >
           Cancel
         </button>

@@ -3,9 +3,10 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { Subject, takeUntil } from 'rxjs';
+import { take } from 'rxjs/operators';
+import { filter } from 'rxjs/operators';
 
 import { EmployeeFormComponent } from '../../components/employee-form/employee-form.component';
 import { Employee } from '../../models/employee.model';
@@ -29,7 +30,6 @@ export class EditEmployeeComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private facade = inject(EmployeeSimpleFacade);
-  private message = inject(NzMessageService);
 
   loading = false;
   employeeId: string | null = null;
@@ -67,21 +67,19 @@ export class EditEmployeeComponent implements OnInit, OnDestroy {
     // Update employee
     this.facade.updateEmployee(this.employeeId, employeeData);
     
-    // Show success message
-    this.message.success('Employee updated successfully!');
-    
-    // Navigate back to employee detail
+    // Navigate after a short delay (message will be shown by employee form)
     setTimeout(() => {
-      this.router.navigate(['../detail', this.employeeId], { relativeTo: this.route });
-    }, 1000);
+      this.loading = false;
+      // Navigate to employee detail page
+      this.router.navigate(['/employee/detail', this.employeeId]);
+    }, 1500);
   }
 
   onFormCancel(): void {
-    // Navigate back to employee detail
-    if (this.employeeId) {
-      this.router.navigate(['../detail', this.employeeId], { relativeTo: this.route });
-    } else {
-      this.router.navigate(['../list'], { relativeTo: this.route });
-    }
+    console.log('Edit employee cancel clicked, employeeId:', this.employeeId);
+    // Navigate to employee detail page
+    this.router.navigate(['/employee/detail', this.employeeId]).then(result => {
+      console.log('Navigation result:', result);
+    });
   }
 }

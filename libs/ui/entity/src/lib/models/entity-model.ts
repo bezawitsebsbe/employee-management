@@ -26,6 +26,10 @@ export interface EntityColumn {
   options?: string[];
   placeholder?: string;
   required?: boolean;
+  min?: number;
+  max?: number;
+  minLength?: number;
+  maxLength?: number;
 }
 
 export interface EntityColumnPrefix {
