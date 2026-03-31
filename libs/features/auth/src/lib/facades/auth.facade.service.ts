@@ -1,64 +1,50 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngxs/store';
 import { Observable } from 'rxjs';
-import { AuthApiService } from '../api/auth.service';
-import { ClearError } from '../store/action/auth.action';
+import { 
+  Login, 
+  Logout, 
+  LoadCurrentUser, 
+  ClearError,
+  Signup
+} from '../store/action/auth.action';
 import { AuthState } from '../store/state/auth.state';
-import { User, LoginCredentials, AuthResponse } from '../models/auth.model';
-import { SignupCredentials } from '../models/auth.model';
+import { User, LoginCredentials, SignupCredentials } from '../models/auth.model';
 
 @Injectable({
   providedIn: 'root'
 })
-export class AuthFacadeService {
-  // Observable properties from store - initialized after constructor
-  currentUser$: Observable<User | null>;
-  isAuthenticated$: Observable<boolean>;
+export class AuthFacade {
+  user$: Observable<User | null>;
+  isAuth$: Observable<boolean>;
   loading$: Observable<boolean>;
   error$: Observable<string | null>;
-  token$: Observable<string | null>;
-  userRole$: Observable<string | null>;
-  isAdmin$: Observable<boolean>;
-  isManager$: Observable<boolean>;
 
-  constructor(
-    private store: Store,
-    private authApi: AuthApiService
-  ) {
-    // Initialize observable properties after dependencies are available
-    this.currentUser$ = this.store.select(AuthState.currentUser);
-    this.isAuthenticated$ = this.store.select(AuthState.isAuthenticated);
+  constructor(private store: Store) {
+    this.user$ = this.store.select(AuthState.currentUser);
+    this.isAuth$ = this.store.select(AuthState.isAuthenticated);
     this.loading$ = this.store.select(AuthState.loading);
     this.error$ = this.store.select(AuthState.error);
-    this.token$ = this.store.select(AuthState.token);
-    this.userRole$ = this.store.select(AuthState.userRole);
-    this.isAdmin$ = this.store.select(AuthState.isAdmin);
-    this.isManager$ = this.store.select(AuthState.isManager);
   }
 
-  // Login user
-  login(credentials: LoginCredentials): Observable<AuthResponse> {
-    return this.authApi.login(credentials);
+  login(credentials: LoginCredentials) {
+    return this.store.dispatch(new Login(credentials));
   }
 
-  // Logout user
-  logout(): void {
-    this.authApi.logout();
+  logout() {
+    return this.store.dispatch(new Logout());
   }
 
-  // Signup user
-  signup(credentials: SignupCredentials): Observable<AuthResponse> {
-    return this.authApi.signup(credentials);
+  signup(credentials: SignupCredentials) {
+    return this.store.dispatch(new Signup(credentials));
   }
 
-  // Load current user
-  loadCurrentUser(): void {
-    this.authApi.loadCurrentUser().subscribe();
+  loadUser() {
+    return this.store.dispatch(new LoadCurrentUser());
   }
 
-  // Clear error
-  clearError(): void {
-    this.store.dispatch(new ClearError());
+  clearError() {
+    return this.store.dispatch(new ClearError());
   }
 
   // Get current user value synchronously
@@ -84,24 +70,6 @@ export class AuthFacadeService {
   // Check if user is manager synchronously
   get isManagerValue(): boolean {
     return this.store.selectSnapshot(AuthState.isManager);
-  }
-
-  // Token management
-  setAuthToken(token: string): void {
-    this.authApi.setAuthToken(token);
-  }
-
-  clearAuthToken(): void {
-    this.authApi.clearAuthToken();
-  }
-
-  isTokenValid(): boolean {
-    return this.authApi.isTokenValid();
-  }
-
-  // Initialize auth (load current user if token exists)
-  initializeAuth(): void {
-    this.loadCurrentUser();
   }
 
   // Convenience methods for common checks

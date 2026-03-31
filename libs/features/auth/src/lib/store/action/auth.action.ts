@@ -1,4 +1,4 @@
-import { User, LoginCredentials, AuthResponse } from '../../models/auth.model';
+import { User, LoginCredentials, AuthResponse, SignupCredentials } from '../../models/auth.model';
 
 export class Login {
   static readonly type = '[AuthState] Login';
@@ -13,6 +13,11 @@ export class LoginSuccess {
 export class LoginFailure {
   static readonly type = '[AuthState] Login Failure';
   constructor(public readonly payload?: { error: string }) {}
+}
+
+export class Signup {
+  static readonly type = '[AuthState] Signup';
+  constructor(public readonly payload?: SignupCredentials) {}
 }
 
 export class Logout {

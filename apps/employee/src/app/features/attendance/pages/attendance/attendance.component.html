@@ -1,304 +1,39 @@
-<div class="flex h-screen bg-gray-100">
-
-  <!-- Sidebar -->
-
-  <app-sidebar [items]="sidebarItems" [currentApp]="'employee'"></app-sidebar>
-
   <!-- Main Content -->
-
-  <main class="flex-1 p-6 md:p-8 overflow-y-auto">
-
-    <!-- Page Title -->
-
-    <div class="flex justify-between items-center mb-6">
-
-      <h1 class="text-2xl font-semibold">Attendance</h1>
-
-      <div class="flex gap-2">
-
-        <button
-
-          nz-button
-
-          nzType="default"
-
-          (click)="resetAllAttendance()"
-
-          class="border-gray-300"
-
-        >
-
-          Reset All
-
-        </button>
-
-        <button
-
-          nz-button
-
-          nzType="default"
-
-          class="border-blue-300 text-blue-600 hover:bg-blue-50"
-
-          (click)="refreshAttendanceData()"
-
-        >
-
-          Refresh Data
-
-        </button>
-
-      </div>
-
-    </div>
-
-
-
-    <!-- Summary Cards -->
-
-    <div class="grid grid-cols-2 sm:grid-cols-3 gap-6 mb-6">
-
-      <div class="bg-white rounded-xl p-5 shadow-sm">
-
-        <p class="text-gray-500 text-sm">Present Today</p>
-
-        <h2 class="text-3xl font-semibold mt-1">
-
-          {{ (attendanceSummary$ | async)?.present || 0 }}
-
-        </h2>
-
-      </div>
-
-
-
-      <div class="bg-white rounded-xl p-5 shadow-sm">
-
-        <p class="text-gray-500 text-sm">Absent</p>
-
-        <h2 class="text-3xl font-semibold mt-1">
-
-          {{ (attendanceSummary$ | async)?.absent || 0 }}
-
-        </h2>
-
-      </div>
-
-
-
-      <div class="bg-white rounded-xl p-5 shadow-sm">
-
-        <p class="text-gray-500 text-sm">Total Employees</p>
-
-        <h2 class="text-3xl font-semibold mt-1">
-
-          {{ (attendanceSummary$ | async)?.total || 0 }}
-
-        </h2>
-
-      </div>
-
-    </div>
-
-
-
-    <!-- Filters -->
-
-    <div class="bg-white p-4 rounded-xl shadow-sm mb-6 flex gap-4">
-
-      <input
-
-        nz-input
-
-        placeholder="Search employee..."
-
-        class="w-72"
-
-        [(ngModel)]="attendanceSearchTerm"
-
-      />
-
-
-
-      <nz-select
-
-        nzPlaceHolder="Department"
-
-        class="w-48"
-
-        [(ngModel)]="attendanceDepartmentFilter"
-
-      >
-
-        <nz-option nzValue="" nzLabel="All Departments"></nz-option>
-
-        <nz-option nzValue="Sales" nzLabel="Sales"></nz-option>
-
-        <nz-option nzValue="Marketing" nzLabel="Marketing"></nz-option>
-
-        <nz-option nzValue="HR" nzLabel="HR"></nz-option>
-
-        <nz-option nzValue="Finance" nzLabel="Finance"></nz-option>
-
-        <nz-option nzValue="IT" nzLabel="IT"></nz-option>
-
-      </nz-select>
-
-
-
-      <nz-select
-
-        nzPlaceHolder="Status"
-
-        class="w-40"
-
-        [(ngModel)]="attendanceStatusFilter"
-
-      >
-
-        <nz-option nzValue="" nzLabel="All Status"></nz-option>
-
-        <nz-option nzValue="Present" nzLabel="Present"></nz-option>
-
-        <nz-option nzValue="Absent" nzLabel="Absent"></nz-option>
-
-      </nz-select>
-
-
-
+<main class="flex-1 p-6 md:p-8 overflow-y-auto">
+  <!-- Page Title -->
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold">Attendance</h1>
+    <div class="flex gap-2">
       <button
-
         nz-button
-
-        class="bg-orange-500 border-orange-500 text-white hover:bg-orange-600"
-
-        (click)="filterAttendance()"
-
+        nzType="default"
+        (click)="resetAllAttendance()"
+        class="border-gray-300"
+        [nzLoading]="resetting()"
       >
-
-        Filter
-
+        Reset All
       </button>
-
-
-
-      <button nz-button nzType="default" (click)="clearFilters()">
-
-        Clear Filters
-
+      <button
+        nz-button
+        nzType="default"
+        class="border-blue-300 text-blue-600 hover:bg-blue-50"
+        (click)="refreshAttendanceData()"
+      >
+        Refresh Data
       </button>
-
     </div>
-
-
-
-    <!-- Attendance Table -->
-
-    <div class="bg-white rounded-xl shadow-sm p-4">
-
-      <nz-table #attendanceTable [nzData]="filteredEmployees()" nzBordered>
-
-        <thead>
-
-          <tr>
-
-            <th nzWidth="200px">Employee</th>
-
-            <th>Department</th>
-
-            <th>Check In</th>
-
-            <th>Check Out</th>
-
-            <th>Working Hours</th>
-
-            <th>Status</th>
-
-          </tr>
-
-        </thead>
-
-        <tbody>
-          @for (emp of filteredEmployees(); track emp.id) {
-            @let attendanceRecordMap = (attendanceMap$ | async);
-            @let attendance = attendanceRecordMap?.[emp.id];
-            <tr>
-              <td class="font-medium">
-                <div class="flex items-center gap-2">
-                  <div
-                    class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm"
-                    [style.backgroundColor]="emp.avatarColor || '#1890ff'"
-                  >
-                    {{ emp.initials }}
-                  </div>
-                  <div>
-                    <div>{{ emp.fullName }}</div>
-                    <div class="text-xs text-gray-500">{{ emp.empId }}</div>
-                  </div>
-                </div>
-              </td>
-              <td>{{ emp.department }}</td>
-              <td>
-                @if (emp.status !== 'Active') {
-                  <span class="text-gray-400">Not Available</span>
-                } @else if (!attendance || !attendance.checkin || attendance.checkin === '-') {
-                  <button
-                    nz-button
-                    nzType="primary"
-                    class="bg-green-500 border-green-500 text-white hover:bg-green-600"
-                    size="small"
-                    (click)="checkIn(emp.id)"
-                  >
-                    Check In
-                  </button>
-                } @else if (attendance.checkin && attendance.checkout === '-') {
-                  <span class="text-green-600 font-medium">{{ attendance.checkin }}</span>
-                } @else {
-                  <span class="text-green-600 font-medium">{{ attendance.checkin }}</span>
-                }
-              </td>
-              <td>
-                @if (emp.status !== 'Active') {
-                  <span class="text-gray-400">Not Available</span>
-                } @else if (!attendance || !attendance.checkin || attendance.checkin === '-') {
-                  <span>-</span>
-                } @else if (attendance.checkin && attendance.checkout === '-') {
-                  <button
-                    nz-button
-                    nzType="primary"
-                    nzDanger
-                    class="bg-red-500 border-red-500 text-white hover:bg-red-600"
-                    size="small"
-                    (click)="checkOut(attendance.id)"
-                  >
-                    Check Out
-                  </button>
-                } @else {
-                  <span class="text-green-600 font-medium">{{ attendance?.checkout }}</span>
-                }
-              </td>
-              <td>
-                <span class="font-medium">{{ attendance?.hours || '0h 0m' }}</span>
-              </td>
-              <td>
-                <nz-tag
-                  [nzColor]="
-                    (emp.status !== 'Active' || !attendance || !attendance.checkin || attendance.checkin === '-')
-                      ? 'red'
-                      : 'green'
-                  "
-                >
-                  {{ (emp.status !== 'Active' || !attendance || !attendance.checkin || attendance.checkin === '-') ? 'Absent' : 'Present' }}
-                </nz-tag>
-              </td>
-            </tr>
-          }
-        </tbody>
-
-      </nz-table>
-
-    </div>
-
-  </main>
-
-</div>
+  </div>
+  
+  <!-- Attendance Table -->
+  <div class="bg-white rounded-xl shadow-sm p-4">
+    <app-entity-table
+      [data]="attendanceTableData$ | async"
+      [config]="tableConfig"
+      [setting]="tableSetting"
+      [viewMode]="{ mode: 'list', label: 'List' }"
+      [loading]="checkingIn() || checkingOut()"
+      (action)="onEntityAction($event.action, $event.data)"
+      (filtersChange)="onFiltersChange($event)"
+    ></app-entity-table>
+  </div>
+</main>

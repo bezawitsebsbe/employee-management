@@ -6,5 +6,4 @@ export * from './lib/facades/auth.facade.service';
 export * from './lib/models/auth.model';
 export * from './lib/store/state/auth.state';
 export * from './lib/store/action/auth.action';
-export * from './lib/auth.module';
 export * from './lib/auth.routes';

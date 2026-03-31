@@ -1,0 +1,68 @@
+<div class="employee-filters-container">
+  <!-- Search and Filters Row -->
+  <div class="filters-row">
+    <input
+      nz-input
+      placeholder="Search by name, ID or email..."
+      [(ngModel)]="searchTerm"
+      (ngModelChange)="onSearchChange()"
+      class="search-input"
+    />
+
+    <nz-select
+      nzPlaceHolder="All Departments"
+      [(ngModel)]="departmentFilter"
+      (ngModelChange)="onDepartmentChange()"
+      class="department-select"
+    >
+      <nz-option nzValue="" nzLabel="All Departments"></nz-option>
+      <nz-option *ngFor="let dept of getUniqueDepartments()" [nzValue]="dept" [nzLabel]="dept"></nz-option>
+    </nz-select>
+
+    <nz-select
+      nzPlaceHolder="All Status"
+      [(ngModel)]="statusFilter"
+      (ngModelChange)="onStatusChange()"
+      class="status-select"
+    >
+      <nz-option nzValue="" nzLabel="All Status"></nz-option>
+      <nz-option *ngFor="let status of getUniqueStatuses()" [nzValue]="status" [nzLabel]="status"></nz-option>
+    </nz-select>
+
+    <button
+      nz-button
+      nzType="default"
+      (click)="clearFilters()"
+      class="clear-filters-btn"
+    >
+      <span nz-icon nzType="clear"></span>
+      Clear Filters
+    </button>
+  </div>
+
+  <!-- Tabs for Active/Inactive -->
+  <div class="tabs-container">
+    <div class="custom-tabs">
+      <button 
+        class="tab-button"
+        [class.active]="filters.activeTab === 0"
+        (click)="onTabChange(0)"
+      >
+        Active Employees
+        <span class="tab-count">
+          {{ getActiveEmployeeCount() }}
+        </span>
+      </button>
+      <button 
+        class="tab-button"
+        [class.active]="filters.activeTab === 1"
+        (click)="onTabChange(1)"
+      >
+        Inactive Employees
+        <span class="tab-count">
+          {{ getInactiveEmployeeCount() }}
+        </span>
+      </button>
+    </div>
+  </div>
+</div>

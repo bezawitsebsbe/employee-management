@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideHttpClient } from '@angular/common/http';
 import { provideNzIcons } from 'ng-zorro-antd/icon';
+import { provideNzI18n, en_US } from 'ng-zorro-antd/i18n';
 import {
   DollarOutline,
   TeamOutline,
@@ -40,6 +41,7 @@ import {
 
 import { provideStore } from '@ngxs/store';
 import { AuthState } from '../../../../libs/features/auth/src/lib/store/state/auth.state';
+import { AuthApiService } from '../../../../libs/features/auth/src/lib/api/auth.service';
 import { DashboardState } from '../../../../libs/features/dashboard/src/lib/store/state/dashboard.state';
 import { EmployeeState } from './features/employee/store/state/employee.state';
 import { AttendanceState } from './features/attendance/store/state/attendance.state';
@@ -53,6 +55,12 @@ export const appConfig: ApplicationConfig = {
     provideAnimations(), // or provideNoopAnimations() if you don't need real animations
 
     provideStore([AuthState, DashboardState, EmployeeState, AttendanceState]),
+    
+    // ✅ ADD AuthApiService to providers
+    AuthApiService,
+
+    // ✅ ADD English i18n for ng-zorro
+    provideNzI18n(en_US),
 
     provideNzIcons([
       DollarOutline,
