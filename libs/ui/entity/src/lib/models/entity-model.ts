@@ -70,18 +70,39 @@ export interface EntityAction {
 }
 
 export interface EntitySetting {
-  visibleColumn: EntityColumn[];
-  actions?: EntityAction[];
-  showDetail?: boolean;
-  identity: string; // Primary key field name
-  onItemClick?: (data: any, event: Event) => void;
-  routing?: (data: any) => string[];
+  title?: string;
+  searchable?: boolean;
+  paginated?: boolean;
+  pageSize?: number;
+  showSizeChanger?: boolean;
+  frontPagination?: boolean;
+  loading?: boolean;
+  otherView?: boolean;
   useClickHandler?: boolean;
-  detailTemplate?: any; // ng-template reference
   detailUrl?: string;
+  columns?: EntityColumn[];
+  actions?: EntityAction[];
+  identity?: string; // Primary key field name
+  visibleColumns?: EntityColumn[];
+  showDetail?: boolean;
   primaryColumn: EntityColumn;
   group?: string[];
   favorite?: boolean;
+  showSearch?: boolean;
+  showPagination?: boolean;
+  showTabs?: boolean;
+  showFilters?: boolean;
+  tabType?: 'employee' | 'attendance';
+  onItemClick?: (data: any, event: Event) => void;
+  routing?: (data: any) => string[];
+  detailTemplate?: any; // ng-template reference
+  settings?: {
+    showSearch?: boolean;
+    showPagination?: boolean;
+    showSizeChanger?: boolean;
+    pageSize?: number;
+    frontPagination?: boolean;
+  };
 }
 
 export interface EntityConfig {
@@ -97,6 +118,18 @@ export interface EntityConfig {
   detailUrl?: string;
   columns?: EntityColumn[];
   actions?: EntityAction[];
+  showFilters?: boolean;
+  showTabs?: boolean;
+  identity?: string;
+  primaryColumn?: EntityColumn;
+  visibleColumn?: EntityColumn[];
+  showDetail?: boolean;
+  group?: string[];
+  favorite?: boolean;
+  selectable?: boolean;
+  onItemClick?: (data: any, event: Event) => void;
+  routing?: (data: any) => string[];
+  detailTemplate?: any; // ng-template reference
   settings?: {
     showSearch?: boolean;
     showPagination?: boolean;

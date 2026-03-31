@@ -49,6 +49,7 @@ export class EntityFormComponent implements OnInit, OnDestroy {
   @Input() fields: EntityColumn[] = [];
   @Input() mode: EntityFormMode = { mode: 'create', title: 'Create Entity' };
   @Input() config: EntityConfig = {};
+  @Input() standalone = false; // New property for standalone page usage
 
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() submit = new EventEmitter<Record<string, unknown>>();
@@ -163,8 +164,11 @@ export class EntityFormComponent implements OnInit, OnDestroy {
   }
 
   onCancel(): void {
-    this.cancel.emit();
-    this.visibleChange.emit(false);
+    if (this.standalone) {
+      this.cancel.emit();
+    } else {
+      this.visibleChange.emit(false);
+    }
   }
 
   private markFormAsTouched(): void {
@@ -182,7 +186,7 @@ export class EntityFormComponent implements OnInit, OnDestroy {
     return field.placeholder || `Enter ${field.name}`;
   }
 
-  getFieldOptions(field: EntityColumn): NzSelectOptionInterface[] {
+  getFieldOptions(field: EntityColumn): Array<{label: string; value: string}> {
     return (field.options || []).map(option => ({
       label: option,
       value: option
@@ -238,6 +242,16 @@ export class EntityFormComponent implements OnInit, OnDestroy {
 
   handleOk(): void {
     this.onSubmit();
+  }
+
+  // Standalone form submission
+  onSubmitForm(): void {
+    this.onSubmit();
+  }
+
+  // Standalone form cancellation
+  onCancelForm(): void {
+    this.onCancel();
   }
 
   // Reset form

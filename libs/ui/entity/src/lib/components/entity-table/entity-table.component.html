@@ -3,11 +3,11 @@
   <div class="flex items-center justify-between mb-4">
     <div class="flex items-center space-x-2">
       <!-- Group Dropdown -->
-      <div class="mr-1" *ngIf="setting?.group">
+      <div class="mr-1" *ngIf="setting.group">
         <ng-template #contentGroupTemplate>
           <div>
             <ul>
-              <div *ngFor="let group of setting?.group">
+              <div *ngFor="let group of setting.group">
                 <div>
                   <li class="cursor-pointer" (click)="onGroup(group)"><label nz-checkbox></label>{{ group }}</li>
                 </div>
@@ -19,12 +19,12 @@
 
       <nz-dropdown-menu #menu="nzDropdownMenu">
         <ul nz-menu>
-          <li *ngFor="let group of setting?.group" (click)="onGroup(group)" nz-menu-item>{{ group }}</li>
+          <li *ngFor="let group of setting.group" (click)="onGroup(group)" nz-menu-item>{{ group }}</li>
         </ul>
       </nz-dropdown-menu>
 
       <!-- Favorite Button -->
-      <div class="mr-1" *ngIf="setting?.favorite">
+      <div class="mr-1" *ngIf="setting.favorite">
         <button nz-button nzTrigger="click" nz-dropdown [nzDropdownMenu]="menu">
           <i nz-icon nzType="star" nzTheme="outline"></i>
           <ng-container *ngIf="viewMode.mode === 'list'"> Favorite <i nz-icon nzType="down"></i> </ng-container>
@@ -60,19 +60,119 @@
 
     <!-- Search -->
     <div *ngIf="config.searchable" class="flex items-center">
-      <nz-input-group [nzSuffix]="suffixIconSearch">
-        <input 
+      <!-- <nz-input-group [nzSuffix]="suffixIconSearch">
+        <input
           type="text" 
           nz-input 
           placeholder="Search..." 
-          [(ngModel)]="searchTerm"
-          (ngModelChange)="onSearchChange($event)"
+          [formControl]="searchControl"
         />
       </nz-input-group>
       <ng-template #suffixIconSearch>
         <i nz-icon nzType="search"></i>
-      </ng-template>
+      </ng-template> -->
     </div>
+  </div>
+
+  <!-- Tabs for Active/Inactive or All/Present/Absent -->
+  <div *ngIf="setting.showTabs" class="mb-4">
+    <nz-tabs [(nzSelectedIndex)]="activeTab" (nzSelectedIndexChange)="onTabChange($event)">
+      <!-- Employee Tabs -->
+      <ng-container *ngIf="!setting.tabType || setting.tabType === 'employee'">
+        <nz-tab nzTitle="Active Employees">
+          <ng-template nz-tab-content>
+            <!-- Tab content will be rendered below -->
+          </ng-template>
+        </nz-tab>
+        <nz-tab nzTitle="Inactive Employees">
+          <ng-template nz-tab-content>
+            <!-- Tab content will be rendered below -->
+          </ng-template>
+        </nz-tab>
+      </ng-container>
+      
+      <!-- Attendance Tabs -->
+      <ng-container *ngIf="setting.tabType === 'attendance'">
+        <nz-tab nzTitle="All Employees" nzTabColor="blue">
+          <ng-template nz-tab-content>
+            <!-- Tab content will be rendered below -->
+          </ng-template>
+        </nz-tab>
+        <nz-tab nzTitle="Present" nzTabColor="green">
+          <ng-template nz-tab-content>
+            <!-- Tab content will be rendered below -->
+          </ng-template>
+        </nz-tab>
+        <nz-tab nzTitle="Absent" nzTabColor="red">
+          <ng-template nz-tab-content>
+            <!-- Tab content will be rendered below -->
+          </ng-template>
+        </nz-tab>
+      </ng-container>
+    </nz-tabs>
+  </div>
+
+  <!-- Filters Row -->
+  <div *ngIf="setting.showFilters" class="flex flex-wrap gap-4 mb-6">
+    <input
+      nz-input
+      placeholder="Search by name, ID or email..."
+      [formControl]="searchControl"
+      class="w-full max-w-md rounded-lg"
+    />
+
+    <!-- Group Filters -->
+    <div class="mr-1" *ngIf="config.group">
+      <nz-select
+        nzSize="small"
+        [nzPlaceHolder]="'Select Group'"
+        [formControl]="selectedGroupControl"
+      >
+        <nz-option nzValue="" nzLabel="All Groups"></nz-option>
+        <nz-option *ngFor="let group of config.group" [nzValue]="group" [nzLabel]="group"></nz-option>
+      </nz-select>
+    </div>
+
+    <!-- Favorite Filter -->
+    <div class="mr-1" *ngIf="config.favorite">
+      <nz-select
+        nzSize="small"
+        [nzPlaceHolder]="'Select Favorite'"
+        [formControl]="selectedFavoriteControl"
+      >
+        <nz-option nzValue="" nzLabel="All"></nz-option>
+        <nz-option nzValue="true" nzLabel="Favorite"></nz-option>
+        <nz-option nzValue="false" nzLabel="Not Favorite"></nz-option>
+      </nz-select>
+    </div>
+
+    <nz-select
+      nzPlaceHolder="All Departments"
+      [formControl]="departmentControl"
+      (ngModelChange)="onDepartmentFilterChange($event)"
+      style="width: 180px"
+    >
+      <nz-option nzValue="" nzLabel="All Departments"></nz-option>
+      <nz-option *ngFor="let dept of getUniqueDepartments()" [nzValue]="dept" [nzLabel]="dept"></nz-option>
+    </nz-select>
+
+    <nz-select
+      nzPlaceHolder="All Status"
+      [formControl]="statusControl"
+      style="width: 180px"
+    >
+      <nz-option nzValue="" nzLabel="All Status"></nz-option>
+      <nz-option *ngFor="let status of getUniqueStatuses()" [nzValue]="status" [nzLabel]="status"></nz-option>
+    </nz-select>
+
+    <button
+      nz-button
+      nzType="default"
+      (click)="clearFilters()"
+      class="flex items-center gap-1.5"
+    >
+      <span nz-icon nzType="clear"></span> Clear Filters
+    </button>
   </div>
 
   <!-- Table Container -->
@@ -85,8 +185,8 @@
       [nzShowSizeChanger]="true"
       [nzPageSizeOptions]="[10, 20, 30]"
       [nzFrontPagination]="config.frontPagination"
-      [nzData]="data.items"
-      [nzLoading]="itemsLoading"
+      [nzData]="setting.showFilters ? getFilteredItems() : data.items"
+      [nzLoading]="itemsLoading"  
       [nzPageSize]="data.pageSize || 10"
       [nzNoResult]="noDataTpl"
       [nzShowTotal]="totalTpl"
@@ -125,7 +225,7 @@
             </ng-container>
 
             <!-- Detail Column -->
-            <th *ngIf="setting?.showDetail" scope="col" style="width: 50px;"></th>
+            <th *ngIf="config.showDetail" scope="col" style="width: 50px;"></th>
             
             <!-- Actions Column -->
             <th 
@@ -138,29 +238,30 @@
           </ng-container>
 
           <!-- Detail View Header -->
-          <ng-container *ngIf="viewMode.mode === 'detail'">
+          <ng-container *ngIf="setting.primaryColumn as primary">
             <th 
               scope="col" 
-              [nzShowSort]="!setting!.primaryColumn.hideSort"
-              [nzColumnKey]="setting!.primaryColumn.key"
+              [nzShowSort]="!primary.hideSort"
+              [nzColumnKey]="primary.key"
             >
-              {{ setting!.primaryColumn.name }}
+              {{ primary.name }}
             </th>
           </ng-container>
         </tr>
       </thead>
       
       <tbody>
-        <tr class="group" *ngFor="let data of row.data; trackBy: trackBy">
+        <tr class="group" *ngFor="let data of row.data; trackBy: trackBy" (click)="onRowClick(data)">
           <!-- List View Cells -->
           <ng-container *ngIf="viewMode.mode === 'list'">
             <!-- Checkbox Cell -->
-            <td
-              nzShowCheckbox
-              *ngIf="setting && setting.actions && setting.actions.length > 0"
-              [(nzChecked)]="mapOfCheckedId[data[setting!.identity]]"
-              (nzCheckedChange)="onItemCheckChange(data[setting!.identity], $event)"
-            ></td>
+            <td *ngIf="config.selectable" class="text-center">
+              <input
+                type="checkbox"
+                [checked]="mapOfCheckedId[data[idKey]]"
+                (change)="onItemCheckChange(data[idKey], $event.target.checked)"
+              />
+            </td>
             
             <!-- Data Cells -->
             <ng-container *ngFor="let item of visibleColumns; trackBy: trackByColumn">
@@ -197,7 +298,7 @@
             </ng-container>
 
             <!-- Detail Button Cell -->
-            <td *ngIf="setting?.showDetail">
+            <td *ngIf="config.showDetail">
               <a
                 *ngIf="config.useClickHandler"
                 (click)="onItemClick(data, $event)"
@@ -236,30 +337,51 @@
                   {{ action.label }}
                 </button>
               </ng-container>
+              
+              <!-- Default Edit/Delete buttons if no custom actions -->
+              <ng-container *ngIf="!config.actions || config.actions.length === 0">
+                <button
+                  nz-button
+                  nzType="default"
+                  nzSize="small"
+                  (click)="onEdit(data)"
+                  style="margin-right: 8px;"
+                >
+                  Edit
+                </button>
+                <button
+                  nz-button
+                  nzDanger
+                  nzSize="small"
+                  (click)="onDelete(data)"
+                >
+                  Delete
+                </button>
+              </ng-container>
             </td>
           </ng-container>
 
           <!-- Detail View Cells -->
-          <ng-container *ngIf="viewMode.mode === 'detail'">
+          <ng-container *ngIf="setting.primaryColumn as primary">
             <td
-              *ngIf="!setting!.detailTemplate"
+              *ngIf="!config.detailTemplate"
               class="list"
               [routerLinkActive]="'active'"
               [routerLinkActiveOptions]="{ exact: true }"
-              [ngClass]="setting!.primaryColumn.tdClass"
+              [ngClass]="primary.tdClass"
             >
               <ng-container *ngIf="!config.useClickHandler">
-                <ng-container *ngIf="setting!.detailUrl === 'detail'">
-                  <a [routerLink]="['detail', data[setting!.identity]]">
+                <ng-container *ngIf="config.detailUrl === 'detail'">
+                  <a [routerLink]="['detail', data[idKey]]">
                     <ng-container
-                      *ngTemplateOutlet="setting!.primaryColumn.onChild ? childViewCellTemplate : defaultCellTemplate; context: { itemSetting: setting!.primaryColumn }"
+                      *ngTemplateOutlet="primary.onChild ? childViewCellTemplate : defaultCellTemplate; context: { itemSetting: primary }"
                     ></ng-container>
                   </a>
                 </ng-container>
-                <ng-container *ngIf="setting!.detailUrl !== 'detail'">
-                  <a [routerLink]="[setting!.detailUrl, data[setting!.identity]]">
+                <ng-container *ngIf="config.detailUrl !== 'detail'">
+                  <a [routerLink]="[config.detailUrl, data[idKey]]">
                     <ng-container
-                      *ngTemplateOutlet="setting!.primaryColumn.onChild ? childViewCellTemplate : defaultCellTemplate; context: { itemSetting: setting!.primaryColumn }"
+                      *ngTemplateOutlet="primary.onChild ? childViewCellTemplate : defaultCellTemplate; context: { itemSetting: primary }"
                     ></ng-container>
                   </a>
                 </ng-container>
@@ -267,18 +389,18 @@
               <ng-container *ngIf="config.useClickHandler">
                 <a (click)="onItemClick(data, $event)" class="cursor-pointer">
                   <ng-container
-                    *ngTemplateOutlet="setting!.primaryColumn.onChild ? childViewCellTemplate : defaultCellTemplate; context: { itemSetting: setting!.primaryColumn }"
+                    *ngTemplateOutlet="primary.onChild ? childViewCellTemplate : defaultCellTemplate; context: { itemSetting: primary }"
                   ></ng-container>
                 </a>
               </ng-container>
             </td>
             <td
-              *ngIf="setting!.detailTemplate"
+              *ngIf="config.detailTemplate"
               class="list"
-              [ngClass]="setting!.primaryColumn.tdClass"
+              [ngClass]="primary.tdClass"
             >
               <ng-container
-                *ngTemplateOutlet="setting!.detailTemplate; context: { row: data }"
+                *ngTemplateOutlet="config.detailTemplate; context: { row: data }"
               ></ng-container>
             </td>
           </ng-container>

@@ -406,26 +406,42 @@ export class AttendanceState {
     const state = getState();
     const today = new Date().toISOString().split('T')[0];
     
-
     const resetData = state.attendanceData.map((emp) => ({
       id: emp.id,
       employeeId: emp.employeeId,
-      name: emp.name,
+      name: emp.name, // ✅ Use only existing property from EmployeeAttendance model
       department: emp.department,
-      date: today,
       checkin: '-',
       checkout: '-',
       hours: '0h 0m',
       status: 'Absent' as const
     }));
 
+    // First update local state for immediate UI feedback
     patchState({
       attendanceData: resetData,
       checkingIn: false,
       checkingOut: false
     });
 
-    this.notification.success(this.success, 'Attendance reset successful');
+    // Then persist to backend with UPSERT for ALL employees
+    return this.attendanceApi.resetDailyAttendance(today, resetData).pipe(
+      tap(() => {
+        this.notification.success(this.success, 'Attendance reset successful');
+      }),
+      catchError((error) => {
+        console.error('Failed to reset attendance on backend:', error);
+        this.notification.error(
+          'SYSTEM.ERROR',
+          'Failed to reset attendance. Changes reverted.'
+        );
+        // Revert to original data on failure
+        patchState({
+          attendanceData: state.attendanceData
+        });
+        return of();
+      })
+    );
   }
 
   private generateId(): string {

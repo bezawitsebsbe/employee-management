@@ -74,11 +74,10 @@ export const attendanceTableConfig: EntityConfig = {
     }
   ] as EntityAction[],
   settings: {
-    showSearch: true,
+    showSearch: false,  // ✅ Disable duplicate search
     showPagination: true,
     showSizeChanger: true,
     pageSize: 10,
     frontPagination: true
   }
 };
- 

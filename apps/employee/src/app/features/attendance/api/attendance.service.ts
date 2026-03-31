@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, from, of } from 'rxjs';
 import { map, catchError, switchMap } from 'rxjs/operators';
-import { collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, where, Timestamp } from 'firebase/firestore';
+import { collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, setDoc, query, where, Timestamp } from 'firebase/firestore';
 import { FirebaseService } from '@employee-payroll/firebase';
 import { AttendanceEndpoint } from './attendance.endpoint';
 import { EmployeeAttendance } from '../models/attendance.model';
@@ -255,5 +255,31 @@ export class AttendanceApiService {
         });
       }),
     );
+  }
+
+  resetDailyAttendance(date: string, employees: any[]): Observable<void> {
+    const operations = employees.map((emp) => {
+      const docRef = doc(
+        this.firebaseService.database,
+        `${this.attendanceRootEndpoint.attendance}/${emp.id}` 
+      );
+
+      return setDoc(
+        docRef,
+        {
+          employeeId: emp.employeeId,
+          name: emp.name, 
+          department: emp.department,
+          checkin: '-',
+          checkout: '-',
+          hours: '0h 0m',
+          status: 'Absent',
+          updatedAt: new Date(),
+        },
+        { merge: true } 
+      );
+    });
+
+    return from(Promise.all(operations)).pipe(map(() => void 0));
   }
 }
