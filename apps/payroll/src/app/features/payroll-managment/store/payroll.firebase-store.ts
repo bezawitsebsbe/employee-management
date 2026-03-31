@@ -114,7 +114,7 @@ export class PayrollFirebaseStore {
     this.loadInitialData();
   }
 
-  // 🔥 Load initial data
+  //  Load initial data
   private loadInitialData(): void {
     console.log('PayrollFirebaseStore: Loading initial data');
     this.updateState({ ...this.initialState, loading: true });
@@ -147,13 +147,13 @@ export class PayrollFirebaseStore {
     ).subscribe();
   }
 
-  // 🔥 Update state
+  //  Update state
   private updateState(newState: Partial<PayrollState>): void {
     const currentState = this.state$.value;
     this.state$.next({ ...currentState, ...newState });
   }
 
-  // 🔥 Actions
+  //  Actions
   public setSearchTerm(searchTerm: string): void {
     this.updateState({ searchTerm });
   }
@@ -263,22 +263,22 @@ export class PayrollFirebaseStore {
     this.updateState({ error: null });
   }
 
-  // 🔥 Get current state (for debugging)
+  //  Get current state (for debugging)
   public getCurrentState(): PayrollState {
     return this.state$.value;
   }
 
-  // 🔥 Get employee by ID
+  //  Get employee by ID
   public getEmployeeById(empId: string): Observable<Employee | null> {
     return this.api.getEmployeeById(empId);
   }
 
-  // 🔥 Get payroll record by ID
+  //  Get payroll record by ID
   public getPayrollRecordById(id: string): Observable<PayrollRecord | null> {
     return this.api.getPayrollRecordById(id);
   }
 
-  // 🔥 Reset state
+  //  Reset state
   public resetState(): void {
     this.state$.next(this.initialState);
     this.loadInitialData();
