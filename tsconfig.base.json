@@ -18,7 +18,7 @@
       "@employee-payroll/features": ["libs/features/index.ts"],
       "@employee-payroll/models": ["libs/models/index.ts"],
       "@employee-payroll/core": ["libs/core/src/index.ts"],
-      "@employee-payroll/sidebar": ["libs/ui/sidebar/src/index.ts"],
+      "@employee-payroll/navbar": ["libs/ui/navbar/src/index.ts"],
       "@employee-payroll/firebase": ["libs/data-access/firebase/src/index.ts"],
       "@employee-payroll/entity": ["libs/ui/entity/src/index.ts"]
     }

@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
 import { AUTH_ROUTES } from '@employee-payroll/features';
 import { DashboardComponent } from '@employee-payroll/features';
-import { NavbarComponent } from '@employee-payroll/sidebar';
-import { navResolver } from '@employee-payroll/sidebar';
+import { NavbarComponent } from '@employee-payroll/navbar';
+import { navResolver } from '@employee-payroll/navbar';
 import { AuthGuard, NoAuthGuard } from '@employee-payroll/features';
 import { EMPLOYEE_ROUTES } from './features/employee/employee.routing';
 import { ATTENDANCE_ROUTES } from './features/attendance/attendance.routing';
