@@ -9,7 +9,7 @@
     "firebase": "libs/data-access/firebase/project.json",
     "auth": "libs/features/auth/project.json",
     "dashboard": "libs/features/dashboard/project.json",
-    "sidebar": "libs/ui/sidebar/project.json"
+    "sidebar": "libs/ui/navbar/project.json"
   },
   "namedInputs": {
     "default": ["{projectRoot}/**/*", "sharedGlobals"],

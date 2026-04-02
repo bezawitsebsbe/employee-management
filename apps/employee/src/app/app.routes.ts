@@ -42,13 +42,7 @@ export const appRoutes: Routes = [
   loadChildren: () =>
     import('./features/attendance/attendance.routing')
       .then(m => m.ATTENDANCE_ROUTES)
-}, {
-      path: 'attendance',
-      loadComponent: () =>
-        import(
-          './features/attendance/pages/attendance/attendance.component'
-        ).then((m) => m.AttendanceComponent),
-    },
+}, 
   ],
 },
   {

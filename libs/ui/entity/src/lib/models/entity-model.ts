@@ -151,4 +151,5 @@ export interface EntitySetting {
   showTabs?: boolean;
   showFilters?: boolean;
   tabType?: 'employee' | 'attendance';
+  favorite?: boolean;
 }

@@ -10,7 +10,7 @@ import { PayrollStatisticsCardsComponent } from '../../components/payroll-statis
 import { PayrollTableComponent } from '../../components/payroll-table/payroll-table.component';
 import { AddPayrollModalComponent } from '../../components/add-payroll-modal/add-payroll-modal.component';
 
-import { SidebarComponent } from '@employee-payroll/sidebar';
+import { NavbarComponent } from '@employee-payroll/navbar';
 import { PayrollFirebaseFacade } from '../../facade/payroll.facade';
 import { PayrollRecord } from '../../api/payroll.firebase-api';
 
@@ -27,8 +27,7 @@ import { PayrollRecord } from '../../api/payroll.firebase-api';
     PayrollStatisticsCardsComponent,
     PayrollTableComponent,
     AddPayrollModalComponent,
-   
-   SidebarComponent
+   NavbarComponent
   ],
   templateUrl: './payroll-management-page.component.html',
   styleUrls: ['./payroll-management-page.component.scss']

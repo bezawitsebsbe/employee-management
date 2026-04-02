@@ -71,7 +71,7 @@ interface FirebaseEmployee {
 export class PayrollFirebaseApi {
   constructor(private firebaseService: FirebaseService) {}
 
-  // 🔥 Get all employees from Firebase (using shared service)
+  //  Get all employees from Firebase (using shared service)
   getEmployees(): Observable<Employee[]> {
     return from(this.firebaseService.getEmployees()).pipe(
       map((employees: FirebaseEmployee[]) => 
@@ -95,7 +95,7 @@ export class PayrollFirebaseApi {
     );
   }
 
-  // 🔥 Get employee by ID
+  //  Get employee by ID
   getEmployeeById(empId: string): Observable<Employee | null> {
     const q = query(
       collection(this.firebaseService.database, 'employees'), 
@@ -115,7 +115,7 @@ export class PayrollFirebaseApi {
     );
   }
 
-  // 🔥 Get all payroll records
+  //  Get all payroll records
   getPayrollRecords(): Observable<PayrollRecord[]> {
     return from(getDocs(
       query(
@@ -136,7 +136,7 @@ export class PayrollFirebaseApi {
     );
   }
 
-  // 🔥 Get payroll record by ID
+  //  Get payroll record by ID
   getPayrollRecordById(id: string): Observable<PayrollRecord | null> {
     return from(getDoc(doc(this.firebaseService.database, 'payrollRecords', id))).pipe(
       map(docSnapshot => {
@@ -152,7 +152,7 @@ export class PayrollFirebaseApi {
     );
   }
 
-  // 🔥 Create payroll record
+  //  Create payroll record
   createPayrollRecord(record: Omit<PayrollRecord, 'id' | 'createdAt' | 'updatedAt'>): Observable<string> {
     const payrollData = {
       ...record,
@@ -169,7 +169,7 @@ export class PayrollFirebaseApi {
     );
   }
 
-  // 🔥 Update payroll record
+  //  Update payroll record
   updatePayrollRecord(id: string, record: Partial<PayrollRecord>): Observable<void> {
     const updateData = {
       ...record,
@@ -184,7 +184,7 @@ export class PayrollFirebaseApi {
     );
   }
 
-  // 🔥 Delete payroll record
+  //  Delete payroll record
   deletePayrollRecord(id: string): Observable<void> {
     return from(deleteDoc(doc(this.firebaseService.database, 'payrollRecords', id))).pipe(
       catchError(error => {

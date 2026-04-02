@@ -9,11 +9,6 @@ export const appRoutes: Route[] = [
     canActivate: [NoAuthGuard]
   },
   {
-    path: 'auth',
-    loadChildren: () => import('@employee-payroll/features').then(m => m.AuthModule),
-    canActivate: [NoAuthGuard]
-  },
-  {
     path: 'dashboard',
     loadComponent: () => import('@employee-payroll/features').then(m => m.DashboardComponent),
     data: { currentApp: 'payroll' },
