@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -23,7 +23,6 @@ import { EmployeeSimpleFacade } from '../../facades/employee-simple.facade';
   styleUrls: ['./employee-list.component.scss']
 })
 export class EmployeeListComponent implements OnInit {
-  allEmployees: Employee[] = [];
   loading = false;
 
   private facade = inject(EmployeeSimpleFacade);
@@ -36,18 +35,10 @@ export class EmployeeListComponent implements OnInit {
   private loadEmployees(): void {
     this.loading = true;
     this.facade.loadEmployees();
-    
-    this.facade.employees$.subscribe({
-      next: (employees: Employee[]) => {
-        this.allEmployees = employees;
-        this.loading = false;
-      },
-      error: (error: any) => {
-        console.error('Error loading employees:', error);
-        this.message.error('Failed to load employees');
-        this.loading = false;
-      }
-    });
+  }
+
+  get employees$() {
+    return this.facade.employees$;
   }
 
   onViewEmployee(employee: Employee): void {
@@ -63,7 +54,6 @@ export class EmployeeListComponent implements OnInit {
   onDeleteEmployee(employee: Employee): void {
     if (employee.id) {
       this.facade.deleteEmployee(employee.id);
-      this.message.success('Employee deleted successfully');
     }
   }
 }

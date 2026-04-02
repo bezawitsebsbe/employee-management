@@ -14,18 +14,21 @@ export interface EntityColumn {
   onChild?: boolean;
   hasLocale?: boolean;
   hasTranslate?: boolean;
-  isDate?: boolean;
-  isNumber?: boolean;
-  isBoolean?: boolean;
-  booleanValue?: {
-    true: string;
-    false: string;
-  };
   precision?: string;
   tagColors?: Record<string, string>;
   options?: string[];
   placeholder?: string;
   required?: boolean;
+  min?: number;
+  max?: number;
+  minLength?: number;
+  maxLength?: number;
+  isDate?: boolean;
+  isBoolean?: boolean;
+  booleanValue?: {
+    true: string;
+    false: string;
+  };
 }
 
 export interface EntityColumnPrefix {
@@ -33,14 +36,11 @@ export interface EntityColumnPrefix {
   key: string;
   hasLocale?: boolean;
   hasTranslate?: boolean;
-  isDate?: boolean;
-  isNumber?: boolean;
-  isBoolean?: boolean;
+  precision?: string;
   booleanValue?: {
     true: string;
     false: string;
   };
-  precision?: string;
 }
 
 export interface EntityColumnSuffix {
@@ -48,104 +48,26 @@ export interface EntityColumnSuffix {
   key: string;
   hasLocale?: boolean;
   hasTranslate?: boolean;
-  isDate?: boolean;
-  isNumber?: boolean;
-  isBoolean?: boolean;
+  precision?: string;
   booleanValue?: {
     true: string;
     false: string;
   };
-  precision?: string;
 }
 
-export interface EntityAction {
+export interface EntityAction<T = any> {
   key: string;
   label: string;
   icon?: string;
   type: 'view' | 'edit' | 'delete' | 'custom' | 'primary' | 'danger';
-  callback?: (entity: any) => void;
-  disabled?: (entity: any) => boolean;
-  routerLink?: (entity: any) => string[];
-  visible?: (entity: any) => boolean;
+  callback?: (entity: T) => void;
+  disabled?: (entity: T) => boolean;
+  routerLink?: (entity: T) => string[];
+  visible?: (entity: T) => boolean;
 }
 
-export interface EntitySetting {
-  title?: string;
-  searchable?: boolean;
-  paginated?: boolean;
-  pageSize?: number;
-  showSizeChanger?: boolean;
-  frontPagination?: boolean;
-  loading?: boolean;
-  otherView?: boolean;
-  useClickHandler?: boolean;
-  detailUrl?: string;
-  columns?: EntityColumn[];
-  actions?: EntityAction[];
-  identity?: string; // Primary key field name
-  visibleColumns?: EntityColumn[];
-  showDetail?: boolean;
-  primaryColumn: EntityColumn;
-  group?: string[];
-  favorite?: boolean;
-  showSearch?: boolean;
-  showPagination?: boolean;
-  showTabs?: boolean;
-  showFilters?: boolean;
-  tabType?: 'employee' | 'attendance';
-  onItemClick?: (data: any, event: Event) => void;
-  routing?: (data: any) => string[];
-  detailTemplate?: any; // ng-template reference
-  settings?: {
-    showSearch?: boolean;
-    showPagination?: boolean;
-    showSizeChanger?: boolean;
-    pageSize?: number;
-    frontPagination?: boolean;
-  };
-}
-
-export interface EntityConfig {
-  title?: string;
-  searchable?: boolean;
-  paginated?: boolean;
-  pageSize?: number;
-  showSizeChanger?: boolean;
-  frontPagination?: boolean;
-  loading?: boolean;
-  otherView?: boolean;
-  useClickHandler?: boolean;
-  detailUrl?: string;
-  columns?: EntityColumn[];
-  actions?: EntityAction[];
-  showFilters?: boolean;
-  showTabs?: boolean;
-  identity?: string;
-  primaryColumn?: EntityColumn;
-  visibleColumn?: EntityColumn[];
-  showDetail?: boolean;
-  group?: string[];
-  favorite?: boolean;
-  selectable?: boolean;
-  onItemClick?: (data: any, event: Event) => void;
-  routing?: (data: any) => string[];
-  detailTemplate?: any; // ng-template reference
-  settings?: {
-    showSearch?: boolean;
-    showPagination?: boolean;
-    showSizeChanger?: boolean;
-    pageSize?: number;
-    frontPagination?: boolean;
-  };
-}
-
-export interface ViewMode {
-  mode: 'list' | 'detail';
-  label: string;
-}
-
-export interface EntityTableData {
-  items: any[];
+export interface EntityTableData<T = any> {
+  items: T[];
   totalItems?: number;
   currentPage?: number;
   pageSize?: number;
@@ -164,4 +86,68 @@ export interface PaginationEvent {
 
 export interface GroupEvent {
   group: string;
+}
+
+export interface ViewMode {
+  mode: 'list' | 'detail';
+  label: string;
+}
+
+export interface EntityConfig<T = any> {
+  title?: string;
+  searchable?: boolean;
+  paginated?: boolean;
+  pageSize?: number;
+  showSizeChanger?: boolean;
+  frontPagination?: boolean;
+  loading?: boolean;
+  otherView?: boolean;
+  useClickHandler?: boolean;
+  detailUrl?: string;
+  columns?: EntityColumn[];
+  actions?: EntityAction<T>[];
+  identity?: string; // Primary key field name
+  visibleColumns?: EntityColumn[];
+  showDetail?: boolean;
+  primaryColumn?: EntityColumn;
+  group?: string[];
+  favorite?: boolean;
+  showSearch?: boolean;
+  showPagination?: boolean;
+  showTabs?: boolean;
+  showFilters?: boolean;
+  tabType?: 'employee' | 'attendance';
+  onItemClick?: (data: T, event: Event) => void;
+  routing?: (data: T) => string[];
+  detailTemplate?: any; // ng-template reference
+  selectable?: boolean;
+  settings?: {
+    showSearch?: boolean;
+    showPagination?: boolean;
+    showSizeChanger?: boolean;
+    pageSize?: number;
+    frontPagination?: boolean;
+  };
+}
+
+export interface EntitySetting {
+  identity?: string;
+  title?: string;
+  searchable?: boolean;
+  paginated?: boolean;
+  pageSize?: number;
+  showSizeChanger?: boolean;
+  frontPagination?: boolean;
+  loading?: boolean;
+  otherView?: boolean;
+  useClickHandler?: boolean;
+  detailUrl?: string;
+  visibleColumns?: EntityColumn[];
+  showDetail?: boolean;
+  primaryColumn?: EntityColumn;
+  actions?: EntityAction<any>[];
+  group?: string[];
+  showTabs?: boolean;
+  showFilters?: boolean;
+  tabType?: 'employee' | 'attendance';
 }

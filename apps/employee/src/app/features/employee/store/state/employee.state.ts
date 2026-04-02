@@ -39,6 +39,8 @@ export interface EmployeeStateModel {
 })
 export class EmployeeState {
   success = 'SYSTEM.SUCCESS';
+  private updateSuccessShown = false;
+  private isCreating = false; // Flag to prevent duplicate creations
 
   @Selector() public static employees(state: EmployeeStateModel): Employee[] {
     return state?.employees ?? [];
@@ -125,12 +127,20 @@ export class EmployeeState {
       return of();
     }
 
+    // Prevent duplicate creations
+    if (this.isCreating) {
+      return of();
+    }
+
+    this.isCreating = true;
     patchState({
       creatingEmployee: true
     });
 
     return this.employeeApi.createEmployee(payload).pipe(
       switchMap((createdEmployee: Employee) => {
+        console.log('Employee created in Firestore:', createdEmployee);
+        
         // Update state with new employee
         patchState({
           creatingEmployee: false,
@@ -143,13 +153,14 @@ export class EmployeeState {
           ]
         });
 
-        this.notification.success(this.success, 'Employee Created Successfully');
-        
+        // Reset creation flag
+        this.isCreating = false;
+
         // Return observable to complete the operation
         return of(createdEmployee);
       }),
       catchError((error) => {
-        this.notification.error('SYSTEM.ERROR', 'Error creating employee');
+        this.isCreating = false;
         return of(
           patchState({
             creatingEmployee: false
@@ -191,6 +202,8 @@ export class EmployeeState {
 
     return this.employeeApi.updateEmployee(realId, payload.changes || {}).pipe(
       tap(() => {
+        if (this.updateSuccessShown) return; // Prevent duplicate success messages
+        
         const updatedEmployees = state.employees.map(emp =>
           emp.id === realId ? { ...emp, ...(payload.changes || {}) } : emp
         );
@@ -202,6 +215,12 @@ export class EmployeeState {
         });
 
         this.notification.success(this.success, 'Employee Updated Successfully');
+        this.updateSuccessShown = true; // Mark as shown
+        
+        // Reset flag after a delay to allow future updates
+        setTimeout(() => {
+          this.updateSuccessShown = false;
+        }, 2000);
       }),
       catchError(() => {
         this.notification.error('SYSTEM.ERROR', 'Error updating employee');
@@ -214,17 +233,35 @@ export class EmployeeState {
   @Action(DeleteEmployee) deleteEmployee(
     ctx: StateContext<EmployeeStateModel>, 
     { payload }: DeleteEmployee
-  ) {
+  ): Observable<any> {
     if (!payload) {
       this.notification.error('SYSTEM.ERROR', 'Invalid payload');
-      return;
+      return of();
     }
 
     const state = ctx.getState();
 
-    ctx.patchState({
-      employees: state.employees.filter(e => e.id !== payload),
-      selectedEmployee: null
-    });
+    // Find the employee to get the correct ID
+    const employee = state.employees.find(e => e.id === payload);
+    if (!employee) {
+      this.notification.error('SYSTEM.ERROR', 'Employee not found');
+      return of();
+    }
+
+    // Call the API to delete from Firestore
+    return this.employeeApi.deleteEmployee(payload).pipe(
+      tap(() => {
+        // Remove from local state only after successful API call
+        ctx.patchState({
+          employees: state.employees.filter(e => e.id !== payload),
+          selectedEmployee: null
+        });
+       
+      }),
+      catchError((error) => {
+        this.notification.error('SYSTEM.ERROR', 'Error deleting employee');
+        return of();
+      })
+    );
   }
 }

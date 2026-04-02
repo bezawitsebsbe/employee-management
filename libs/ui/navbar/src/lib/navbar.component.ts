@@ -1,19 +1,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
-
-interface User {
-  name: string;
-  email?: string;
-  avatar?: string;
-}
-
-interface NavItem {
-  label: string;
-  icon: string;
-  path: string;
-  apps?: string[]; // Which apps should show this item
-}
+import { AuthFacade } from '@employee-payroll/features';
+import {NavItem} from './nav.resolver';
 
 @Component({
   selector: 'app-navbar',
@@ -24,29 +13,30 @@ interface NavItem {
 })
 export class NavbarComponent {
   navItems: NavItem[] = [];
-  user = {
-    name: 'John Doe' // later replace with auth service
-  };
 
-  constructor(private route: ActivatedRoute, private router: Router) {
+  constructor(
+    private route: ActivatedRoute, 
+    private router: Router,
+    private authFacade: AuthFacade
+  ) {
     this.route.data.subscribe(data => {
       this.navItems = data['navItems'] || [];
     });
   }
 
   logout() {
-    localStorage.removeItem('authToken');
+    this.authFacade.logout();
     window.location.href = '/auth/signin';
   }
 
-  // Get user initials for avatar
+  // Get user display name using AuthFacade
+  getUserName(): string {
+    return this.authFacade.getUserDisplayName();
+  }
+
+  // Get user initials using AuthFacade
   getUserInitials(): string {
-    if (!this.user?.name) return 'U';
-    const names = this.user.name.split(' ');
-    if (names.length >= 2) {
-      return names[0].charAt(0) + names[names.length - 1].charAt(0);
-    }
-    return this.user.name.charAt(0);
+    return this.authFacade.getUserAvatar() || 'U';
   }
 
   // Check if current route is active

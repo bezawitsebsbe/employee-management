@@ -1,6 +1,7 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ViewChild, TemplateRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { RxwebValidators } from '@rxweb/reactive-form-validators';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -10,8 +11,7 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { Subject, takeUntil } from 'rxjs';
-import { NzSelectOptionInterface } from 'ng-zorro-antd/select';
+import { Subject } from 'rxjs';
 
 import {
   EntityColumn,
@@ -29,7 +29,6 @@ export interface EntityFormMode {
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
     ReactiveFormsModule,
     NzFormModule,
     NzInputModule,
@@ -59,6 +58,7 @@ export class EntityFormComponent implements OnInit, OnDestroy {
 
   entityForm!: FormGroup;
   loading = false;
+  private isSubmitting = false;
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -151,16 +151,25 @@ export class EntityFormComponent implements OnInit, OnDestroy {
   }
 
   onSubmit(): void {
-    if (this.entityForm.invalid) {
-      this.markFormAsTouched();
-      this.message.error('Please fill in all required fields correctly.');
+    if (this.isSubmitting || this.entityForm.invalid) {
+      if (this.entityForm.invalid) {
+        this.markFormAsTouched();
+        this.message.error('Please fill in all required fields correctly.');
+      }
       return;
     }
 
+    this.isSubmitting = true;
     this.loading = true;
     const formData = this.entityForm.value;
 
     this.submit.emit(formData);
+    
+    // Reset submission flag after a delay
+    setTimeout(() => {
+      this.isSubmitting = false;
+      this.loading = false;
+    }, 1000);
   }
 
   onCancel(): void {
@@ -251,6 +260,7 @@ export class EntityFormComponent implements OnInit, OnDestroy {
 
   // Standalone form cancellation
   onCancelForm(): void {
+    console.log('Entity form cancel clicked');
     this.onCancel();
   }
 

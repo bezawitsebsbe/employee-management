@@ -34,15 +34,15 @@ export class AddEmployeeComponent implements OnInit {
     // Create employee
     this.facade.createEmployee(employeeData);
     
-    // Show success message
-    this.message.success('Employee created successfully!');
-    
-    // Navigate back to employee list
-    this.router.navigate(['../list']);
+    // Navigate back to employee list after a short delay to allow creation to complete
+    setTimeout(() => {
+      this.loading = false;
+      this.router.navigate(['/employee']);
+    }, 1000); // Wait 1 second for Firestore write to complete
   }
 
   onFormCancel(): void {
-    // Navigate back to employee list
-    this.router.navigate(['../list']);
+    // Navigate to employee list
+    this.router.navigate(['/employee']);
   }
 }

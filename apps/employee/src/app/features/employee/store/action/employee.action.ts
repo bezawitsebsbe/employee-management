@@ -1,7 +1,7 @@
+import { Employee } from '../../models/employee.model';
 export class LoadEmployees {
   static readonly type = '[EmployeeState] LoadEmployees';
 }
-
 export class LoadEmployee {
   static readonly type = '[EmployeeState] LoadEmployee';
   constructor(public readonly payload?: string) {}
@@ -9,7 +9,7 @@ export class LoadEmployee {
 
 export class CreateEmployee {
   static readonly type = '[EmployeeState] CreateEmployee';
-  constructor(public readonly payload?: Omit<any, 'id'>) {}
+  constructor(public readonly payload?: Omit<Employee, 'id'>) {}
 }
 
 export class UpdateEmployee {

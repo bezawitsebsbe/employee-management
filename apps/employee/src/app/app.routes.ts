@@ -1,9 +1,12 @@
 import { Routes } from '@angular/router';
 import { AUTH_ROUTES } from '@employee-payroll/features';
 import { DashboardComponent } from '@employee-payroll/features';
-import { NavbarComponent } from '@employee-payroll/sidebar';
-import { navResolver } from '@employee-payroll/sidebar';
+import { NavbarComponent } from '@employee-payroll/navbar';
+import { navResolver } from '@employee-payroll/navbar';
 import { AuthGuard, NoAuthGuard } from '@employee-payroll/features';
+import { EMPLOYEE_ROUTES } from './features/employee/employee.routing';
+import { ATTENDANCE_ROUTES } from './features/attendance/attendance.routing';
+
 
 export const appRoutes: Routes = [
   {
@@ -29,41 +32,17 @@ export const appRoutes: Routes = [
       component: DashboardComponent
     },
     {
-      path: 'employee',
-      children: [
-        {
-          path: '',
-          loadComponent: () =>
-            import('./features/employee/pages/employee-page/employee-page.component')
-              .then(m => m.EmployeePageComponent)
-        },
-        {
-          path: 'list',
-          loadComponent: () =>
-            import('./features/employee/pages/employee-page/employee-page.component')
-              .then(m => m.EmployeePageComponent)
-        },
-        {
-          path: 'add',
-          loadComponent: () =>
-            import('./features/employee/pages/add-employee/add-employee.component')
-              .then(m => m.AddEmployeeComponent)
-        },
-        {
-          path: 'detail/:id',
-          loadComponent: () =>
-            import('./features/employee/pages/employee-detail/employee-detail.component')
-              .then(m => m.EmployeeDetailComponent)
-        },
-        {
-          path: 'edit/:id',
-          loadComponent: () =>
-            import('./features/employee/pages/edit-employee/edit-employee.component')
-              .then(m => m.EditEmployeeComponent)
-        }
-      ]
-    },
-    {
+  path: 'employee',
+  loadChildren: () =>
+    import('./features/employee/employee.routing')
+      .then(m => m.EMPLOYEE_ROUTES)
+},
+   {
+  path: 'attendance',
+  loadChildren: () =>
+    import('./features/attendance/attendance.routing')
+      .then(m => m.ATTENDANCE_ROUTES)
+}, {
       path: 'attendance',
       loadComponent: () =>
         import(
