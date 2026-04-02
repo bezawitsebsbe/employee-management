@@ -62,6 +62,7 @@ export class EntityTableComponent implements OnInit, OnDestroy {
     tdClass: '',
     onChild: false
   },
+  favorite: false,  // ✅ Add favorite property
   showTabs: true,  // ✅ Changed to true by default
   showFilters: true  // ✅ Changed to true by default
 };

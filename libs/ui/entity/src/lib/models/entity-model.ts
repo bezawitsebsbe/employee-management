@@ -147,6 +147,7 @@ export interface EntitySetting {
   primaryColumn?: EntityColumn;
   actions?: EntityAction<any>[];
   group?: string[];
+  favorite?: boolean;
   showTabs?: boolean;
   showFilters?: boolean;
   tabType?: 'employee' | 'attendance';
