@@ -1,6 +1,6 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { RxwebValidators } from '@rxweb/reactive-form-validators';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
@@ -15,7 +15,6 @@ import { Subject } from 'rxjs';
 
 import {
   EntityColumn,
-  EntityAction,
   EntityConfig
 } from '../../models/entity-model';
 
@@ -54,7 +53,7 @@ export class EntityFormComponent implements OnInit, OnDestroy {
   @Output() submit = new EventEmitter<Record<string, unknown>>();
   @Output() cancel = new EventEmitter<void>();
 
-  @ViewChild('formElement') formElement: any;
+  @ViewChild('formElement') formElement!: ElementRef<HTMLFormElement>;
 
   entityForm!: FormGroup;
   loading = false;
@@ -104,16 +103,55 @@ export class EntityFormComponent implements OnInit, OnDestroy {
   private getValidators(field: EntityColumn): any[] {
     const validators: any[] = [];
 
+    // Required field validation
     if (field.required) {
-      validators.push(Validators.required);
+      validators.push(RxwebValidators.required());
     }
 
-    if (field.type === 'email') {
-      validators.push(Validators.email);
+    // Email validation
+    if (field.type === 'email' || field.key.toLowerCase().includes('email')) {
+      validators.push(RxwebValidators.email());
     }
 
-    if (field.type === 'text' && field.key.toLowerCase().includes('email')) {
-      validators.push(Validators.email);
+    // Numeric field validation
+    if (field.type === 'number') {
+      // Basic numeric validation using pattern
+      validators.push(RxwebValidators.pattern({ expression: { 'number': /^\d+(\.\d+)?$/ } }));
+    }
+
+    // Text field validation
+    if (field.type === 'text') {
+      if (field.minLength !== undefined) {
+        validators.push(RxwebValidators.minLength({ value: field.minLength }));
+      }
+      if (field.maxLength !== undefined) {
+        validators.push(RxwebValidators.maxLength({ value: field.maxLength }));
+      }
+      
+      // Phone number validation
+      if (field.key.toLowerCase().includes('phone') || field.key.toLowerCase().includes('mobile')) {
+        validators.push(RxwebValidators.pattern({ expression: { 'phone': /^[+]?[\d\s-()]+$/ } }));
+      }
+      
+      // Name validation (letters and spaces)
+      if (field.key.toLowerCase().includes('name') && !field.key.toLowerCase().includes('username')) {
+        validators.push(RxwebValidators.pattern({ expression: { 'name': /^[a-zA-Z\s]+$/ } }));
+      }
+      
+      // Username validation (alphanumeric with underscore/hyphen)
+      if (field.key.toLowerCase().includes('username')) {
+        validators.push(RxwebValidators.pattern({ expression: { 'username': /^[a-zA-Z0-9_-]+$/ } }));
+      }
+    }
+
+    // Date validation
+    if (field.type === 'date') {
+      validators.push(RxwebValidators.date());
+    }
+
+    // Select field validation
+    if (field.type === 'select' && field.required) {
+      validators.push(RxwebValidators.notEmpty());
     }
 
     return validators;
@@ -225,23 +263,53 @@ export class EntityFormComponent implements OnInit, OnDestroy {
 
     const errors = formControl.errors;
 
+    // RxWebValidators error messages
     if (errors['required']) {
       return `${field.name} is required`;
     }
 
     if (errors['email']) {
-      return `${field.name} must be a valid email`;
+      return `${field.name} must be a valid email address`;
     }
 
-    if (errors['min']) {
-      return `${field.name} must be at least ${errors['min'].min}`;
+    if (errors['minLength']) {
+      return `${field.name} must be at least ${errors['minLength'].value} characters long`;
     }
 
-    if (errors['max']) {
-      return `${field.name} must be at most ${errors['max'].max}`;
+    if (errors['maxLength']) {
+      return `${field.name} must not exceed ${errors['maxLength'].value} characters`;
     }
 
-    return 'Invalid value';
+    if (errors['pattern']) {
+      const patternName = Object.keys(errors['pattern'])[0];
+      switch (patternName) {
+        case 'phone':
+          return `${field.name} must be a valid phone number`;
+        case 'username':
+          return `${field.name} can only contain letters, numbers, underscores, and hyphens`;
+        case 'name':
+          return `${field.name} can only contain letters and spaces`;
+        case 'number':
+          return `${field.name} must be a valid number`;
+        default:
+          return `${field.name} format is invalid`;
+      }
+    }
+
+    if (errors['alpha']) {
+      return `${field.name} can only contain letters and spaces`;
+    }
+
+    if (errors['date']) {
+      return `${field.name} must be a valid date`;
+    }
+
+    if (errors['notEmpty']) {
+      return `Please select a ${field.name.toLowerCase()}`;
+    }
+
+    // Fallback message
+    return `${field.name} is invalid`;
   }
 
   // Modal helpers
