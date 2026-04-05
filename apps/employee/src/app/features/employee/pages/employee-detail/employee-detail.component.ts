@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -13,6 +13,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { filter } from 'rxjs/operators';
 
+import { EntityFormComponent, EntityColumn, EntityFormMode } from '@employee-payroll/entity';
 import { Employee } from '../../models/employee.model';
 import { EmployeeSimpleFacade } from '../../facades/employee-simple.facade';
 
@@ -28,7 +29,8 @@ import { EmployeeSimpleFacade } from '../../facades/employee-simple.facade';
     NzTagModule,
     NzDescriptionsModule,
     NzAvatarModule,
-    NzSpinModule
+    NzSpinModule,
+    EntityFormComponent
   ],
   templateUrl: './employee-detail.component.html',
   styleUrls: ['./employee-detail.component.scss']
@@ -40,34 +42,99 @@ export class EmployeeDetailComponent implements OnInit, OnDestroy {
   private message = inject(NzMessageService);
   private cdr = inject(ChangeDetectorRef);
   
+  @ViewChild(EntityFormComponent) entityFormRef!: EntityFormComponent;
+  
   employee: Employee | null = null;
   loading = true;
   employeeId: string | null = null;
+  saving = false;
+  
+  // Form mode - edit mode to enable save functionality
+  formMode: EntityFormMode = {
+    mode: 'edit',
+    title: 'Employee Details'
+  };
+  
+  // ✅ Clean getter for type conversion
+  get employeeRecord(): Record<string, unknown> {
+    return this.employee as unknown as Record<string, unknown>;
+  }
+  
+  // Form fields configuration
+  fields: EntityColumn[] = [
+    {
+      key: 'fullName',
+      name: 'Full Name',
+      label: 'Full Name',
+      type: 'text',
+      required: true
+    },
+    {
+      key: 'email',
+      name: 'Email Address',
+      label: 'Email Address',
+      type: 'email',
+      required: true
+    },
+    {
+      key: 'phone',
+      name: 'Phone Number',
+      label: 'Phone Number',
+      type: 'text',
+      required: false
+    },
+    {
+      key: 'department',
+      name: 'Department',
+      label: 'Department',
+      type: 'select',
+      required: true,
+      options: ['Sales', 'Marketing', 'HR', 'Finance', 'IT']
+    },
+    {
+      key: 'position',
+      name: 'Position',
+      label: 'Position',
+      type: 'text',
+      required: true
+    },
+    {
+      key: 'joinDate',
+      name: 'Join Date',
+      label: 'Join Date',
+      type: 'date',
+      required: true
+    },
+    {
+      key: 'status',
+      name: 'Status',
+      label: 'Status',
+      type: 'select',
+      required: true,
+      options: ['Active', 'Inactive', 'On Leave']
+    },
+    {
+      key: 'baseSalary',
+      name: 'Base Salary',
+      label: 'Base Salary',
+      type: 'number',
+      required: false
+    }
+  ];
   
   private destroy$ = new Subject<void>();
 
   ngOnInit(): void {
-    this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe((params: any) => {
-      this.employeeId = params.get('id');
-      if (this.employeeId) {
-        this.loadEmployee(this.employeeId);
-      }
-    });
-
-    // Continuously subscribe to selectedEmployee for automatic updates
-    this.facade.selectedEmployee$.pipe(takeUntil(this.destroy$)).subscribe((employee: Employee | null) => {
-      this.employee = employee;
-      this.loading = false;
-      this.cdr.detectChanges(); // Trigger change detection
-    });
-
-    // Listen for route changes to refresh data when coming back from edit
-    this.route.params.pipe(takeUntil(this.destroy$)).subscribe(() => {
-      if (this.employeeId) {
-        // Force refresh of employee data
-        setTimeout(() => {
-          this.loadEmployee(this.employeeId!);
-        }, 100);
+    console.log('🔥 DETAIL COMPONENT INIT');
+    
+    this.route.paramMap.subscribe(params => {
+      const employeeId = params.get('id');
+      console.log('📌 Detail params:', employeeId);
+      if (employeeId) {
+        console.log('✅ EmployeeId found, calling loadEmployee');
+        this.loadEmployee(employeeId);
+      } else {
+        console.log('❌ No employeeId found in params');
       }
     });
   }
@@ -77,10 +144,43 @@ export class EmployeeDetailComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  // STEP 3 — LOAD DATA
   private loadEmployee(id: string): void {
+    console.log('🔥 loadEmployee called with id:', id);
     this.loading = true;
+    this.employeeId = id; // Make sure employeeId is set
+    console.log('🔥 Set employeeId to:', this.employeeId);
+    
     this.facade.loadEmployee(id);
-    // Note: Employee data will be updated by the continuous subscription to selectedEmployee$
+    
+    this.facade.selectedEmployee$
+      .pipe(filter(Boolean), takeUntil(this.destroy$))
+      .subscribe((employee) => {
+        console.log('✅ Loaded employee:', employee);
+        this.employee = employee;
+        this.loading = false;
+        this.cdr.detectChanges();
+      });
+  }
+
+  private loadEmployeeFromList(id: string): void {
+    // Get employee data from the list component's selection
+    this.facade.employees$.pipe(take(1)).subscribe((employees: Employee[]) => {
+      console.log('👀 Employees list:', employees);
+      console.log('🔍 Looking for ID:', id);
+
+      const employee = employees.find((emp: Employee) => emp.id === id);
+      console.log('🎯 Found employee:', employee);
+
+      if (employee) {
+        this.employee = employee;
+        this.loading = false;
+        this.cdr.detectChanges();
+      } else {
+        this.loading = false;
+        console.log('❌ Employee not found in list');
+      }
+    });
   }
 
   onEdit(): void {
@@ -99,14 +199,86 @@ export class EmployeeDetailComponent implements OnInit, OnDestroy {
         // Refresh employees list and navigate after a short delay
         setTimeout(() => {
           this.facade.loadEmployees();
-          this.router.navigate(['/employee']);
+          this.router.navigate(['../'], { relativeTo: this.route });
         }, 1000);
       }
     }
   }
 
+  onSave(formData: Record<string, unknown>): void {
+    console.log('🔥 onSave called with formData:', formData);
+    console.log('🔥 employeeId:', this.employeeId);
+    console.log('🔥 saving state:', this.saving);
+    
+    // Check if formData is a SubmitEvent (form submission issue)
+    if (formData && typeof formData === 'object' && 'isTrusted' in formData) {
+      console.log('❌ Received SubmitEvent instead of form data, blocking save');
+      return;
+    }
+    
+    if (!this.employeeId || this.saving) {
+      console.log('❌ onSave blocked - no employeeId or already saving');
+      return;
+    }
+    
+    console.log('✅ Starting save process...');
+    this.saving = true;
+    
+    // Debug the facade call
+    console.log('🔥 Calling facade.updateEmployee with:', this.employeeId, formData);
+    
+    // Update employee with form data
+    this.facade.updateEmployee(this.employeeId, formData);
+    
+    console.log('✅ facade.updateEmployee called');
+    // Remove duplicate success message - entity-form already shows one
+    
+    // Stop saving state after a delay
+    setTimeout(() => {
+      console.log('🔥 Resetting saving state to false');
+      this.saving = false;
+    }, 1000);
+  }
+
+  onResetLoadingState(): void {
+    this.saving = false;
+  }
+
+  onCancel(): void {
+    console.log('🔥 EmployeeDetail onCancel called - cancel event received!');
+    console.log('🔥 Cancel button clicked, resetting form to original state');
+    
+    if (this.employee) {
+      console.log('🔥 Employee exists, calling populateForm');
+      // Reset form to original employee data
+      this.populateForm(this.employee);
+      this.message.info('Changes discarded - form reset to original values');
+    } else {
+      console.log('❌ No employee data available to reset');
+    }
+  }
+
+  onTestEvent(): void {
+    console.log('🔥 Test event received - event binding works!');
+  }
+
+  private populateForm(employee: Employee): void {
+    console.log('🔥 populateForm called with employee:', employee);
+    
+    // Update employee object to trigger entity-form update
+    this.employee = { ...employee };
+    
+    // Reset loading state
+    this.onResetLoadingState();
+    
+    // Force change detection to update the form
+    this.cdr.detectChanges();
+    
+    console.log('🔥 Form reset triggered, employee updated:', this.employee);
+  }
+
   onBack(): void {
-    this.router.navigate(['/employee']);
+    this.router.navigate(['../'], { relativeTo: this.route });
   }
 
   getStatusColor(status: string): string {

@@ -58,19 +58,31 @@
       </div>
     </div>
 
-    <!-- Search -->
-    <div *ngIf="config.searchable" class="flex items-center">
-      <!-- <nz-input-group [nzSuffix]="suffixIconSearch">
-        <input
-          type="text" 
-          nz-input 
-          placeholder="Search..." 
-          [formControl]="searchControl"
-        />
-      </nz-input-group>
-      <ng-template #suffixIconSearch>
-        <i nz-icon nzType="search"></i>
-      </ng-template> -->
+    <!-- Header Action Button (Add Employee) -->
+    <div *ngIf="headerAction as action" class="flex items-center">
+      <ng-container *ngIf="action.routerLink; else buttonAction">
+        <a [routerLink]="action.routerLink"
+           nz-button
+           [nzType]="action.type === 'primary' ? 'default' : 'default'"
+           [nzDanger]="action.type === 'danger'"
+           class="flex items-center gap-1.5 shadow-sm rounded bg-orange-500 hover:bg-orange-600 border-orange-500 hover:border-orange-600 text-white">
+          <span nz-icon [nzType]="action.icon || 'plus'"></span>
+          {{ action.label }}
+        </a>
+      </ng-container>
+      
+      <ng-template #buttonAction>
+        <button nz-button
+               [nzType]="action.type === 'primary' ? 'default' : 'default'"
+               [nzDanger]="action.type === 'danger'"
+               [disabled]="isActionDisabled(action, null)"
+               (click)="onHeaderAction()"
+               class="flex items-center gap-1.5 shadow-sm rounded bg-orange-500 hover:bg-orange-600 border-orange-500 hover:border-orange-600 text-white"
+               style="cursor: pointer;">
+          <span nz-icon [nzType]="action.icon || 'plus'"></span>
+          {{ action.label }}
+        </button>
+      </ng-template>
     </div>
   </div>
 

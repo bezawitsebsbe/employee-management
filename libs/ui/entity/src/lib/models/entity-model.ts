@@ -62,7 +62,7 @@ export interface EntityAction<T = any> {
   type: 'view' | 'edit' | 'delete' | 'custom' | 'primary' | 'danger';
   callback?: (entity: T) => void;
   disabled?: (entity: T) => boolean;
-  routerLink?: (entity: T) => string[];
+  routerLink?: string | any[];
   visible?: (entity: T) => boolean;
 }
 
@@ -106,6 +106,7 @@ export interface EntityConfig<T = any> {
   detailUrl?: string;
   columns?: EntityColumn[];
   actions?: EntityAction<T>[];
+  headerAction?: EntityAction<T>;
   identity?: string; // Primary key field name
   visibleColumns?: EntityColumn[];
   showDetail?: boolean;
