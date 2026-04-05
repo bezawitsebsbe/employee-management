@@ -1,6 +1,6 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, OnChanges, SimpleChanges, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, ValidatorFn, FormControl } from '@angular/forms';
 import { RxwebValidators } from '@rxweb/reactive-form-validators';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
@@ -41,22 +41,28 @@ export interface EntityFormMode {
   templateUrl: './entity-form.component.html',
   styleUrls: ['./entity-form.component.scss']
 })
-export class EntityFormComponent implements OnInit, OnDestroy {
+export class EntityFormComponent implements OnInit, OnDestroy, OnChanges {
   @Input() visible = false;
   @Input() data: Record<string, unknown> = {};
   @Input() fields: EntityColumn[] = [];
   @Input() mode: EntityFormMode = { mode: 'create', title: 'Create Entity' };
   @Input() config: EntityConfig = {};
   @Input() standalone = false; // New property for standalone page usage
+  @Input() showActions = true; // Control form actions visibility
+  @Input() loading = false;
+  @Input() externalLoading = false; // New input for parent-controlled loading
+  @Input() readonly = false; // Add readonly input property
+  @Input() formKey: string | undefined; // Add formKey input for form instance isolation
 
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() submit = new EventEmitter<Record<string, unknown>>();
   @Output() cancel = new EventEmitter<void>();
+  @Output() resetLoadingState = new EventEmitter<void>();
+  @Output() testEvent = new EventEmitter<void>();
 
   @ViewChild('formElement') formElement!: ElementRef<HTMLFormElement>;
 
   entityForm!: FormGroup;
-  loading = false;
   private isSubmitting = false;
   private destroy$ = new Subject<void>();
 
@@ -66,7 +72,32 @@ export class EntityFormComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    console.log('🔥 EntityForm initialized');
+    console.log('🔥 EntityForm mode:', this.mode);
+    console.log('🔥 EntityForm standalone:', this.standalone);
     this.initializeForm();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    console.log('🔥 EntityForm ngOnChanges called:', changes);
+    
+    // If data changes and form is already initialized, patch the new data
+    if (changes['data'] && this.entityForm && !changes['data'].firstChange) {
+      console.log('🔥 Data changed, patching form with:', changes['data'].currentValue);
+      if ((this.mode.mode === 'edit' || this.mode.mode === 'view') && Object.keys(this.data).length > 0) {
+        this.patchFormData();
+      }
+    }
+    
+    // If readonly changes, update form state
+    if (changes['readonly'] && this.entityForm && !changes['readonly'].firstChange) {
+      console.log('🔥 Readonly changed to:', changes['readonly'].currentValue);
+      if (this.readonly) {
+        this.entityForm.disable();
+      } else {
+        this.entityForm.enable();
+      }
+    }
   }
 
   ngOnDestroy(): void {
@@ -75,7 +106,11 @@ export class EntityFormComponent implements OnInit, OnDestroy {
   }
 
   private initializeForm(): void {
-    const formGroup: Record<string, any> = {};
+    console.log(' EntityForm initializeForm called');
+    console.log(' EntityForm fields:', this.fields);
+    console.log(' EntityForm data:', this.data);
+    
+    const formGroup: Record<string, FormControl> = {};
 
     this.fields.forEach(field => {
       const validators = this.getValidators(field);
@@ -94,14 +129,21 @@ export class EntityFormComponent implements OnInit, OnDestroy {
 
     this.entityForm = this.fb.group(formGroup);
 
-    // Patch form with existing data for edit mode
-    if (this.mode.mode === 'edit' && Object.keys(this.data).length > 0) {
+    // Patch form with existing data for edit or view mode
+    if ((this.mode.mode === 'edit' || this.mode.mode === 'view') && Object.keys(this.data).length > 0) {
       this.patchFormData();
+    }
+
+    // Control form disabled state based on readonly property
+    if (this.readonly) {
+      this.entityForm.disable();
+    } else {
+      this.entityForm.enable();
     }
   }
 
-  private getValidators(field: EntityColumn): any[] {
-    const validators: any[] = [];
+  private getValidators(field: EntityColumn): ValidatorFn[] {
+    const validators: ValidatorFn[] = [];
 
     // Required field validation
     if (field.required) {
@@ -158,8 +200,46 @@ export class EntityFormComponent implements OnInit, OnDestroy {
   }
 
   private getDefaultValue(field: EntityColumn): unknown {
-    if (this.mode.mode === 'edit' && this.data[field.key] !== undefined) {
-      return this.data[field.key];
+    if ((this.mode.mode === 'edit' || this.mode.mode === 'view') && this.data[field.key] !== undefined) {
+      const value = this.data[field.key];
+      
+      // Convert dates to Date objects for NG-Zorro date picker
+      if (field.type === 'date') {
+        // Handle Firestore Timestamp objects
+        if (value && typeof value === 'object' && 'seconds' in value && 'nanoseconds' in value) {
+          const timestamp = value as { seconds: number; nanoseconds: number };
+          const dateObj = new Date(timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000);
+          return dateObj;
+        }
+        
+        // Handle string dates
+        if (typeof value === 'string') {
+          // Handle DD/MM/YYYY format
+          if (value.includes('/')) {
+            const [day, month, year] = value.split('/');
+            const dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+            return dateObj;
+          }
+          // Handle ISO date strings or other formats
+          try {
+            const dateObj = new Date(value);
+            if (!isNaN(dateObj.getTime())) {
+              return dateObj;
+            }
+          } catch {
+            console.warn('Invalid date format:', value);
+          }
+        }
+        
+        // Handle Date objects directly
+        if (value instanceof Date) {
+          return value;
+        }
+        
+        return null;
+      }
+      
+      return value;
     }
 
     switch (field.type) {
@@ -177,44 +257,115 @@ export class EntityFormComponent implements OnInit, OnDestroy {
   }
 
   private patchFormData(): void {
+    console.log('🔥 patchFormData called with data:', this.data);
     const patchData: Record<string, unknown> = {};
 
     this.fields.forEach(field => {
       if (this.data[field.key] !== undefined) {
-        patchData[field.key] = this.data[field.key];
+        const value = this.data[field.key];
+        
+        // Convert dates to Date objects for NG-Zorro date picker
+        if (field.type === 'date') {
+          // Handle Firestore Timestamp objects
+          if (value && typeof value === 'object' && 'seconds' in value && 'nanoseconds' in value) {
+            const timestamp = value as { seconds: number; nanoseconds: number };
+            const dateObj = new Date(timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000);
+            patchData[field.key] = dateObj;
+          }
+          // Handle string dates
+          else if (typeof value === 'string') {
+            // Handle DD/MM/YYYY format
+            if (value.includes('/')) {
+              const [day, month, year] = value.split('/');
+              const dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+              patchData[field.key] = dateObj;
+            } else {
+              // Handle ISO date strings or other formats
+              try {
+                const dateObj = new Date(value);
+                if (!isNaN(dateObj.getTime())) {
+                  patchData[field.key] = dateObj;
+                } else {
+                  patchData[field.key] = null;
+                }
+              } catch {
+                patchData[field.key] = null;
+              }
+            }
+          }
+          // Handle Date objects directly
+          else if (value instanceof Date) {
+            patchData[field.key] = value;
+          }
+          else {
+            patchData[field.key] = null;
+          }
+        } else {
+          patchData[field.key] = value;
+        }
       }
     });
 
+    console.log('🔥 Patching form with data:', patchData);
     this.entityForm.patchValue(patchData);
+    console.log('🔥 Form patched successfully');
   }
 
   onSubmit(): void {
+    console.log('🔥 EntityForm onSubmit called');
+    console.log('🔥 isSubmitting:', this.isSubmitting);
+    console.log('🔥 entityForm.valid:', this.entityForm.valid);
+    console.log('🔥 entityForm.value:', this.entityForm.value);
+    
     if (this.isSubmitting || this.entityForm.invalid) {
       if (this.entityForm.invalid) {
+        console.log('❌ Form invalid, marking as touched');
         this.markFormAsTouched();
         this.message.error('Please fill in all required fields correctly.');
       }
       return;
     }
 
+    console.log('✅ Form submission starting...');
     this.isSubmitting = true;
     this.loading = true;
     const formData = this.entityForm.value;
 
+    console.log('🔥 Emitting submit event with formData:', formData);
     this.submit.emit(formData);
     
-    // Reset submission flag after a delay
-    setTimeout(() => {
-      this.isSubmitting = false;
-      this.loading = false;
-    }, 1000);
+    // Show success message for standalone mode
+    if (this.standalone && this.mode.mode === 'edit') {
+      this.message.success('Employee updated successfully!');
+    } else if (this.standalone && this.mode.mode === 'create') {
+      this.message.success('Employee created successfully!');
+    }
+    
+    // Don't auto-reset loading if external loading is controlled
+    if (!this.externalLoading) {
+      // Reset submission flag after a delay
+      setTimeout(() => {
+        this.isSubmitting = false;
+        this.loading = false;
+      }, 1000);
+    }
   }
 
   onCancel(): void {
+    console.log('🔥 EntityForm onCancel called');
+    console.log('🔥 standalone:', this.standalone);
+    console.log('🔥 Emitting cancel event');
+    
+    // Test event binding
+    this.testEvent.emit();
+    console.log('🔥 Test event emitted');
+    
     if (this.standalone) {
       this.cancel.emit();
+      console.log('✅ Cancel event emitted for standalone mode');
     } else {
       this.visibleChange.emit(false);
+      console.log('✅ Modal close event emitted');
     }
   }
 
@@ -310,6 +461,16 @@ export class EntityFormComponent implements OnInit, OnDestroy {
 
     // Fallback message
     return `${field.name} is invalid`;
+  }
+
+  getErrorTip(field: EntityColumn): string {
+    const formControl = this.entityForm.get(field.key);
+
+    if (!formControl || !formControl.errors || !formControl.touched) {
+      return '';
+    }
+
+    return this.getErrorMessage(field);
   }
 
   // Modal helpers

@@ -17,6 +17,7 @@ import { Subject } from 'rxjs';
 
 import {
   EntityColumn,
+  EntityAction,
   EntitySetting,
   EntityConfig,
   EntityTableData,
@@ -67,6 +68,8 @@ export class EntityTableComponent implements OnInit, OnDestroy {
   showFilters: true  // ✅ Changed to true by default
 };
   @Input() viewMode: ViewMode = { mode: 'list', label: 'List' };
+
+  @Input() headerAction: EntityAction | null = null;
 
   @Output() sortChange = new EventEmitter<SortEvent>();
   @Output() currentPageDataChange = new EventEmitter<any[]>();
@@ -141,6 +144,10 @@ export class EntityTableComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    console.log(' EntityTable ngOnInit called');
+    console.log(' headerAction input:', this.headerAction);
+    console.log(' setting input:', this.setting);
+    
     this.initializeDefaults();
 
     this.searchControl.valueChanges.subscribe(value => {
@@ -210,10 +217,10 @@ export class EntityTableComponent implements OnInit, OnDestroy {
       useClickHandler: this.setting.useClickHandler || false,
       detailUrl: this.setting.detailUrl || 'detail',
       visibleColumns: this.setting.visibleColumns || [],
-      showTabs: this.setting.showTabs !== false,  // ✅ Preserve showTabs setting
-      showFilters: this.setting.showFilters !== false,  // ✅ Preserve showFilters setting
-      tabType: this.setting.tabType || 'employee',  // ✅ Preserve tabType setting
-      actions: this.setting.actions || [],  // ✅ Preserve actions setting
+      showTabs: this.setting.showTabs !== false,  // Preserve showTabs setting
+      showFilters: this.setting.showFilters !== false,  // Preserve showFilters setting
+      tabType: this.setting.tabType || 'employee',  // Preserve tabType setting
+      actions: this.setting.actions || [],  // Preserve actions setting
       primaryColumn: this.setting.primaryColumn || {
         key: 'id',
         name: 'ID',
@@ -224,6 +231,41 @@ export class EntityTableComponent implements OnInit, OnDestroy {
         onChild: false
       }
     };
+  }
+
+  private updateConfig(): void {
+    console.log(' EntityTable updateConfig called');
+    console.log(' this.headerAction before update:', this.headerAction);
+    
+    this.config = {
+      title: this.setting.title || 'Entities',
+      searchable: this.setting.searchable !== false,
+      paginated: this.setting.paginated !== false,
+      pageSize: this.setting.pageSize || 10,
+      showSizeChanger: this.setting.showSizeChanger !== false,
+      frontPagination: this.setting.frontPagination !== false,
+      loading: this.setting.loading || false,
+      otherView: this.setting.otherView || false,
+      useClickHandler: this.setting.useClickHandler || false,
+      detailUrl: this.setting.detailUrl || 'detail',
+      visibleColumns: this.setting.visibleColumns || [],
+      showTabs: this.setting.showTabs !== false,  // Preserve showTabs setting
+      showFilters: this.setting.showFilters !== false,  // Preserve showFilters setting
+      tabType: this.setting.tabType || 'employee',  // Preserve tabType setting
+      actions: this.setting.actions || [],  // Preserve actions setting
+      primaryColumn: this.setting.primaryColumn || {
+        key: 'id',
+        name: 'ID',
+        label: 'ID',
+        type: 'text',
+        hideSort: false,
+        tdClass: '',
+        onChild: false
+      }
+    };
+    
+    console.log(' this.headerAction after update:', this.headerAction);
+    console.log(' config created:', this.config);
   }
 
   // Table events
@@ -293,9 +335,11 @@ export class EntityTableComponent implements OnInit, OnDestroy {
     
     // Handle router navigation if routerLink is defined
     if (action?.routerLink) {
-      const route = action.routerLink(data);
-      if (route) {
-        this.router.navigate(route);
+      if (typeof action.routerLink === 'string') {
+        this.router.navigate([action.routerLink]);
+        return;
+      } else if (Array.isArray(action.routerLink)) {
+        this.router.navigate(action.routerLink);
         return;
       }
     }
@@ -364,7 +408,20 @@ export class EntityTableComponent implements OnInit, OnDestroy {
 
   // Check if action is disabled
   isActionDisabled(action: any, item: any): boolean {
-    return action.disabled ? action.disabled(item) : false;
+    console.log('🔥 isActionDisabled called for action:', action.key);
+    console.log('🔥 action.disabled function:', action.disabled);
+    console.log('🔥 item:', item);
+    console.log('🔥 loading state:', this.itemsLoading);
+    
+    // For header actions, item is null, so don't check disabled function
+    if (item === null && !action.disabled) {
+      console.log('🔥 Header action - always enabled');
+      return false;
+    }
+    
+    const result = action.disabled ? action.disabled(item) : false;
+    console.log('🔥 result:', result);
+    return result;
   }
 
   // Get visible columns
@@ -522,5 +579,30 @@ export class EntityTableComponent implements OnInit, OnDestroy {
   getUniqueStatuses(): string[] {
     const statuses = [...new Set(this.data.items.map(item => item.status).filter(Boolean))];
     return statuses.sort();
+  }
+
+  // Handle header action clicks
+  onHeaderAction(): void {
+    // Add persistent debug that won't disappear
+    console.warn('� HEADER ACTION CLICKED - PERSISTENT LOG');
+    console.warn('� headerAction:', JSON.stringify(this.headerAction));
+    
+    // Store in window for persistent debugging
+    (window as any).lastHeaderActionClick = {
+      timestamp: new Date().toISOString(),
+      action: this.headerAction?.key,
+      callback: !!this.headerAction?.callback
+    };
+    
+    if (this.headerAction?.callback) {
+      console.warn('� Executing header action callback');
+      this.headerAction.callback(null);
+    }
+    
+    // Emit action event for router link handling
+    if (this.headerAction) {
+      console.warn('� Emitting action event:', this.headerAction.key);
+      this.action.emit({ action: this.headerAction.key, data: null });
+    }
   }
 }
