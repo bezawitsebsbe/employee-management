@@ -408,19 +408,19 @@ export class EntityTableComponent implements OnInit, OnDestroy {
 
   // Check if action is disabled
   isActionDisabled(action: any, item: any): boolean {
-    console.log('🔥 isActionDisabled called for action:', action.key);
-    console.log('🔥 action.disabled function:', action.disabled);
-    console.log('🔥 item:', item);
-    console.log('🔥 loading state:', this.itemsLoading);
+    console.log(' isActionDisabled called for action:', action.key);
+    console.log(' action.disabled function:', action.disabled);
+    console.log(' item:', item);
+    console.log(' loading state:', this.itemsLoading);
     
     // For header actions, item is null, so don't check disabled function
     if (item === null && !action.disabled) {
-      console.log('🔥 Header action - always enabled');
+      console.log(' Header action - always enabled');
       return false;
     }
     
     const result = action.disabled ? action.disabled(item) : false;
-    console.log('🔥 result:', result);
+    console.log(' result:', result);
     return result;
   }
 
@@ -584,8 +584,8 @@ export class EntityTableComponent implements OnInit, OnDestroy {
   // Handle header action clicks
   onHeaderAction(): void {
     // Add persistent debug that won't disappear
-    console.warn('� HEADER ACTION CLICKED - PERSISTENT LOG');
-    console.warn('� headerAction:', JSON.stringify(this.headerAction));
+    console.warn(' HEADER ACTION CLICKED - PERSISTENT LOG');
+    console.warn(' headerAction:', JSON.stringify(this.headerAction));
     
     // Store in window for persistent debugging
     (window as any).lastHeaderActionClick = {
@@ -595,13 +595,13 @@ export class EntityTableComponent implements OnInit, OnDestroy {
     };
     
     if (this.headerAction?.callback) {
-      console.warn('� Executing header action callback');
+      console.warn(' Executing header action callback');
       this.headerAction.callback(null);
     }
     
     // Emit action event for router link handling
     if (this.headerAction) {
-      console.warn('� Emitting action event:', this.headerAction.key);
+      console.warn(' Emitting action event:', this.headerAction.key);
       this.action.emit({ action: this.headerAction.key, data: null });
     }
   }
