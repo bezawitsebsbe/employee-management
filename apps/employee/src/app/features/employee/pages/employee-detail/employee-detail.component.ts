@@ -55,7 +55,7 @@ export class EmployeeDetailComponent implements OnInit, OnDestroy {
     title: 'Employee Details'
   };
   
-  // ✅ Clean getter for type conversion
+  
   get employeeRecord(): Record<string, unknown> {
     return this.employee as unknown as Record<string, unknown>;
   }
@@ -125,16 +125,16 @@ export class EmployeeDetailComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   ngOnInit(): void {
-    console.log('🔥 DETAIL COMPONENT INIT');
+    console.log(' DETAIL COMPONENT INIT');
     
     this.route.paramMap.subscribe(params => {
       const employeeId = params.get('id');
-      console.log('📌 Detail params:', employeeId);
+      console.log(' Detail params:', employeeId);
       if (employeeId) {
-        console.log('✅ EmployeeId found, calling loadEmployee');
+        console.log(' EmployeeId found, calling loadEmployee');
         this.loadEmployee(employeeId);
       } else {
-        console.log('❌ No employeeId found in params');
+        console.log(' No employeeId found in params');
       }
     });
   }
@@ -146,17 +146,17 @@ export class EmployeeDetailComponent implements OnInit, OnDestroy {
 
   // STEP 3 — LOAD DATA
   private loadEmployee(id: string): void {
-    console.log('🔥 loadEmployee called with id:', id);
+    console.log(' loadEmployee called with id:', id);
     this.loading = true;
     this.employeeId = id; // Make sure employeeId is set
-    console.log('🔥 Set employeeId to:', this.employeeId);
+    console.log(' Set employeeId to:', this.employeeId);
     
     this.facade.loadEmployee(id);
     
     this.facade.selectedEmployee$
       .pipe(filter(Boolean), takeUntil(this.destroy$))
       .subscribe((employee) => {
-        console.log('✅ Loaded employee:', employee);
+        console.log(' Loaded employee:', employee);
         this.employee = employee;
         this.loading = false;
         this.cdr.detectChanges();
@@ -166,11 +166,9 @@ export class EmployeeDetailComponent implements OnInit, OnDestroy {
   private loadEmployeeFromList(id: string): void {
     // Get employee data from the list component's selection
     this.facade.employees$.pipe(take(1)).subscribe((employees: Employee[]) => {
-      console.log('👀 Employees list:', employees);
-      console.log('🔍 Looking for ID:', id);
-
+     
       const employee = employees.find((emp: Employee) => emp.id === id);
-      console.log('🎯 Found employee:', employee);
+      console.log(' Found employee:', employee);
 
       if (employee) {
         this.employee = employee;
@@ -178,7 +176,7 @@ export class EmployeeDetailComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       } else {
         this.loading = false;
-        console.log('❌ Employee not found in list');
+        console.log(' Employee not found in list');
       }
     });
   }
@@ -206,36 +204,34 @@ export class EmployeeDetailComponent implements OnInit, OnDestroy {
   }
 
   onSave(formData: Record<string, unknown>): void {
-    console.log('🔥 onSave called with formData:', formData);
-    console.log('🔥 employeeId:', this.employeeId);
-    console.log('🔥 saving state:', this.saving);
+    
     
     // Check if formData is a SubmitEvent (form submission issue)
     if (formData && typeof formData === 'object' && 'isTrusted' in formData) {
-      console.log('❌ Received SubmitEvent instead of form data, blocking save');
+      console.log(' Received SubmitEvent instead of form data, blocking save');
       return;
     }
     
     if (!this.employeeId || this.saving) {
-      console.log('❌ onSave blocked - no employeeId or already saving');
+      console.log(' onSave blocked - no employeeId or already saving');
       return;
     }
     
-    console.log('✅ Starting save process...');
+    console.log(' Starting save process...');
     this.saving = true;
     
     // Debug the facade call
-    console.log('🔥 Calling facade.updateEmployee with:', this.employeeId, formData);
+    console.log(' Calling facade.updateEmployee with:', this.employeeId, formData);
     
     // Update employee with form data
     this.facade.updateEmployee(this.employeeId, formData);
     
-    console.log('✅ facade.updateEmployee called');
+    console.log(' facade.updateEmployee called');
     // Remove duplicate success message - entity-form already shows one
     
     // Stop saving state after a delay
     setTimeout(() => {
-      console.log('🔥 Resetting saving state to false');
+      console.log(' Resetting saving state to false');
       this.saving = false;
     }, 1000);
   }

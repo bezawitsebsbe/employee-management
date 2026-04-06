@@ -39,9 +39,7 @@ export class EmployeeListComponent implements OnInit, OnDestroy {
       const childRoute = this.route.firstChild;
       const hasChild = !!childRoute;
       const childPath = childRoute?.snapshot?.routeConfig?.path;
-      console.log('🔥 hasDetail$ updated:', hasChild);
-      console.log('🔥 Current URL:', this.router.url);
-      console.log('🔥 First child route:', childPath);
+     
       return hasChild;
     }),
     startWith(false)
@@ -193,7 +191,7 @@ export class EmployeeListComponent implements OnInit, OnDestroy {
   // Add Employee action for table header
   addEmployeeAction: EntityAction = {
     key: 'add',
-    label: 'Add Employee',
+    label: 'New Employee',
     icon: 'plus',
     type: 'primary',
     routerLink: ['add']
