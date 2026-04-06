@@ -214,7 +214,7 @@ export class EmployeeState {
           selectedEmployee: { ...realEmployee, ...(payload.changes || {}) }
         });
 
-        this.notification.success(this.success, 'Employee Updated Successfully');
+      
         this.updateSuccessShown = true; // Mark as shown
         
         // Reset flag after a delay to allow future updates
