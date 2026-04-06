@@ -1,24 +1,14 @@
 import { Routes } from '@angular/router';
-import { AUTH_ROUTES } from '@employee-payroll/features';
+import { authRoutes } from '@employee-payroll/core';
 import { DashboardComponent } from '@employee-payroll/features';
 import { NavbarComponent } from '@employee-payroll/navbar';
 import { navResolver } from '@employee-payroll/navbar';
-import { AuthGuard, NoAuthGuard } from '@employee-payroll/features';
-import { EMPLOYEE_ROUTES } from './features/employee/employee.routing';
-import { ATTENDANCE_ROUTES } from './features/attendance/attendance.routing';
+import { AuthGuard} from '@employee-payroll/core';
+
 
 
 export const appRoutes: Routes = [
-  {
-    path: '',
-    redirectTo: '/auth',
-    pathMatch: 'full',
-  },
-  {
-    path: 'auth',
-    children: AUTH_ROUTES,
-    canActivate: [NoAuthGuard],
-  },
+  ...authRoutes, 
   {
   path: '',
   component: NavbarComponent,
@@ -53,6 +43,6 @@ export const appRoutes: Routes = [
 },
   {
     path: '**',
-    redirectTo: '/auth',
+    redirectTo: '/signin',
   },
 ];
