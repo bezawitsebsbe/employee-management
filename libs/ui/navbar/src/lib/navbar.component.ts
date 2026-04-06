@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
-import { AuthFacade } from '@employee-payroll/features';
+import { AuthFacade } from '@employee-payroll/core';
 import {NavItem} from './nav.resolver';
 
 @Component({

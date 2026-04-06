@@ -1,2 +1,1 @@
-export * from './lib/activity-tracker.service';
-
+export * from '../auth/src/index';
