@@ -112,7 +112,7 @@ export class NewEmployeeComponent implements OnInit {
     
     // Create employee
     this.facade.createEmployee(employeeData);
-    this.message.success('Employee created successfully!');
+   
     
     // Refresh employee list to show new employee
     this.facade.loadEmployees();
