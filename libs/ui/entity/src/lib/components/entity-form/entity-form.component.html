@@ -245,30 +245,47 @@
     </div>
 
     <!-- Form Actions -->
-    <div *ngIf="showActions" class="form-actions mt-10 pt-6 border-t border-gray-200 flex justify-end gap-4">
+    <div *ngIf="showActions" class="form-actions mt-10 pt-6 border-t border-gray-200 flex justify-between gap-4">
+      <!-- Left side - Delete button -->
       <button 
-        *ngIf="!readonly"
+        *ngIf="mode.mode === 'edit' && !readonly"
         nz-button 
         nzType="default" 
-        (click)="onCancel(); $event.preventDefault()" 
+        nzDanger
+        (click)="$event.stopPropagation(); onDelete(); $event.preventDefault()" 
         [disabled]="loading"
         class="min-w-[120px]"
         type="button"
       >
-        Cancel
+        Delete
       </button>
-      <button 
-        *ngIf="!readonly"
-        nz-button 
-        nzType="primary" 
-        (click)="onSubmit()" 
-        [nzLoading]="loading || externalLoading"
-        [disabled]="entityForm.invalid || loading || externalLoading"
-        class="min-w-[140px] bg-orange-500 hover:bg-orange-600 border-orange-500 hover:border-orange-600"
-        type="button"
-      >
-        {{ mode.mode === 'create' ? 'Create Employee' : 'Update Employee' }}
-      </button>
+      
+      <!-- Right side - Cancel and Update buttons -->
+      <div class="flex gap-4">
+        <button 
+          *ngIf="!readonly"
+          nz-button 
+          nzType="default" 
+          (click)="onCancel(); $event.preventDefault()" 
+          [disabled]="loading"
+          class="min-w-[120px]"
+          type="button"
+        >
+          Cancel
+        </button>
+        <button 
+          *ngIf="!readonly"
+          nz-button 
+          nzType="primary" 
+          (click)="onSubmit()" 
+          [nzLoading]="loading || externalLoading"
+          [disabled]="entityForm.invalid || loading || externalLoading"
+          class="min-w-[140px] bg-orange-500 hover:bg-orange-600 border-orange-500 hover:border-orange-600"
+          type="button"
+        >
+          {{ mode.mode === 'create' ? 'Create Employee' : 'Update Employee' }}
+        </button>
+      </div>
     </div>
   </form>
 </div>

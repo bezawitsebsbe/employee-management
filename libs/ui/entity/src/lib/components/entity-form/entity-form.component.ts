@@ -57,6 +57,7 @@ export class EntityFormComponent implements OnInit, OnDestroy, OnChanges {
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() submit = new EventEmitter<Record<string, unknown>>();
   @Output() cancel = new EventEmitter<void>();
+  @Output() delete = new EventEmitter<Record<string, unknown>>();
   @Output() resetLoadingState = new EventEmitter<void>();
   @Output() testEvent = new EventEmitter<void>();
 
@@ -367,6 +368,14 @@ export class EntityFormComponent implements OnInit, OnDestroy, OnChanges {
       this.visibleChange.emit(false);
       console.log('✅ Modal close event emitted');
     }
+  }
+
+  onDelete(): void {
+    console.log('🔥 EntityForm onDelete called');
+    
+    // Emit delete event with current form data
+    this.delete.emit(this.entityForm.value);
+    console.log('✅ Delete event emitted');
   }
 
   private markFormAsTouched(): void {
