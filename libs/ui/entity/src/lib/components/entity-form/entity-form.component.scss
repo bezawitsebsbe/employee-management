@@ -11,8 +11,23 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .gap-x-8 {
+    column-gap: 2rem;
+  }
+
+  .gap-y-7 {
+    row-gap: 1rem; // Reduced from 1.75rem to minimize vertical gap
+  }
+
   .gap-4 {
     gap: 1rem;
+  }
+
+  // Ensure 2-column layout works on larger screens
+  @media (min-width: 768px) {
+    .grid-cols-1.md\:grid-cols-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
 
   .form-field {
@@ -46,6 +61,43 @@
     width: 100%;
   }
 
+  // Consistent form layout
+  ::ng-deep .ant-form-item {
+    margin-bottom: 24px;
+  }
+
+  ::ng-deep .ant-form-item-label {
+    text-align: left;
+    padding-bottom: 8px;
+    line-height: 1.4;
+  }
+
+  ::ng-deep .ant-form-item-label > label {
+    height: auto;
+    font-weight: 500;
+    color: #374151;
+    font-size: 14px;
+  }
+
+  ::ng-deep .ant-form-item-control {
+    line-height: 1.4;
+  }
+
+  // Ensure all form items have consistent layout
+  ::ng-deep .ant-form-item {
+    display: block;
+    flex-direction: column;
+  }
+
+  ::ng-deep .ant-form-item-row {
+    flex-direction: column;
+  }
+
+  ::ng-deep .ant-col {
+    flex: 0 0 auto;
+    max-width: 100%;
+  }
+
   // Checkbox styling
   nz-checkbox {
     margin-top: 8px;
@@ -59,8 +111,32 @@
   // Modal content styling
   ::ng-deep .ant-modal-body {
     padding: 24px;
-    max-height: 70vh;
+    max-height: 50vh;
     overflow-y: auto;
+    // Add padding to prevent scrollbar overlap with close button
+    padding-right: 32px;
+    
+    // Make scrollbar shorter to prevent overlap
+    &::-webkit-scrollbar {
+      width: 6px; // Reduced from 8px
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 3px; // Reduced from 4px
+      // Shorten the scrollbar track
+      margin-top: 50px; // Add top margin to avoid close button
+      margin-bottom: 20px;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 3px; // Reduced from 4px
+      
+      &:hover {
+        background: #a8a8a8;
+      }
+    }
   }
 
   ::ng-deep .ant-modal-header {
@@ -144,6 +220,35 @@
 
 .form-field {
   margin-bottom: 4px;
+}
+
+.entity-form-container,
+.employee-detail-container,
+.new-employee-container {
+  // Add padding to prevent scrollbar overlap with close button
+  padding-right: 16px;
+  
+  // Make scrollbar shorter to prevent overlap
+  &::-webkit-scrollbar {
+    width: 6px; // Reduced from 8px
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px; // Reduced from 4px
+    // Shorten the scrollbar track
+    margin-top: 40px; // Add top margin to avoid close button
+    margin-bottom: 20px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px; // Reduced from 4px
+    
+    &:hover {
+      background: #a8a8a8;
+    }
+  }
 }
 
 .standalone-form-container {

@@ -62,7 +62,7 @@ export interface EntityAction<T = any> {
   type: 'view' | 'edit' | 'delete' | 'custom' | 'primary' | 'danger';
   callback?: (entity: T) => void;
   disabled?: (entity: T) => boolean;
-  routerLink?: string | any[];
+  routerLink?: string | any[] | ((entity: T) => string[]);
   visible?: (entity: T) => boolean;
 }
 

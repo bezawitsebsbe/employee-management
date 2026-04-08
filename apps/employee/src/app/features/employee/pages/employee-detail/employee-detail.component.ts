@@ -187,18 +187,20 @@ export class EmployeeDetailComponent implements OnInit, OnDestroy {
     }
   }
 
-  onDelete(): void {
+  onDelete($event: any): void {
     if (this.employee && this.employeeId) {
-      // Show confirmation dialog
-      if (confirm(`Are you sure you want to delete employee "${this.employee.fullName}"?`)) {
+      // Show confirmation dialog using browser confirm
+      if (confirm(`Are you sure you want to delete employee "${this.employee.fullName}"? This action cannot be undone.`)) {
+        // Delete employee and wait for completion
         this.facade.deleteEmployee(this.employeeId);
         this.message.success('Employee deleted successfully');
         
-        // Refresh employees list and navigate after a short delay
+        // Navigate back to parent route to reset to full table view
+        // Add a longer delay to ensure delete operation completes and auth state is stable
         setTimeout(() => {
           this.facade.loadEmployees();
           this.router.navigate(['../'], { relativeTo: this.route });
-        }, 1000);
+        }, 2000);
       }
     }
   }

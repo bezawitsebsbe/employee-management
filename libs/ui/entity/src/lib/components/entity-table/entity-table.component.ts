@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ViewChild, TemplateRef, ChangeDetectorRef, ContentChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule, Router, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -12,8 +12,8 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzSelectModule } from 'ng-zorro-antd/select';
-import { NzTabsModule } from 'ng-zorro-antd/tabs';
-import { Subject } from 'rxjs';
+import { Subject, Observable } from 'rxjs';
+import { map, startWith, filter } from 'rxjs/operators';
 
 import {
   EntityColumn,
@@ -43,8 +43,7 @@ import {
     NzInputModule,
     NzTagModule,
     NzAvatarModule,
-    NzSelectModule,
-    NzTabsModule
+    NzSelectModule
   ],
   templateUrl: './entity-table.component.html',
   styleUrls: ['./entity-table.component.scss']
@@ -64,7 +63,6 @@ export class EntityTableComponent implements OnInit, OnDestroy {
     onChild: false
   },
   favorite: false,  // ✅ Add favorite property
-  showTabs: true,  // ✅ Changed to true by default
   showFilters: true  // ✅ Changed to true by default
 };
   @Input() viewMode: ViewMode = { mode: 'list', label: 'List' };
@@ -87,6 +85,14 @@ export class EntityTableComponent implements OnInit, OnDestroy {
 
   @ViewChild('row') table: any;
 
+  // Router-related properties
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private cdr = inject(ChangeDetectorRef);
+  
+  // Observable for detail panel visibility - shows for detail and add routes
+  hasDetail$ = new Observable<boolean>();
+
   // Form controls
   searchControl = new FormControl('');
   departmentControl = new FormControl('');
@@ -99,7 +105,6 @@ export class EntityTableComponent implements OnInit, OnDestroy {
   searchTerm = '';
   departmentFilter = '';
   statusFilter = '';
-  activeTab = 0;
   mapOfCheckedId: { [key: string]: boolean } = {};
   isIndeterminate = false;
   allChecked = false;
@@ -109,9 +114,6 @@ export class EntityTableComponent implements OnInit, OnDestroy {
   @ContentChild('childViewCellTemplate') childViewCellTemplate: TemplateRef<any> | null = null;
 
   private destroy$ = new Subject<void>();
-
-  private router = inject(Router);
-  private cdr = inject(ChangeDetectorRef);
 
   // constructor() {}
 
@@ -129,7 +131,6 @@ export class EntityTableComponent implements OnInit, OnDestroy {
     this.searchTerm = '';
     this.departmentFilter = '';
     this.statusFilter = '';
-    this.activeTab = 0;
     this.applyFilters();
   }
 
@@ -147,6 +148,17 @@ export class EntityTableComponent implements OnInit, OnDestroy {
     console.log(' EntityTable ngOnInit called');
     console.log(' headerAction input:', this.headerAction);
     console.log(' setting input:', this.setting);
+    
+    // Initialize hasDetail$ observable
+    this.hasDetail$ = this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd),
+      map(() => {
+        const childRoute = this.route.firstChild;
+        const hasChild = !!childRoute;
+        return hasChild;
+      }),
+      startWith(false)
+    );
     
     this.initializeDefaults();
 
@@ -341,6 +353,13 @@ export class EntityTableComponent implements OnInit, OnDestroy {
       } else if (Array.isArray(action.routerLink)) {
         this.router.navigate(action.routerLink);
         return;
+      } else if (typeof action.routerLink === 'function') {
+        const route = (action.routerLink as (data: any) => string[])(data);
+        if (Array.isArray(route)) {
+          // Navigate to absolute employee detail route
+          this.router.navigate(['/employee/detail', route[1]]);
+          return;
+        }
       }
     }
     
@@ -360,7 +379,15 @@ export class EntityTableComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Routing
+  // Resolve routerLink for template binding
+  getActionRouterLink(action: EntityAction, data?: any): string[] | string {
+    if (typeof action.routerLink === 'function') {
+      return (action.routerLink as (data: any) => string[])(data) || [];
+    }
+    return action.routerLink || [];
+  }
+
+  // Routing for primary column and detail buttons
   getRouting(item: any): string[] {
     if (this.config?.routing) {
       return this.config.routing(item);
@@ -375,15 +402,14 @@ export class EntityTableComponent implements OnInit, OnDestroy {
 
   // Get display value for column
   getDisplayValue(item: any, column: EntityColumn): string {
-    const value = item[column.key];
-    
-    // Debug logging for empId column
-    if (column.key === 'empId') {
-      console.log('Displaying empId for item:', item);
-      console.log('empId value:', value);
-      console.log('Available keys:', Object.keys(item));
+    // Skip processing if item is invalid
+    if (!item || typeof item !== 'object') {
+      return '';
     }
     
+    const value = item[column.key];
+    
+    // Ensure we have a valid string value
     if (value === null || value === undefined) {
       return '';
     }
@@ -403,7 +429,17 @@ export class EntityTableComponent implements OnInit, OnDestroy {
       return value ? column.booleanValue.true : column.booleanValue.false;
     }
 
-    return value.toString();
+    // Ensure we return a proper string with fallback
+    let stringValue: string;
+    if (typeof value === 'string') {
+      stringValue = value;
+    } else if (typeof value === 'number') {
+      stringValue = value.toString();
+    } else {
+      stringValue = String(value || '');
+    }
+    
+    return stringValue;
   }
 
   // Check if action is disabled
@@ -424,8 +460,9 @@ export class EntityTableComponent implements OnInit, OnDestroy {
     return result;
   }
 
-  // Get visible columns
+  // Get visible columns based on detail state
   get visibleColumns(): EntityColumn[] {
+    // Return all configured visible columns
     return this.setting?.visibleColumns || [];
   }
 
@@ -501,48 +538,21 @@ export class EntityTableComponent implements OnInit, OnDestroy {
     this.applyFilters();
   }
 
-  onTabChange(index: number): void {
-    this.activeTab = index;
-    this.applyFilters();
-  }
 
   private applyFilters(): void {
     const filters: any = {
       search: this.searchTerm,
       department: this.departmentFilter,
-      status: this.statusFilter,
-      activeTab: this.activeTab
+      status: this.statusFilter
     };
 
     // Emit filter changes for parent component to handle
     this.filtersChange.emit(filters);
   }
 
-  // Get filtered items based on active tab
+  // Get filtered items based on filters
   getFilteredItems(): any[] {
     let items = [...this.data.items];
-
-    // Filter by tab type
-    if (this.setting.tabType === 'attendance') {
-      // Attendance tabs: All, Present, Absent
-      if (this.activeTab === 1) {
-        // Present tab
-        items = items.filter(item => item.status === 'Present');
-      } else if (this.activeTab === 2) {
-        // Absent tab
-        items = items.filter(item => item.status === 'Absent' || item.status === 'Late');
-      }
-      // Tab 0 (All) shows all items
-    } else {
-      // Employee tabs: Active, Inactive
-      if (this.activeTab === 0) {
-        // Active employees tab
-        items = items.filter(item => item.status === 'Active');
-      } else if (this.activeTab === 1) {
-        // Inactive employees tab
-        items = items.filter(item => item.status === 'Inactive' || item.status === 'On Leave');
-      }
-    }
 
     // Apply search filter
     if (this.searchTerm) {
@@ -604,5 +614,10 @@ export class EntityTableComponent implements OnInit, OnDestroy {
       console.warn(' Emitting action event:', this.headerAction.key);
       this.action.emit({ action: this.headerAction.key, data: null });
     }
+  }
+
+  // Close detail panel
+  closeDetail(): void {
+    this.router.navigate(['/employee']);
   }
 }
